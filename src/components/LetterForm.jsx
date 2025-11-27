@@ -16,7 +16,6 @@ function LetterForm({ user, credential }) {
   const letterTemplate = `To,
 The Chief Executive Officer
 [State Waqf Board]
-[Address]
 
 Subject: Submission of Registration Documents UNDER SOLEMN PROTEST – Complete Reservation of All Legal, Constitutional, Islamic and Property Rights (No Waiver / No Acquiescence)
 
