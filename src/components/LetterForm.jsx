@@ -154,6 +154,7 @@ Identity and Mutawalli appointment proof`
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState(null)
   const [iCheckboxChecked, setICheckboxChecked] = useState(true) // Default checked
+  const [showPreview, setShowPreview] = useState(false) // Preview modal state
   const [attachments, setAttachments] = useState({
     registrationForms: null,
     titleDocuments: null,
@@ -246,7 +247,8 @@ Identity and Mutawalli appointment proof`
     finalContent = finalContent.replace('[CURRENT_DATE]', getCurrentDate())
     
     // Replace I_CHECKBOX with checkbox symbol
-    const checkboxSymbol = iCheckboxChecked ? '☑' : '☐'
+    // Use text-based checkbox for better PDF compatibility
+    const checkboxSymbol = iCheckboxChecked ? '[✓]' : '[ ]'
     finalContent = finalContent.replace('[I_CHECKBOX]', checkboxSymbol)
     
     // Get Mutawalli name for signature
@@ -557,49 +559,79 @@ Identity and Mutawalli appointment proof`
   }
 
   const generatePDFBlob = () => {
-    const letterContent = generateFinalLetter()
+    let letterContent = generateFinalLetter()
+    
+    // Replace checkbox symbols with PDF-compatible text
+    // Replace [✓] with [X] for checked checkbox
+    letterContent = letterContent.replace(/\[✓\]/g, '[X]')
+    // Replace Unicode checkbox symbols if they exist
+    letterContent = letterContent.replace(/☑/g, '[X]')
+    letterContent = letterContent.replace(/☐/g, '[ ]')
     
     // Create new PDF document
     const doc = new jsPDF()
     
-    // Set margins to match email body layout
-    const margin = 20
+    // Professional margins - more space on all sides
+    const topMargin = 30
+    const bottomMargin = 25
+    const leftMargin = 25
+    const rightMargin = 25
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
-    const maxWidth = pageWidth - (margin * 2)
+    const maxWidth = pageWidth - (leftMargin + rightMargin)
     
-    // Split text into lines - match email body formatting
-    const lines = letterContent.split('\n')
-    let yPosition = margin
-    const lineHeight = 6 // Match email body line-height: 1.6 * fontSize
-    const fontSize = 11 // Match email body font size
+    // Professional font settings
+    const fontSize = 11
+    const lineHeight = 6.5 // Slightly more spacing for readability
+    const paragraphSpacing = 4 // Extra space between paragraphs
     
     doc.setFontSize(fontSize)
     doc.setFont('helvetica', 'normal')
     
+    // Split text into lines
+    const lines = letterContent.split('\n')
+    let yPosition = topMargin
+    
     lines.forEach((line, lineIndex) => {
-      // Handle empty lines - preserve spacing like email
+      // Handle empty lines - add paragraph spacing
       if (line.trim() === '') {
-        yPosition += lineHeight * 0.5 // Half line spacing for empty lines
+        yPosition += paragraphSpacing
         return
       }
       
-      // Handle long lines - split them
-      const splitLines = doc.splitTextToSize(line, maxWidth)
-      
-      // Check if we need a new page
-      if (yPosition + (splitLines.length * lineHeight) > pageHeight - margin) {
+      // Check if we need a new page before adding content
+      if (yPosition + lineHeight > pageHeight - bottomMargin) {
         doc.addPage()
-        yPosition = margin
+        yPosition = topMargin
       }
       
-      // Add text with proper spacing
-      splitLines.forEach((textLine, index) => {
-        if (yPosition > pageHeight - margin) {
+      // Handle long lines - split them with proper wrapping
+      const splitLines = doc.splitTextToSize(line, maxWidth)
+      
+      // Check if all split lines fit on current page
+      const totalHeightNeeded = splitLines.length * lineHeight
+      if (yPosition + totalHeightNeeded > pageHeight - bottomMargin) {
+        // If content doesn't fit, start new page
+        if (yPosition > topMargin) {
           doc.addPage()
-          yPosition = margin
+          yPosition = topMargin
         }
-        doc.text(textLine, margin, yPosition)
+      }
+      
+      // Add text with proper wrapping and spacing
+      splitLines.forEach((textLine, index) => {
+        // Check page break before each line
+        if (yPosition + lineHeight > pageHeight - bottomMargin) {
+          doc.addPage()
+          yPosition = topMargin
+        }
+        
+        // Add the text line
+        doc.text(textLine, leftMargin, yPosition, {
+          maxWidth: maxWidth,
+          align: 'left',
+        })
+        
         yPosition += lineHeight
       })
     })
@@ -768,6 +800,15 @@ Identity and Mutawalli appointment proof`
               <span className="btn-text">Download PDF</span>
             </button>
             <button
+              type="button"
+              onClick={() => setShowPreview(true)}
+              className="preview-btn"
+              disabled={filledFields < totalFields}
+            >
+              <span className="btn-icon">👁️</span>
+              <span className="btn-text">Preview</span>
+            </button>
+            <button
               type="submit"
               className="submit-btn"
               disabled={isSubmitting || filledFields < totalFields}
@@ -790,6 +831,52 @@ Identity and Mutawalli appointment proof`
           </p>
         </div>
       </form>
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <div className="preview-modal-overlay" onClick={() => setShowPreview(false)}>
+          <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="preview-modal-header">
+              <h3>Letter Preview</h3>
+              <button
+                className="preview-close-btn"
+                onClick={() => setShowPreview(false)}
+                aria-label="Close preview"
+              >
+                ×
+              </button>
+            </div>
+            <div className="preview-modal-content">
+              <div className="preview-letter-wrapper">
+                <pre className="preview-letter-text">{generateFinalLetter()}</pre>
+              </div>
+            </div>
+            <div className="preview-modal-footer">
+              <button
+                className="preview-download-btn"
+                onClick={() => {
+                  handleDownloadPDF()
+                  setShowPreview(false)
+                }}
+              >
+                <span className="btn-icon">📄</span>
+                <span className="btn-text">Download PDF</span>
+              </button>
+              <button
+                className="preview-send-btn"
+                onClick={() => {
+                  setShowPreview(false)
+                  document.querySelector('.submit-btn')?.click()
+                }}
+                disabled={filledFields < totalFields}
+              >
+                <span className="btn-icon">✉️</span>
+                <span className="btn-text">Send via Email</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
