@@ -29,6 +29,8 @@ export default async function handler(req, res) {
     message,
     reply_to,
     access_token, // User's OAuth access token for Gmail API
+    pdf_attachment, // PDF as base64 string
+    pdf_filename, // PDF filename
   } = req.body
 
   // Validate required fields
@@ -40,7 +42,10 @@ export default async function handler(req, res) {
     // Priority 1: Use Gmail API with user's OAuth token (sends from logged-in user's email)
     if (access_token && from_email) {
       try {
-        // Create email message in RFC 2822 format
+        // Generate boundary for multipart message
+        const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        
+        // Create email message in RFC 2822 format with multipart support
         const emailLines = []
         emailLines.push(`From: "${from_name}" <${from_email}>`)
         emailLines.push(`To: ${to_email}`)
@@ -51,9 +56,56 @@ export default async function handler(req, res) {
         if (reply_to) {
           emailLines.push(`Reply-To: ${reply_to}`)
         }
-        emailLines.push('Content-Type: text/plain; charset=utf-8')
-        emailLines.push('')
-        emailLines.push(message)
+        
+        // Escape HTML special characters for HTML version
+        const htmlMessage = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
+        
+        // If PDF attachment exists, create multipart message
+        if (pdf_attachment && pdf_filename) {
+          emailLines.push(`MIME-Version: 1.0`)
+          emailLines.push(`Content-Type: multipart/mixed; boundary="${boundary}"`)
+          emailLines.push('')
+          emailLines.push(`--${boundary}`)
+          emailLines.push(`Content-Type: multipart/alternative; boundary="${boundary}_alt"`)
+          emailLines.push('')
+          emailLines.push(`--${boundary}_alt`)
+          emailLines.push('Content-Type: text/plain; charset=utf-8')
+          emailLines.push('Content-Transfer-Encoding: 7bit')
+          emailLines.push('')
+          emailLines.push(message)
+          emailLines.push('')
+          emailLines.push(`--${boundary}_alt`)
+          emailLines.push('Content-Type: text/html; charset=utf-8')
+          emailLines.push('Content-Transfer-Encoding: 7bit')
+          emailLines.push('')
+          emailLines.push(`<pre style="font-family: monospace; white-space: pre-wrap; line-height: 1.6;">${htmlMessage}</pre>`)
+          emailLines.push(`--${boundary}_alt--`)
+          emailLines.push('')
+          emailLines.push(`--${boundary}`)
+          emailLines.push(`Content-Type: application/pdf; name="${pdf_filename}"`)
+          emailLines.push(`Content-Disposition: attachment; filename="${pdf_filename}"`)
+          emailLines.push('Content-Transfer-Encoding: base64')
+          emailLines.push('')
+          emailLines.push(pdf_attachment)
+          emailLines.push(`--${boundary}--`)
+        } else {
+          // Multipart alternative for text and HTML (no attachment)
+          emailLines.push(`MIME-Version: 1.0`)
+          emailLines.push(`Content-Type: multipart/alternative; boundary="${boundary}"`)
+          emailLines.push('')
+          emailLines.push(`--${boundary}`)
+          emailLines.push('Content-Type: text/plain; charset=utf-8')
+          emailLines.push('Content-Transfer-Encoding: 7bit')
+          emailLines.push('')
+          emailLines.push(message)
+          emailLines.push('')
+          emailLines.push(`--${boundary}`)
+          emailLines.push('Content-Type: text/html; charset=utf-8')
+          emailLines.push('Content-Transfer-Encoding: 7bit')
+          emailLines.push('')
+          emailLines.push(`<pre style="font-family: monospace; white-space: pre-wrap; line-height: 1.6;">${htmlMessage}</pre>`)
+          emailLines.push(`--${boundary}--`)
+        }
 
         const rawEmail = emailLines.join('\r\n')
 
@@ -119,6 +171,18 @@ export default async function handler(req, res) {
           subject: subject,
           text: message,
           html: `<pre style="font-family: monospace; white-space: pre-wrap; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</pre>`,
+        }
+
+        // Add PDF attachment if provided
+        if (pdf_attachment && pdf_filename) {
+          msg.attachments = [
+            {
+              content: pdf_attachment,
+              filename: pdf_filename,
+              type: 'application/pdf',
+              disposition: 'attachment',
+            },
+          ]
         }
 
         await sgMail.send(msg)
@@ -189,6 +253,18 @@ export default async function handler(req, res) {
           subject: subject,
           text: message,
           html: `<pre style="font-family: monospace; white-space: pre-wrap; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</pre>`,
+        }
+
+        // Add PDF attachment if provided
+        if (pdf_attachment && pdf_filename) {
+          mailOptions.attachments = [
+            {
+              filename: pdf_filename,
+              content: pdf_attachment,
+              encoding: 'base64',
+              contentType: 'application/pdf',
+            },
+          ]
         }
 
         await transporter.sendMail(mailOptions)

@@ -12,42 +12,135 @@ function LetterForm({ user, credential }) {
     return `${day} / ${month} / ${year}`
   }
 
-  const letterTemplate = `To,
-The Chief Executive Officer
-[State Waqf Board]
+  const letterTemplate = `REGISTRATION UNDER PROTEST
 
-Subject: Submission of Registration Documents UNDER SOLEMN PROTEST – Complete Reservation of All Legal, Constitutional, Islamic and Property Rights (No Waiver / No Acquiescence)
+To,
 
-Dated: [CURRENT_DATE]
+ The Chief Executive Officer
+
+ [State Waqf Board]
+
+ 
+
+Date: [CURRENT_DATE]
+
+Subject: Submission of Waqf Registration / Detail‑Filing UNDER PROTEST and WITHOUT WAIVER OF RIGHTS (Issues Persist Even After Supreme Court Interim Order)
 
 Respected Sir,
 
-1. PARTIES AND PROPERTY
-
-I, [Name of Mutawalli], son/daughter of [Father's Name], residing at [Full Address], am the Mutawalli/trustee of the waqf known as:
+I, [Name of Mutawalli], son/daughter of [Father's Name], residing at [Full Address], am the Mutawalli of the waqf known as "", 
 
 • Name/Description of Waqf: [Waqf Name]
+
 • Existing Waqf Registration No. (if any): [Registration No.]
-• Property Description (survey no./address): [Property Description]
 
-Pursuant to the Waqf (Amendment) Act, 2025 and the introduction of the "UMEED" portal / online registration system, I am now being required to upload complete details of this waqf and to re-register / confirm registration within the statutory time-limit.
+• Your Mobile Number: [Mobile Number]
 
-Through this letter, I submit the required documents only under protest, under legal duress, and without waiving any rights.
+In compliance with the Unified Waqf Management, Empowerment, Efficiency and Development Act, 1995 as amended by the Waqf (Amendment) Act, 2025 ("Amended Act") and the introduction of the UMEED central portal, I am submitting / renewing the registration and uploading the details of the above waqf only because non‑compliance has been made punishable with fine and imprisonment, and not as a matter of free consent.
 
-1. INVOLUNTARY & COERCED COMPLIANCE – STRUCTURE OF DURESS
+Accordingly, this filing is expressly made UNDER PROTEST, on the following grounds (without prejudice to fuller grounds in any present or future court proceedings):
 
-(a) Criminal consequences for non-compliance
+Submission under statutory duress
 
-Under the amended Act:
+1.1 The Amended Act and UMEED portal together create a regime where:
 
-• Section 3B requires uploading full waqf details on the central portal and database.
-• Section 36(1A) requires that no waqf shall be created without a written waqf deed, and Section 36(10) bars all suits and legal proceedings for enforcement of waqf rights if the waqf is not registered within six months, subject only to a narrow proviso.
-• Section 61(1A) introduces criminal liability, including imprisonment and substantial fines, for failure to upload details under Section 3B, to comply with Board/Collector directions, or to perform any act required by the Act.
+Section 3B requires uploading full waqf details on the central portal and database.
+
+Section 36(1A) insists on a written waqf deed for creation of waqf.
+
+Section 36(10) threatens a bar on suits and proceedings to enforce waqf rights if registration is not completed within six months.
+
+Sections 61 and 62 introduce or continue criminal liability, including imprisonment and heavy fines, for failures such as not uploading details, not submitting accounts or not complying with Board / Collector directions.
+
+1.2 If I do not comply, I face:
+
+Risk of imprisonment and substantial fines,
+
+Possible de‑registration or loss of waqf status, and
+
+A permanent bar on suits or other proceedings to enforce waqf rights under Section 36(10).
+
+1.3 I therefore state clearly that this submission is involuntary and under statutory duress. It must not be treated as acceptance of the constitutional validity, fairness or reasonableness of the Amended Act or the UMEED portal rules.
+
+No admission regarding title or "Government property"
+
+2.1 The above property is asserted to be valid waqf property under Muslim personal law and under the original Waqf Act, 1995.
+
+2.2 Nothing in this registration or in the data entered on UMEED should be read as:
+
+(a) accepting that the property is, or ever was, "Government land" or "Government property", or
+
+(b) consenting to any change in the revenue records or Waqf Board records adverse to the waqf, including any description, classification, area or boundaries.
+
+2.3 Any answers that I am compelled to give on the portal, especially regarding "Government land", must not be treated as binding admissions in any present or future title, encroachment or revenue dispute.
+
+No waiver of objections to new conditions (5‑year practice, deed requirement, bar on suits, Scheduled‑area bar, Section 104 removal)
+
+3.1 I do not accept any interpretation of the Amended Act or the UMEED rules which:
+
+prevents Muslims (including converts and tribals) from creating waqf on the same footing as other communities,
+
+abolishes oral waqf and waqf‑by‑user and invalidates ancient waqfs merely for lack of a formal "waqf deed",
+
+bars waqf from approaching courts / tribunals solely for want of registration or uploading within a fixed time,
+
+selectively disables tribal Muslims from using the institution of waqf in Scheduled / tribal areas, while allowing other religious and charitable forms to continue on the same land, or
+
+removes the long‑recognised right of non‑Muslims (such as Hindus and others) to create waqf by abolishing Section 104, excluding them from the waqf form purely on the ground of religion.
+
+3.2 All my rights and contentions are fully reserved to challenge these provisions as violative of Articles 14, 15, 19, 21, 25, 26, 29, 30 and 300A of the Constitution of India, as well as contrary to Muslim personal law.
+
+Subject to pending Supreme Court proceedings and interim order
+
+4.1 The constitutional validity of several provisions of the Waqf (Amendment) Act, 2025 – including but not limited to Sections 3(r), 3C, 3D, 3E, 36(1A), 36(7A), 36(10), 61, 62 and 104 – is sub judice before the Hon'ble Supreme Court of India in In Re: The Waqf Amendment Act, 2025 and connected writ petitions.
+
+4.2 By its interim judgment dated 15.09.2025, the Hon'ble Supreme Court:
+
+Has not finally upheld the constitutional validity of these provisions; it has only declined to stay some of them at the interim stage.
+
+Has stayed key parts of Section 3C, particularly automatic changes to revenue and Board records on the report of an executive officer.
+
+Has capped the number of non‑Muslim members on the Central Waqf Council and State Waqf Boards, recognising the serious concern about dilution of Muslim control.
+
+4.3 This registration is therefore submitted strictly subject to any interim or final orders passed by the Hon'ble Supreme Court, any jurisdictional High Court and any Waqf Tribunal / civil court. It shall not prejudice the waqf's rights if the impugned provisions are struck down, read down or modified.
+
+Privacy, data protection and profiling concerns
+
+5.1 The UMEED portal requires me to disclose my religion, sect, full personal profile and multiple identity / address proofs, and to upload geo‑tagged photographs and detailed land‑revenue records, without any clear statutory safeguards for privacy, data security, retention, deletion, breach‑notification or controlled inter‑agency access.
+
+5.2 I object to this as a violation of my right to privacy and informational self‑determination, and as a form of centralised digital profiling of only Muslim waqf properties and leadership, when no comparable national system exists for temples, churches, secular charities, public trusts, societies or other associations.
+
+5.3 I reserve my right to challenge the UMEED data‑collection and profiling architecture as violative of Articles 14, 15 and 21 and inconsistent with basic data‑protection principles.
+
+Unpaid Mutawalli and disproportionate burdens
+
+6.1 I state that I serve as Mutawalli purely as a religious and charitable duty, without salary or honorarium from the Waqf Board or the Government. In many cases, including graveyard waqf, the waqf has little or no income.
+
+6.2 I object that the same level of documentation, auditing, professional accounting and portal compliance is being demanded from zero‑income waqf as from large, income‑earning waqf, and that non‑compliance is criminalised. This is disproportionate, arbitrary and unjust, and in practice penalises volunteers for doing unpaid community service.
+
+6.3 I reserve my right to challenge these burdens as violations of Articles 14, 19(1)(g), 21, 25 and 26 of the Constitution.
+
+Request to record protest and protect status quo
+
+In light of the above, I respectfully request that the Board:
+
+(a) Register / record the waqf on its portal and in its books, clearly noting this letter as a formal protest and non‑waiver of rights.
+
+(b) Issue a written acknowledgment / receipt expressly referring to this protest letter.
+
+(c) Not treat this filing as consent to any future action that may de‑notify, re‑classify, alter area / boundaries, or otherwise diminish the waqf's rights without due process before a competent court or tribunal.
+
+(d) Maintain status quo regarding revenue records, Board records and field status of the waqf property, in line with the spirit of the Hon'ble Supreme Court's interim directions, until the constitutional challenges are finally decided.
+
+No waiver of rights
+
+This letter and filing are made without prejudice to all my legal, constitutional and personal‑law rights, and to the rights of the beneficiaries, worshippers and the wider community, including the right to initiate, join and support present or future litigation challenging the Amended Act, the UMEED portal and any adverse action taken under them.
 
 Yours faithfully,
 
-[SIGNATURE_NAME]
-Mutawalli/Trustee`
+ Name: [SIGNATURE_NAME]
+
+Phone / Email: [USER_EMAIL]`
 
   const [fieldValues, setFieldValues] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -76,6 +169,10 @@ Mutawalli/Trustee`
       }
       // Skip SIGNATURE_NAME as it's auto-filled from Mutawalli name
       if (match[1] === 'SIGNATURE_NAME') {
+        continue
+      }
+      // Skip USER_EMAIL as it's auto-filled from logged-in user
+      if (match[1] === 'USER_EMAIL') {
         continue
       }
       fields.push({
@@ -109,6 +206,9 @@ Mutawalli/Trustee`
     // Replace SIGNATURE_NAME with Mutawalli name
     finalContent = finalContent.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
     
+    // Replace USER_EMAIL with logged-in user's email
+    finalContent = finalContent.replace('[USER_EMAIL]', user?.email || '[Email]')
+    
     const fields = extractFields(letterTemplate)
     
     // Replace fields in reverse order to maintain indices
@@ -130,13 +230,15 @@ Mutawalli/Trustee`
     const mutawalliName = mutawalliNameField ? (fieldValues[mutawalliNameField.id] || '') : ''
 
     fields.forEach((field, idx) => {
-      // Add text before this field (including CURRENT_DATE and SIGNATURE_NAME replacement)
+      // Add text before this field (including CURRENT_DATE, SIGNATURE_NAME, and USER_EMAIL replacement)
       if (field.index > lastIndex) {
         let textBefore = letterTemplate.substring(lastIndex, field.index)
         // Replace CURRENT_DATE in text with actual date
         textBefore = textBefore.replace('[CURRENT_DATE]', getCurrentDate())
         // Replace SIGNATURE_NAME with Mutawalli name
         textBefore = textBefore.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
+        // Replace USER_EMAIL with logged-in user's email
+        textBefore = textBefore.replace('[USER_EMAIL]', user?.email || '[Email]')
         parts.push(
           <span key={`text_${idx}`} className="letter-text">
             {textBefore}
@@ -164,11 +266,12 @@ Mutawalli/Trustee`
       lastIndex = field.index + field.fullMatch.length
     })
 
-    // Add remaining text (including CURRENT_DATE and SIGNATURE_NAME replacement if at the end)
+    // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, and USER_EMAIL replacement if at the end)
     if (lastIndex < letterTemplate.length) {
       let remainingText = letterTemplate.substring(lastIndex)
       remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
       remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
+      remainingText = remainingText.replace('[USER_EMAIL]', user?.email || '[Email]')
       parts.push(
         <span key="text_end" className="letter-text">
           {remainingText}
@@ -216,6 +319,34 @@ Mutawalli/Trustee`
         return
       }
 
+      // Generate PDF blob
+      const pdfBlob = generatePDFBlob()
+      
+      // Convert PDF blob to base64
+      const pdfBase64 = await new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          const base64String = reader.result.split(',')[1] // Remove data:application/pdf;base64, prefix
+          resolve(base64String)
+        }
+        reader.readAsDataURL(pdfBlob)
+      })
+
+      // Generate filename
+      const mutawalliNameForFile = mutawalliName.replace(/\s+/g, '_')
+      const dateStr = new Date().toISOString().split('T')[0]
+      const filename = `Waqf_Protest_Letter_${mutawalliNameForFile}_${dateStr}.pdf`
+
+      // Auto-download PDF
+      const url = URL.createObjectURL(pdfBlob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
       // Prepare email parameters
       const emailData = {
         to_email: process.env.REACT_APP_TO_EMAIL,
@@ -226,6 +357,8 @@ Mutawalli/Trustee`
         message: letterContent,
         reply_to: user.email,
         access_token: credential, // User's OAuth access token for Gmail API
+        pdf_attachment: pdfBase64, // PDF as base64
+        pdf_filename: filename, // PDF filename
       }
 
       // Send email using Gmail API route (with user's OAuth token)
@@ -264,7 +397,7 @@ Mutawalli/Trustee`
     }
   }
 
-  const handleDownloadPDF = () => {
+  const generatePDFBlob = () => {
     const letterContent = generateFinalLetter()
     
     // Create new PDF document
@@ -312,13 +445,29 @@ Mutawalli/Trustee`
       })
     })
     
+    // Generate PDF as blob
+    const pdfBlob = doc.output('blob')
+    return pdfBlob
+  }
+
+  const handleDownloadPDF = () => {
+    const letterContent = generateFinalLetter()
+    const pdfBlob = generatePDFBlob()
+    
     // Generate filename
     const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
     const dateStr = new Date().toISOString().split('T')[0]
     const filename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
     
-    // Save PDF
-    doc.save(filename)
+    // Create download link and trigger download
+    const url = URL.createObjectURL(pdfBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   const fields = extractFields(letterTemplate)
