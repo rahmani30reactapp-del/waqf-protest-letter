@@ -1,0 +1,407 @@
+.letter-form-container {
+  max-width: 100%;
+}
+
+/* Header Section */
+.header-section {
+  margin-bottom: 30px;
+}
+
+.title-group h2 {
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 15px;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Info Card */
+.info-card {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  border: 1px solid #e0e7ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.info-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-content h3 {
+  color: #4f46e5;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.info-content ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.info-content li {
+  margin-bottom: 8px;
+}
+
+.highlight {
+  color: #4f46e5;
+  background: rgba(79, 70, 229, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* Form */
+.letter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Editor Header */
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.editor-label {
+  color: #1a1a1a;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.editor-stats {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #666;
+}
+
+.stat-item.warning {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.stat-label {
+  font-weight: 500;
+}
+
+.stat-value {
+  font-weight: 600;
+}
+
+/* Editable Letter Section */
+.editable-letter-section {
+  width: 100%;
+  position: relative;
+}
+
+.letter-content-wrapper {
+  width: 100%;
+  min-height: 650px;
+  padding: 24px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  line-height: 1.9;
+  color: #1a1a1a;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.letter-text {
+  display: inline;
+}
+
+.inline-field {
+  display: inline-block;
+  min-width: 150px;
+  padding: 4px 10px;
+  margin: 0 4px;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 14px;
+  color: #1a1a1a;
+  transition: all 0.2s ease;
+  vertical-align: baseline;
+  outline: none;
+}
+
+.inline-field:focus {
+  border-color: #4f46e5;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  transform: scale(1.02);
+}
+
+.inline-field::placeholder {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.inline-field.short-field {
+  min-width: 60px;
+  max-width: 80px;
+  text-align: center;
+  padding: 4px 8px;
+}
+
+.inline-field:not(:focus):not(:placeholder-shown) {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+.editor-footer {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.footer-hint {
+  color: #6b7280;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Button Group */
+.button-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.submit-btn,
+.download-btn {
+  padding: 16px 32px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+.btn-text {
+  font-weight: 600;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+  background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.download-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.download-btn:active {
+  transform: translateY(0);
+}
+
+/* Action Section */
+.action-section {
+  margin-top: 10px;
+}
+
+.action-hint {
+  margin-top: 16px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.action-hint strong {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+/* Status Messages */
+.submit-status {
+  padding: 16px 20px;
+  border-radius: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+}
+
+.status-icon {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.submit-status.success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.submit-status.success .status-icon {
+  color: #10b981;
+}
+
+.submit-status.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.submit-status.error .status-icon {
+  color: #ef4444;
+}
+
+.status-message {
+  flex: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .title-group h2 {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .info-card {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .info-content h3 {
+    font-size: 15px;
+  }
+
+  .info-content ul {
+    font-size: 13px;
+  }
+
+  .editor-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .editor-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .letter-content-wrapper {
+    min-height: 500px;
+    font-size: 13px;
+    padding: 18px;
+    line-height: 1.8;
+  }
+
+  .inline-field {
+    min-width: 120px;
+    font-size: 13px;
+    padding: 3px 8px;
+  }
+
+  .inline-field.short-field {
+    min-width: 50px;
+    max-width: 70px;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .submit-btn,
+  .download-btn {
+    min-width: 100%;
+    width: 100%;
+    padding: 14px 24px;
+  }
+
+  .action-hint {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .editable-letter {
+    min-height: 400px;
+    padding: 16px;
+  }
+
+  .info-card {
+    padding: 14px;
+  }
+}
