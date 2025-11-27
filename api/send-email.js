@@ -46,7 +46,7 @@ export default async function handler(req, res) {
         const msg = {
           to: to_email,
           cc: cc_email ? cc_email.split(',').map(email => email.trim()) : undefined,
-          from: process.env.FROM_EMAIL || from_email,
+          from: from_email || process.env.FROM_EMAIL,
           replyTo: reply_to || from_email,
           subject: subject,
           text: message,
@@ -66,18 +66,29 @@ export default async function handler(req, res) {
       try {
         const nodemailer = (await import('nodemailer')).default
 
+        // Clean the app password (remove spaces and quotes)
+        const cleanPassword = process.env.SMTP_PASS.replace(/\s+/g, '').replace(/['"]/g, '')
+        const cleanUser = process.env.SMTP_USER.trim()
+
         const transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST || 'smtp.gmail.com',
           port: parseInt(process.env.SMTP_PORT || '587'),
           secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
           auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS, // Gmail App Password
+            user: cleanUser,
+            pass: cleanPassword, // Gmail App Password (cleaned)
           },
+          tls: {
+            rejectUnauthorized: false
+          }
         })
 
+        // Verify connection
+        await transporter.verify()
+
+        // Use logged-in user's email as sender (SMTP_USER is only for authentication)
         const mailOptions = {
-          from: `"${from_name}" <${process.env.SMTP_USER}>`,
+          from: `"${from_name}" <${from_email || cleanUser}>`,
           to: to_email,
           cc: cc_email || undefined,
           replyTo: reply_to || from_email,
@@ -90,7 +101,14 @@ export default async function handler(req, res) {
         return res.status(200).json({ success: true, message: 'Email sent successfully via Gmail SMTP' })
       } catch (smtpError) {
         console.error('SMTP error:', smtpError)
-        throw smtpError
+        
+        // Provide more helpful error messages
+        let errorMessage = 'SMTP error: ' + smtpError.message
+        if (smtpError.code === 'EAUTH') {
+          errorMessage = `SMTP error: Invalid login credentials. Please verify:\n- Gmail App Password is correct (16 characters, no spaces)\n- Email address matches the one used to create App Password\n- 2-Step Verification is enabled\n- App Password hasn't been revoked`
+        }
+        
+        throw new Error(errorMessage)
       }
     }
 

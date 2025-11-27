@@ -238,15 +238,25 @@ Mutawalli/Trustee`
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to send email')
+        let errorMessage = errorData.error || 'Failed to send email'
+        
+        // Provide helpful error messages for common SMTP errors
+        if (errorMessage.includes('Invalid login') || errorMessage.includes('BadCredentials') || errorMessage.includes('EAUTH')) {
+          errorMessage = 'Gmail authentication failed. Please check:\n1. Gmail App Password is correct (16 characters, no spaces)\n2. Email address matches the one used to create App Password\n3. 2-Step Verification is enabled\n4. App Password hasn\'t been revoked'
+        } else if (errorMessage.includes('SMTP')) {
+          errorMessage = 'SMTP configuration error. Please verify SMTP settings in Vercel environment variables.'
+        }
+        
+        throw new Error(errorMessage)
       }
 
       setSubmitStatus({ type: 'success', message: 'Letter sent successfully!' })
     } catch (error) {
       console.error('Error sending email:', error)
+      const errorMessage = error.message || 'Failed to send letter. Please try again.'
       setSubmitStatus({
         type: 'error',
-        message: 'Failed to send letter. Please try again.',
+        message: errorMessage,
       })
     } finally {
       setIsSubmitting(false)
