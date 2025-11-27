@@ -225,8 +225,13 @@ Mutawalli/Trustee`
         reply_to: user.email,
       }
 
-      // Try Vercel API route first (if available), otherwise use EmailJS
-      if (process.env.REACT_APP_USE_API_ROUTE === 'true') {
+      // Use API route if USE_API_ROUTE is true OR if EmailJS credentials are not set
+      const useApiRoute = process.env.REACT_APP_USE_API_ROUTE === 'true' || 
+                         !process.env.REACT_APP_EMAILJS_SERVICE_ID ||
+                         !process.env.REACT_APP_EMAILJS_TEMPLATE_ID ||
+                         !process.env.REACT_APP_EMAILJS_PUBLIC_KEY
+
+      if (useApiRoute) {
         const response = await fetch('/api/send-email', {
           method: 'POST',
           headers: {
@@ -240,7 +245,7 @@ Mutawalli/Trustee`
           throw new Error(errorData.error || 'Failed to send email')
         }
       } else {
-        // Send email using EmailJS
+        // Send email using EmailJS (only if all EmailJS credentials are available)
         const templateParams = {
           to_email: emailData.to_email,
           cc_email: emailData.cc_email,
