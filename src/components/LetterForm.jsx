@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import emailjs from '@emailjs/browser'
 import jsPDF from 'jspdf'
 import './LetterForm.css'
 
@@ -156,6 +155,9 @@ Mutawalli/Trustee`
           value={fieldValues[field.id] || ''}
           onChange={(e) => handleFieldChange(field.id, e.target.value)}
           maxLength={isShortField ? 2 : undefined}
+          autoCapitalize="words"
+          autoComplete="off"
+          spellCheck="false"
         />
       )
 
@@ -225,43 +227,18 @@ Mutawalli/Trustee`
         reply_to: user.email,
       }
 
-      // Use API route if USE_API_ROUTE is true OR if EmailJS credentials are not set
-      const useApiRoute = process.env.REACT_APP_USE_API_ROUTE === 'true' || 
-                         !process.env.REACT_APP_EMAILJS_SERVICE_ID ||
-                         !process.env.REACT_APP_EMAILJS_TEMPLATE_ID ||
-                         !process.env.REACT_APP_EMAILJS_PUBLIC_KEY
+      // Send email using Gmail SMTP API route
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emailData),
+      })
 
-      if (useApiRoute) {
-        const response = await fetch('/api/send-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(emailData),
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Failed to send email')
-        }
-      } else {
-        // Send email using EmailJS (only if all EmailJS credentials are available)
-        const templateParams = {
-          to_email: emailData.to_email,
-          cc_email: emailData.cc_email,
-          from_name: emailData.from_name,
-          from_email: emailData.from_email,
-          subject: emailData.subject,
-          message: emailData.message,
-          reply_to: emailData.reply_to,
-        }
-
-        await emailjs.send(
-          process.env.REACT_APP_EMAILJS_SERVICE_ID,
-          process.env.REACT_APP_EMAILJS_TEMPLATE_ID,
-          templateParams,
-          process.env.REACT_APP_EMAILJS_PUBLIC_KEY
-        )
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to send email')
       }
 
       setSubmitStatus({ type: 'success', message: 'Letter sent successfully!' })
