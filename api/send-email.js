@@ -31,6 +31,7 @@ export default async function handler(req, res) {
     access_token, // User's OAuth access token for Gmail API
     pdf_attachment, // PDF as base64 string
     pdf_filename, // PDF filename
+    attachments, // Array of additional attachments [{filename, content, type}]
   } = req.body
 
   // Validate required fields
@@ -60,8 +61,10 @@ export default async function handler(req, res) {
         // Escape HTML special characters for HTML version
         const htmlMessage = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
         
-        // If PDF attachment exists, create multipart message
-        if (pdf_attachment && pdf_filename) {
+        // Check if we have any attachments (PDF or additional files)
+        const hasAttachments = (pdf_attachment && pdf_filename) || (attachments && attachments.length > 0)
+        
+        if (hasAttachments) {
           emailLines.push(`MIME-Version: 1.0`)
           emailLines.push(`Content-Type: multipart/mixed; boundary="${boundary}"`)
           emailLines.push('')
@@ -81,12 +84,32 @@ export default async function handler(req, res) {
           emailLines.push(`<pre style="font-family: monospace; white-space: pre-wrap; line-height: 1.6;">${htmlMessage}</pre>`)
           emailLines.push(`--${boundary}_alt--`)
           emailLines.push('')
-          emailLines.push(`--${boundary}`)
-          emailLines.push(`Content-Type: application/pdf; name="${pdf_filename}"`)
-          emailLines.push(`Content-Disposition: attachment; filename="${pdf_filename}"`)
-          emailLines.push('Content-Transfer-Encoding: base64')
-          emailLines.push('')
-          emailLines.push(pdf_attachment)
+          
+          // Add PDF attachment if exists
+          if (pdf_attachment && pdf_filename) {
+            emailLines.push(`--${boundary}`)
+            emailLines.push(`Content-Type: application/pdf; name="${pdf_filename}"`)
+            emailLines.push(`Content-Disposition: attachment; filename="${pdf_filename}"`)
+            emailLines.push('Content-Transfer-Encoding: base64')
+            emailLines.push('')
+            emailLines.push(pdf_attachment)
+          }
+          
+          // Add additional attachments if exists
+          if (attachments && Array.isArray(attachments)) {
+            attachments.forEach(attachment => {
+              if (attachment.filename && attachment.content) {
+                const contentType = attachment.type || 'application/octet-stream'
+                emailLines.push(`--${boundary}`)
+                emailLines.push(`Content-Type: ${contentType}; name="${attachment.filename}"`)
+                emailLines.push(`Content-Disposition: attachment; filename="${attachment.filename}"`)
+                emailLines.push('Content-Transfer-Encoding: base64')
+                emailLines.push('')
+                emailLines.push(attachment.content)
+              }
+            })
+          }
+          
           emailLines.push(`--${boundary}--`)
         } else {
           // Multipart alternative for text and HTML (no attachment)
@@ -174,15 +197,32 @@ export default async function handler(req, res) {
         }
 
         // Add PDF attachment if provided
+        const msgAttachments = []
         if (pdf_attachment && pdf_filename) {
-          msg.attachments = [
-            {
-              content: pdf_attachment,
-              filename: pdf_filename,
-              type: 'application/pdf',
-              disposition: 'attachment',
-            },
-          ]
+          msgAttachments.push({
+            content: pdf_attachment,
+            filename: pdf_filename,
+            type: 'application/pdf',
+            disposition: 'attachment',
+          })
+        }
+        
+        // Add additional attachments if provided
+        if (attachments && Array.isArray(attachments)) {
+          attachments.forEach(attachment => {
+            if (attachment.filename && attachment.content) {
+              msgAttachments.push({
+                content: attachment.content,
+                filename: attachment.filename,
+                type: attachment.type || 'application/octet-stream',
+                disposition: 'attachment',
+              })
+            }
+          })
+        }
+        
+        if (msgAttachments.length > 0) {
+          msg.attachments = msgAttachments
         }
 
         await sgMail.send(msg)
@@ -256,15 +296,32 @@ export default async function handler(req, res) {
         }
 
         // Add PDF attachment if provided
+        const mailAttachments = []
         if (pdf_attachment && pdf_filename) {
-          mailOptions.attachments = [
-            {
-              filename: pdf_filename,
-              content: pdf_attachment,
-              encoding: 'base64',
-              contentType: 'application/pdf',
-            },
-          ]
+          mailAttachments.push({
+            filename: pdf_filename,
+            content: pdf_attachment,
+            encoding: 'base64',
+            contentType: 'application/pdf',
+          })
+        }
+        
+        // Add additional attachments if provided
+        if (attachments && Array.isArray(attachments)) {
+          attachments.forEach(attachment => {
+            if (attachment.filename && attachment.content) {
+              mailAttachments.push({
+                filename: attachment.filename,
+                content: attachment.content,
+                encoding: 'base64',
+                contentType: attachment.type || 'application/octet-stream',
+              })
+            }
+          })
+        }
+        
+        if (mailAttachments.length > 0) {
+          mailOptions.attachments = mailAttachments
         }
 
         await transporter.sendMail(mailOptions)

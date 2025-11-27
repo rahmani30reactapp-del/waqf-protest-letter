@@ -140,11 +140,24 @@ Yours faithfully,
 
  Name: [SIGNATURE_NAME]
 
-Phone: [USER_PHONE] / Email: [USER_EMAIL]`
+Phone: [USER_PHONE] / Email: [USER_EMAIL]
+
+Enclosures:
+
+Waqf registration / detail forms
+
+Title / revenue documents (copies)
+
+Identity and Mutawalli appointment proof`
 
   const [fieldValues, setFieldValues] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState(null)
+  const [attachments, setAttachments] = useState({
+    registrationForms: null,
+    titleDocuments: null,
+    identityProof: null,
+  })
 
   // Initialize field values with saved data from localStorage
   useEffect(() => {
@@ -389,6 +402,67 @@ Phone: [USER_PHONE] / Email: [USER_EMAIL]`
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
 
+      // Convert attachments to base64
+      const attachmentPromises = []
+      const attachmentData = []
+      
+      if (attachments.registrationForms) {
+        attachmentPromises.push(
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              const base64String = reader.result.split(',')[1]
+              attachmentData.push({
+                filename: attachments.registrationForms.name,
+                content: base64String,
+                type: attachments.registrationForms.type,
+              })
+              resolve()
+            }
+            reader.readAsDataURL(attachments.registrationForms)
+          })
+        )
+      }
+      
+      if (attachments.titleDocuments) {
+        attachmentPromises.push(
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              const base64String = reader.result.split(',')[1]
+              attachmentData.push({
+                filename: attachments.titleDocuments.name,
+                content: base64String,
+                type: attachments.titleDocuments.type,
+              })
+              resolve()
+            }
+            reader.readAsDataURL(attachments.titleDocuments)
+          })
+        )
+      }
+      
+      if (attachments.identityProof) {
+        attachmentPromises.push(
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              const base64String = reader.result.split(',')[1]
+              attachmentData.push({
+                filename: attachments.identityProof.name,
+                content: base64String,
+                type: attachments.identityProof.type,
+              })
+              resolve()
+            }
+            reader.readAsDataURL(attachments.identityProof)
+          })
+        )
+      }
+      
+      // Wait for all attachments to be converted
+      await Promise.all(attachmentPromises)
+
       // Prepare email parameters
       const emailData = {
         to_email: process.env.REACT_APP_TO_EMAIL,
@@ -401,6 +475,7 @@ Phone: [USER_PHONE] / Email: [USER_EMAIL]`
         access_token: credential, // User's OAuth access token for Gmail API
         pdf_attachment: pdfBase64, // PDF as base64
         pdf_filename: filename, // PDF filename
+        attachments: attachmentData, // Additional attachments
       }
 
       // Send email using Gmail API route (with user's OAuth token)
@@ -445,17 +520,17 @@ Phone: [USER_PHONE] / Email: [USER_EMAIL]`
     // Create new PDF document
     const doc = new jsPDF()
     
-    // Set margins
-    const margin = 20
+    // Set margins (more compact)
+    const margin = 15
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
     const maxWidth = pageWidth - (margin * 2)
     
-    // Split text into lines and handle long lines
+    // Split text into lines and handle long lines (more compact)
     const lines = letterContent.split('\n')
     let yPosition = margin
-    const lineHeight = 7
-    const fontSize = 11
+    const lineHeight = 5.5 // Reduced from 7 for compact layout
+    const fontSize = 10 // Reduced from 11 for compact layout
     
     doc.setFontSize(fontSize)
     doc.setFont('helvetica', 'normal')
@@ -583,6 +658,61 @@ Phone: [USER_PHONE] / Email: [USER_EMAIL]`
             <span className="status-message">{submitStatus.message}</span>
           </div>
         )}
+
+        <div className="attachments-section">
+          <h3 className="attachments-title">Enclosures (Optional)</h3>
+          <p className="attachments-subtitle">Upload supporting documents that will be attached to the email</p>
+          <div className="attachments-grid">
+            <div className="attachment-item">
+              <label htmlFor="registration-forms" className="attachment-label">
+                <span className="attachment-icon">📋</span>
+                <span className="attachment-text">Waqf registration / detail forms</span>
+                {attachments.registrationForms && (
+                  <span className="attachment-name">{attachments.registrationForms.name}</span>
+                )}
+              </label>
+              <input
+                id="registration-forms"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, registrationForms: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+            <div className="attachment-item">
+              <label htmlFor="title-documents" className="attachment-label">
+                <span className="attachment-icon">📄</span>
+                <span className="attachment-text">Title / revenue documents (copies)</span>
+                {attachments.titleDocuments && (
+                  <span className="attachment-name">{attachments.titleDocuments.name}</span>
+                )}
+              </label>
+              <input
+                id="title-documents"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, titleDocuments: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+            <div className="attachment-item">
+              <label htmlFor="identity-proof" className="attachment-label">
+                <span className="attachment-icon">🆔</span>
+                <span className="attachment-text">Identity and Mutawalli appointment proof</span>
+                {attachments.identityProof && (
+                  <span className="attachment-name">{attachments.identityProof.name}</span>
+                )}
+              </label>
+              <input
+                id="identity-proof"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, identityProof: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+          </div>
+        </div>
 
         <div className="action-section">
           <div className="button-group">

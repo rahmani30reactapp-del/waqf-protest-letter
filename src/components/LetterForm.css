@@ -128,12 +128,12 @@
 .letter-content-wrapper {
   width: 100%;
   min-height: 650px;
-  padding: 24px;
+  padding: 20px;
   border: 2px solid #e5e7eb;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: 13px;
   font-family: 'Georgia', 'Times New Roman', serif;
-  line-height: 1.9;
+  line-height: 1.6; /* Reduced from 1.9 for compact layout */
   color: #1a1a1a;
   background: #ffffff;
   transition: all 0.3s ease;
@@ -149,13 +149,13 @@
 .inline-field {
   display: inline-block;
   min-width: 150px;
-  padding: 4px 10px;
-  margin: 0 4px;
+  padding: 3px 8px; /* Reduced padding for compact layout */
+  margin: 0 3px; /* Reduced margin for compact layout */
   border: 2px solid #cbd5e1;
   border-radius: 6px;
   background: #f8fafc;
   font-family: 'Georgia', 'Times New Roman', serif;
-  font-size: 14px;
+  font-size: 13px; /* Reduced from 14px for compact layout */
   color: #1a1a1a;
   transition: all 0.2s ease;
   vertical-align: baseline;
@@ -200,6 +200,81 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+/* Attachments Section */
+.attachments-section {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.attachments-title {
+  color: #1a1a1a;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.attachments-subtitle {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0 0 20px 0;
+}
+
+.attachments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.attachment-item {
+  position: relative;
+}
+
+.attachment-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.attachment-label:hover {
+  border-color: #4f46e5;
+  background: #f8f9ff;
+}
+
+.attachment-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.attachment-text {
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.attachment-name {
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+  word-break: break-all;
+}
+
+.attachment-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
 /* Button Group */
