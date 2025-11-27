@@ -28,7 +28,7 @@ Subject: Submission of Waqf Registration / Detail‑Filing UNDER PROTEST and WIT
 
 Respected Sir,
 
-I, [Name of Mutawalli], son/daughter of [Father's Name], residing at [Full Address], am the Mutawalli of the waqf known as "", 
+[I_CHECKBOX] I, [Name of Mutawalli], son/daughter of [Father's Name], residing at [Full Address], am the Mutawalli of the waqf known as "", 
 
 • Name/Description of Waqf: [Waqf Name]
 
@@ -153,6 +153,7 @@ Identity and Mutawalli appointment proof`
   const [fieldValues, setFieldValues] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState(null)
+  const [iCheckboxChecked, setICheckboxChecked] = useState(true) // Default checked
   const [attachments, setAttachments] = useState({
     registrationForms: null,
     titleDocuments: null,
@@ -216,6 +217,10 @@ Identity and Mutawalli appointment proof`
       if (match[1] === 'USER_PHONE') {
         continue
       }
+      // Skip I_CHECKBOX as it's handled separately
+      if (match[1] === 'I_CHECKBOX') {
+        continue
+      }
       fields.push({
         id: `field_${id++}`,
         placeholder: match[1],
@@ -239,6 +244,10 @@ Identity and Mutawalli appointment proof`
     
     // Replace CURRENT_DATE first
     finalContent = finalContent.replace('[CURRENT_DATE]', getCurrentDate())
+    
+    // Replace I_CHECKBOX with checkbox symbol
+    const checkboxSymbol = iCheckboxChecked ? '☑' : '☐'
+    finalContent = finalContent.replace('[I_CHECKBOX]', checkboxSymbol)
     
     // Get Mutawalli name for signature
     const mutawalliNameField = extractFields(letterTemplate).find(f => f.placeholder === 'Name of Mutawalli')
@@ -280,9 +289,12 @@ Identity and Mutawalli appointment proof`
     // Get Mobile Number for phone field
     const mobileNumberField = fields.find(f => f.placeholder === 'Mobile Number')
     const mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
+    
+    // Checkbox symbol
+    const checkboxSymbol = iCheckboxChecked ? '☑' : '☐'
 
     fields.forEach((field, idx) => {
-      // Add text before this field (including CURRENT_DATE, SIGNATURE_NAME, USER_PHONE, and USER_EMAIL replacement)
+      // Add text before this field (including CURRENT_DATE, SIGNATURE_NAME, USER_PHONE, USER_EMAIL, and I_CHECKBOX replacement)
       if (field.index > lastIndex) {
         let textBefore = letterTemplate.substring(lastIndex, field.index)
         // Replace CURRENT_DATE in text with actual date
@@ -293,11 +305,40 @@ Identity and Mutawalli appointment proof`
         textBefore = textBefore.replace('[USER_PHONE]', mobileNumber || '[Phone]')
         // Replace USER_EMAIL with logged-in user's email
         textBefore = textBefore.replace('[USER_EMAIL]', user?.email || '[Email]')
-        parts.push(
-          <span key={`text_${idx}`} className="letter-text">
-            {textBefore}
-          </span>
-        )
+        
+        // Handle I_CHECKBOX replacement with checkbox element
+        if (textBefore.includes('[I_CHECKBOX]')) {
+          const parts_before = textBefore.split('[I_CHECKBOX]')
+          if (parts_before[0]) {
+            parts.push(
+              <span key={`text_before_checkbox_${idx}`} className="letter-text">
+                {parts_before[0]}
+              </span>
+            )
+          }
+          parts.push(
+            <input
+              key="i_checkbox"
+              type="checkbox"
+              checked={iCheckboxChecked}
+              onChange={(e) => setICheckboxChecked(e.target.checked)}
+              className="i-checkbox"
+            />
+          )
+          if (parts_before[1]) {
+            parts.push(
+              <span key={`text_after_checkbox_${idx}`} className="letter-text">
+                {parts_before[1]}
+              </span>
+            )
+          }
+        } else {
+          parts.push(
+            <span key={`text_${idx}`} className="letter-text">
+              {textBefore}
+            </span>
+          )
+        }
       }
 
       // Add input field
@@ -320,10 +361,11 @@ Identity and Mutawalli appointment proof`
       lastIndex = field.index + field.fullMatch.length
     })
 
-    // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_PHONE, and USER_EMAIL replacement if at the end)
+    // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_PHONE, USER_EMAIL, and I_CHECKBOX replacement if at the end)
     if (lastIndex < letterTemplate.length) {
       let remainingText = letterTemplate.substring(lastIndex)
       remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
+      remainingText = remainingText.replace('[I_CHECKBOX]', checkboxSymbol)
       remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
       remainingText = remainingText.replace('[USER_PHONE]', mobileNumber || '[Phone]')
       remainingText = remainingText.replace('[USER_EMAIL]', user?.email || '[Email]')
@@ -520,25 +562,25 @@ Identity and Mutawalli appointment proof`
     // Create new PDF document
     const doc = new jsPDF()
     
-    // Set margins (more compact)
-    const margin = 15
+    // Set margins to match email body layout
+    const margin = 20
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
     const maxWidth = pageWidth - (margin * 2)
     
-    // Split text into lines and handle long lines (more compact)
+    // Split text into lines - match email body formatting
     const lines = letterContent.split('\n')
     let yPosition = margin
-    const lineHeight = 5.5 // Reduced from 7 for compact layout
-    const fontSize = 10 // Reduced from 11 for compact layout
+    const lineHeight = 6 // Match email body line-height: 1.6 * fontSize
+    const fontSize = 11 // Match email body font size
     
     doc.setFontSize(fontSize)
     doc.setFont('helvetica', 'normal')
     
-    lines.forEach((line) => {
-      // Handle empty lines
+    lines.forEach((line, lineIndex) => {
+      // Handle empty lines - preserve spacing like email
       if (line.trim() === '') {
-        yPosition += lineHeight
+        yPosition += lineHeight * 0.5 // Half line spacing for empty lines
         return
       }
       
@@ -551,7 +593,7 @@ Identity and Mutawalli appointment proof`
         yPosition = margin
       }
       
-      // Add text
+      // Add text with proper spacing
       splitLines.forEach((textLine, index) => {
         if (yPosition > pageHeight - margin) {
           doc.addPage()
