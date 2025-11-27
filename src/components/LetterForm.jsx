@@ -225,9 +225,10 @@ Mutawalli/Trustee`
         subject: 'Submission of Registration Documents UNDER SOLEMN PROTEST',
         message: letterContent,
         reply_to: user.email,
+        access_token: credential, // User's OAuth access token for Gmail API
       }
 
-      // Send email using Gmail SMTP API route
+      // Send email using Gmail API route (with user's OAuth token)
       const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: {

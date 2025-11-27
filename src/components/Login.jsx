@@ -3,6 +3,7 @@ import './Login.css'
 
 function Login({ onSuccess }) {
   const login = useGoogleLogin({
+    scope: 'https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
     onSuccess: async (tokenResponse) => {
       try {
         // Fetch user info from Google API
