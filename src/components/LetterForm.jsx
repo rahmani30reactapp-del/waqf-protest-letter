@@ -140,21 +140,45 @@ Yours faithfully,
 
  Name: [SIGNATURE_NAME]
 
-Phone / Email: [USER_EMAIL]`
+Phone: [USER_PHONE] / Email: [USER_EMAIL]`
 
   const [fieldValues, setFieldValues] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState(null)
 
-  // Initialize field values
+  // Initialize field values with saved data from localStorage
   useEffect(() => {
     const fields = extractFields(letterTemplate)
     const initialValues = {}
+    
+    // Load saved values from localStorage
+    const savedData = localStorage.getItem('waqfLetterData')
+    const savedValues = savedData ? JSON.parse(savedData) : {}
+    
     fields.forEach(field => {
-      initialValues[field.id] = ''
+      // Auto-fill Mutawalli name from saved data or previous entry
+      if (field.placeholder === 'Name of Mutawalli' && savedValues.mutawalliName) {
+        initialValues[field.id] = savedValues.mutawalliName
+      } else {
+        initialValues[field.id] = savedValues[field.id] || ''
+      }
     })
+    
     setFieldValues(initialValues)
   }, [])
+  
+  // Save field values to localStorage when they change
+  useEffect(() => {
+    const mutawalliNameField = extractFields(letterTemplate).find(f => f.placeholder === 'Name of Mutawalli')
+    const mutawalliName = mutawalliNameField ? (fieldValues[mutawalliNameField.id] || '') : ''
+    
+    const dataToSave = {
+      ...fieldValues,
+      mutawalliName: mutawalliName,
+    }
+    
+    localStorage.setItem('waqfLetterData', JSON.stringify(dataToSave))
+  }, [fieldValues])
 
   const extractFields = (template) => {
     const fields = []
@@ -173,6 +197,10 @@ Phone / Email: [USER_EMAIL]`
       }
       // Skip USER_EMAIL as it's auto-filled from logged-in user
       if (match[1] === 'USER_EMAIL') {
+        continue
+      }
+      // Skip USER_PHONE as it's auto-filled from Mobile Number field
+      if (match[1] === 'USER_PHONE') {
         continue
       }
       fields.push({
@@ -206,6 +234,13 @@ Phone / Email: [USER_EMAIL]`
     // Replace SIGNATURE_NAME with Mutawalli name
     finalContent = finalContent.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
     
+    // Get Mobile Number for phone field
+    const mobileNumberField = extractFields(letterTemplate).find(f => f.placeholder === 'Mobile Number')
+    const mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
+    
+    // Replace USER_PHONE with Mobile Number
+    finalContent = finalContent.replace('[USER_PHONE]', mobileNumber || '[Phone]')
+    
     // Replace USER_EMAIL with logged-in user's email
     finalContent = finalContent.replace('[USER_EMAIL]', user?.email || '[Email]')
     
@@ -228,15 +263,21 @@ Phone / Email: [USER_EMAIL]`
     // Get Mutawalli name for signature
     const mutawalliNameField = fields.find(f => f.placeholder === 'Name of Mutawalli')
     const mutawalliName = mutawalliNameField ? (fieldValues[mutawalliNameField.id] || '') : ''
+    
+    // Get Mobile Number for phone field
+    const mobileNumberField = fields.find(f => f.placeholder === 'Mobile Number')
+    const mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
 
     fields.forEach((field, idx) => {
-      // Add text before this field (including CURRENT_DATE, SIGNATURE_NAME, and USER_EMAIL replacement)
+      // Add text before this field (including CURRENT_DATE, SIGNATURE_NAME, USER_PHONE, and USER_EMAIL replacement)
       if (field.index > lastIndex) {
         let textBefore = letterTemplate.substring(lastIndex, field.index)
         // Replace CURRENT_DATE in text with actual date
         textBefore = textBefore.replace('[CURRENT_DATE]', getCurrentDate())
         // Replace SIGNATURE_NAME with Mutawalli name
         textBefore = textBefore.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
+        // Replace USER_PHONE with Mobile Number
+        textBefore = textBefore.replace('[USER_PHONE]', mobileNumber || '[Phone]')
         // Replace USER_EMAIL with logged-in user's email
         textBefore = textBefore.replace('[USER_EMAIL]', user?.email || '[Email]')
         parts.push(
@@ -266,11 +307,12 @@ Phone / Email: [USER_EMAIL]`
       lastIndex = field.index + field.fullMatch.length
     })
 
-    // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, and USER_EMAIL replacement if at the end)
+    // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_PHONE, and USER_EMAIL replacement if at the end)
     if (lastIndex < letterTemplate.length) {
       let remainingText = letterTemplate.substring(lastIndex)
       remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
       remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
+      remainingText = remainingText.replace('[USER_PHONE]', mobileNumber || '[Phone]')
       remainingText = remainingText.replace('[USER_EMAIL]', user?.email || '[Email]')
       parts.push(
         <span key="text_end" className="letter-text">
