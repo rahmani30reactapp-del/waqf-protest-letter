@@ -61,9 +61,42 @@ export default async function handler(req, res) {
       }
     }
 
+    // Using Gmail SMTP with App Password
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      try {
+        const nodemailer = (await import('nodemailer')).default
+
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST || 'smtp.gmail.com',
+          port: parseInt(process.env.SMTP_PORT || '587'),
+          secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS, // Gmail App Password
+          },
+        })
+
+        const mailOptions = {
+          from: `"${from_name}" <${process.env.SMTP_USER}>`,
+          to: to_email,
+          cc: cc_email || undefined,
+          replyTo: reply_to || from_email,
+          subject: subject,
+          text: message,
+          html: `<pre style="font-family: monospace; white-space: pre-wrap; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</pre>`,
+        }
+
+        await transporter.sendMail(mailOptions)
+        return res.status(200).json({ success: true, message: 'Email sent successfully via Gmail SMTP' })
+      } catch (smtpError) {
+        console.error('SMTP error:', smtpError)
+        throw smtpError
+      }
+    }
+
     // If no email service configured, return error
     return res.status(500).json({
-      error: 'Email service not configured. Please set SENDGRID_API_KEY and FROM_EMAIL in Vercel environment variables, or use EmailJS instead.',
+      error: 'Email service not configured. Please set up SendGrid (SENDGRID_API_KEY) or Gmail SMTP (SMTP_HOST, SMTP_USER, SMTP_PASS) in Vercel environment variables, or use EmailJS instead.',
     })
   } catch (error) {
     console.error('Error sending email:', error)

@@ -4,15 +4,23 @@ import jsPDF from 'jspdf'
 import './LetterForm.css'
 
 function LetterForm({ user, credential }) {
+  // Get current date formatted
+  const getCurrentDate = () => {
+    const now = new Date()
+    const day = now.getDate().toString().padStart(2, '0')
+    const month = (now.getMonth() + 1).toString().padStart(2, '0')
+    const year = now.getFullYear()
+    return `${day} / ${month} / ${year}`
+  }
+
   const letterTemplate = `To,
 The Chief Executive Officer
-[CEO Name]
 [State Waqf Board]
 [Address]
 
 Subject: Submission of Registration Documents UNDER SOLEMN PROTEST – Complete Reservation of All Legal, Constitutional, Islamic and Property Rights (No Waiver / No Acquiescence)
 
-Dated: [Day] / [Month] / 2025
+Dated: [CURRENT_DATE]
 
 Respected Sir,
 
@@ -40,7 +48,7 @@ Under the amended Act:
 
 Yours faithfully,
 
-[Name of Mutawalli]
+[SIGNATURE_NAME]
 Mutawalli/Trustee`
 
   const [fieldValues, setFieldValues] = useState({})
@@ -64,6 +72,14 @@ Mutawalli/Trustee`
     let id = 0
 
     while ((match = bracketPattern.exec(template)) !== null) {
+      // Skip CURRENT_DATE as it's auto-filled
+      if (match[1] === 'CURRENT_DATE') {
+        continue
+      }
+      // Skip SIGNATURE_NAME as it's auto-filled from Mutawalli name
+      if (match[1] === 'SIGNATURE_NAME') {
+        continue
+      }
       fields.push({
         id: `field_${id++}`,
         placeholder: match[1],
@@ -84,6 +100,17 @@ Mutawalli/Trustee`
 
   const generateFinalLetter = () => {
     let finalContent = letterTemplate
+    
+    // Replace CURRENT_DATE first
+    finalContent = finalContent.replace('[CURRENT_DATE]', getCurrentDate())
+    
+    // Get Mutawalli name for signature
+    const mutawalliNameField = extractFields(letterTemplate).find(f => f.placeholder === 'Name of Mutawalli')
+    const mutawalliName = mutawalliNameField ? (fieldValues[mutawalliNameField.id] || '') : ''
+    
+    // Replace SIGNATURE_NAME with Mutawalli name
+    finalContent = finalContent.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
+    
     const fields = extractFields(letterTemplate)
     
     // Replace fields in reverse order to maintain indices
@@ -100,10 +127,18 @@ Mutawalli/Trustee`
     const parts = []
     let lastIndex = 0
 
+    // Get Mutawalli name for signature
+    const mutawalliNameField = fields.find(f => f.placeholder === 'Name of Mutawalli')
+    const mutawalliName = mutawalliNameField ? (fieldValues[mutawalliNameField.id] || '') : ''
+
     fields.forEach((field, idx) => {
-      // Add text before this field
+      // Add text before this field (including CURRENT_DATE and SIGNATURE_NAME replacement)
       if (field.index > lastIndex) {
-        const textBefore = letterTemplate.substring(lastIndex, field.index)
+        let textBefore = letterTemplate.substring(lastIndex, field.index)
+        // Replace CURRENT_DATE in text with actual date
+        textBefore = textBefore.replace('[CURRENT_DATE]', getCurrentDate())
+        // Replace SIGNATURE_NAME with Mutawalli name
+        textBefore = textBefore.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
         parts.push(
           <span key={`text_${idx}`} className="letter-text">
             {textBefore}
@@ -128,11 +163,14 @@ Mutawalli/Trustee`
       lastIndex = field.index + field.fullMatch.length
     })
 
-    // Add remaining text
+    // Add remaining text (including CURRENT_DATE and SIGNATURE_NAME replacement if at the end)
     if (lastIndex < letterTemplate.length) {
+      let remainingText = letterTemplate.substring(lastIndex)
+      remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
+      remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
       parts.push(
         <span key="text_end" className="letter-text">
-          {letterTemplate.substring(lastIndex)}
+          {remainingText}
         </span>
       )
     }
