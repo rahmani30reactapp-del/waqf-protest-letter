@@ -74,10 +74,6 @@ function App() {
                       <span className="feature-icon">✓</span>
                       <span className="feature-text">No additional email configuration needed</span>
                     </li>
-                    <li>
-                      <span className="feature-icon">✓</span>
-                      <span className="feature-text">Best for: Regular users with Gmail accounts</span>
-                    </li>
                   </ul>
                 </div>
                 <button className="mode-select-btn" onClick={(e) => { e.stopPropagation(); handleModeSelect('login'); }}>
@@ -110,10 +106,6 @@ function App() {
                     <li>
                       <span className="feature-icon">✓</span>
                       <span className="feature-text">Email body copied to clipboard automatically</span>
-                    </li>
-                    <li>
-                      <span className="feature-icon">✓</span>
-                      <span className="feature-text">Best for: Quick access, one-time use, or non-Gmail users</span>
                     </li>
                   </ul>
                 </div>
