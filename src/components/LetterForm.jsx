@@ -474,7 +474,7 @@ Identity and Mutawalli appointment proof`
       let fieldHint = ''
       if (field.placeholder.toLowerCase().includes('name')) {
         fieldType = 'name'
-        fieldHint = 'Enter full name (e.g., John Smith)'
+        fieldHint = 'Enter full name (e.g., Ahmed Ali Khan)'
       } else if (field.placeholder.toLowerCase().includes('mobile') || field.placeholder.toLowerCase().includes('phone')) {
         fieldType = 'phone'
         fieldHint = 'Enter 10-digit mobile number (e.g., 9876543210)'
