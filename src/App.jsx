@@ -38,32 +38,96 @@ function App() {
         <div className="container">
           <header className="header">
             <h1>Waqf Protest Letter Generator</h1>
+            <p className="header-subtitle">Generate and send professional protest letters to State Waqf Boards</p>
           </header>
           <div className="mode-selection">
-            <h2>Choose Your Option</h2>
+            <div className="mode-intro">
+              <h2>How would you like to proceed?</h2>
+              <p className="mode-intro-text">
+                Choose the option that best fits your needs. Both options allow you to create, download, and send your protest letter.
+              </p>
+            </div>
             <div className="mode-cards">
               <div className="mode-card" onClick={() => handleModeSelect('login')}>
+                <div className="mode-badge">Recommended</div>
                 <div className="mode-icon">🔐</div>
                 <h3>Login with Google</h3>
-                <p>Use your Google account to send emails directly from your Gmail account</p>
-                <ul className="mode-features">
-                  <li>✓ Send emails from your verified Gmail account</li>
-                  <li>✓ Uses Gmail API with OAuth</li>
-                  <li>✓ More secure and reliable</li>
-                </ul>
-                <button className="mode-select-btn">Select</button>
+                <p className="mode-description">
+                  Sign in with your Google account to send emails directly from your verified Gmail account. 
+                  Your email will appear to be sent from your own Gmail address.
+                </p>
+                <div className="mode-details">
+                  <h4>How it works:</h4>
+                  <ul className="mode-features">
+                    <li>
+                      <span className="feature-icon">✓</span>
+                      <span className="feature-text">Sign in with your Google account (one-time setup)</span>
+                    </li>
+                    <li>
+                      <span className="feature-icon">✓</span>
+                      <span className="feature-text">Emails sent directly from your Gmail account</span>
+                    </li>
+                    <li>
+                      <span className="feature-icon">✓</span>
+                      <span className="feature-text">Uses Gmail API with secure OAuth authentication</span>
+                    </li>
+                    <li>
+                      <span className="feature-icon">✓</span>
+                      <span className="feature-text">No additional email configuration needed</span>
+                    </li>
+                    <li>
+                      <span className="feature-icon">✓</span>
+                      <span className="feature-text">Best for: Regular users with Gmail accounts</span>
+                    </li>
+                  </ul>
+                </div>
+                <button className="mode-select-btn" onClick={(e) => { e.stopPropagation(); handleModeSelect('login'); }}>
+                  Continue with Google
+                </button>
               </div>
               <div className="mode-card" onClick={() => handleModeSelect('public')}>
+                <div className="mode-badge">Quick Access</div>
                 <div className="mode-icon">📝</div>
-                <h3>Public (No Login)</h3>
-                <p>Use without logging in - just enter your email address</p>
-                <ul className="mode-features">
-                  <li>✓ No login required</li>
-                  <li>✓ Quick and easy to use</li>
-                  <li>✓ Uses SMTP for email sending</li>
-                </ul>
-                <button className="mode-select-btn">Select</button>
+                <h3>Public (No Login Required)</h3>
+                <p className="mode-description">
+                  Use the letter generator without logging in. Simply enter your email address and use the 
+                  "Compose" button to open your email client with pre-filled content.
+                </p>
+                <div className="mode-details">
+                  <h4>How it works:</h4>
+                  <ul className="mode-features">
+                    <li>
+                      <span className="feature-icon">✓</span>
+                      <span className="feature-text">No account login required - start immediately</span>
+                    </li>
+                    <li>
+                      <span className="feature-icon">✓</span>
+                      <span className="feature-text">Enter your email address once</span>
+                    </li>
+                    <li>
+                      <span className="feature-icon">✓</span>
+                      <span className="feature-text">Download PDF or use "Compose" to open your email client</span>
+                    </li>
+                    <li>
+                      <span className="feature-icon">✓</span>
+                      <span className="feature-text">Email body copied to clipboard automatically</span>
+                    </li>
+                    <li>
+                      <span className="feature-icon">✓</span>
+                      <span className="feature-text">Best for: Quick access, one-time use, or non-Gmail users</span>
+                    </li>
+                  </ul>
+                </div>
+                <button className="mode-select-btn" onClick={(e) => { e.stopPropagation(); handleModeSelect('public'); }}>
+                  Continue Without Login
+                </button>
               </div>
+            </div>
+            <div className="mode-footer">
+              <p className="mode-footer-text">
+                <strong>Note:</strong> Both options provide the same letter generation features. 
+                The main difference is how emails are sent - directly via Gmail API (Login) or through your email client (Public).
+              </p>
             </div>
           </div>
         </div>

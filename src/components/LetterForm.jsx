@@ -759,24 +759,8 @@ Identity and Mutawalli appointment proof`
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
       
-      // Build attachment list for body
-      const attachmentList = []
-      if (attachments.registrationForms) {
-        attachmentList.push(`- ${attachments.registrationForms.name}`)
-      }
-      if (attachments.titleDocuments) {
-        attachmentList.push(`- ${attachments.titleDocuments.name}`)
-      }
-      if (attachments.identityProof) {
-        attachmentList.push(`- ${attachments.identityProof.name}`)
-      }
-      attachmentList.push(`- ${pdfFilename} (PDF - already downloaded)`)
-      
-      // Build email body with attachment references
-      let emailBody = letterContent
-      if (attachmentList.length > 0) {
-        emailBody += `\n\n---\nAttachments:\n${attachmentList.join('\n')}\n\nNote: The PDF has been automatically downloaded. Please attach all files mentioned above.`
-      }
+      // Copy letter content to clipboard (without attachment notes)
+      const emailBody = letterContent
       
       // Copy full email body to clipboard FIRST
       try {
