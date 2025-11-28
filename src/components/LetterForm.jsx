@@ -781,53 +781,84 @@ Identity and Mutawalli appointment proof`
       // Encode components for mailto link
       const encodeMailtoParam = (str) => encodeURIComponent(str)
       
-      // Try Gmail compose URL first (works better for Gmail users)
+      // Check if sender email is Gmail
       const isGmailUser = user?.email?.includes('@gmail.com') || user?.email?.includes('@googlemail.com')
       
-      if (isGmailUser) {
-        // Gmail compose URL format
-        const gmailParams = new URLSearchParams()
-        if (toEmail) {
-          gmailParams.append('to', toEmail)
-        }
-        if (ccEmail) {
-          gmailParams.append('cc', ccEmail)
-        }
-        gmailParams.append('su', subject)
-        gmailParams.append('body', emailBody)
-        
-        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&${gmailParams.toString()}`
-        
-        // Open Gmail compose
-        window.open(gmailUrl, '_blank')
-        
-        // Show success message
-        setCopySuccess(true)
-        setTimeout(() => {
-          setCopySuccess(false)
-        }, 5000)
-        return
-      }
+      // Gmail compose URLs have length limitations (~2000 chars), so use mailto as primary
+      // Mailto handles long content better and works with all email clients
       
-      // Fallback to mailto for other email clients
-      // Build mailto link
+      // Build mailto link (works with all email clients including Gmail)
       let mailtoLink = 'mailto:'
       
       if (toEmail) {
         mailtoLink += encodeMailtoParam(toEmail)
+      } else {
+        // If no To email, use empty mailto
+        mailtoLink += ''
       }
       
       const params = []
-      if (ccEmail) {
-        params.push(`cc=${encodeMailtoParam(ccEmail)}`)
+      if (ccEmail && ccEmail.trim()) {
+        params.push(`cc=${encodeMailtoParam(ccEmail.trim())}`)
       }
-      params.push(`subject=${encodeMailtoParam(subject)}`)
-      params.push(`body=${encodeMailtoParam(emailBody)}`)
+      if (subject) {
+        params.push(`subject=${encodeMailtoParam(subject)}`)
+      }
+      if (emailBody) {
+        params.push(`body=${encodeMailtoParam(emailBody)}`)
+      }
       
       if (params.length > 0) {
         mailtoLink += '?' + params.join('&')
       }
       
+      // For Gmail users, try Gmail compose URL first (but with truncated body if needed)
+      if (isGmailUser) {
+        try {
+          // Gmail compose URL format - limit body length to avoid 400 errors
+          const maxBodyLength = 1500 // Safe limit for Gmail URLs
+          const truncatedBody = emailBody.length > maxBodyLength 
+            ? emailBody.substring(0, maxBodyLength) + '\n\n[Content truncated - full content will be in email body]'
+            : emailBody
+          
+          const gmailParams = new URLSearchParams()
+          if (toEmail && toEmail.trim()) {
+            gmailParams.append('to', toEmail.trim())
+          }
+          if (ccEmail && ccEmail.trim()) {
+            gmailParams.append('cc', ccEmail.trim())
+          }
+          gmailParams.append('su', subject)
+          gmailParams.append('body', truncatedBody)
+          
+          const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&${gmailParams.toString()}`
+          
+          // Check URL length (browsers have ~2000 char limit)
+          if (gmailUrl.length < 2000) {
+            // Open Gmail compose
+            window.open(gmailUrl, '_blank')
+            
+            // Also copy full body to clipboard for easy pasting
+            try {
+              await navigator.clipboard.writeText(emailBody)
+            } catch (clipError) {
+              console.log('Clipboard copy failed, continuing...')
+            }
+            
+            // Show success message
+            setCopySuccess(true)
+            setTimeout(() => {
+              setCopySuccess(false)
+            }, 5000)
+            return
+          }
+        } catch (gmailError) {
+          console.log('Gmail URL failed, falling back to mailto:', gmailError)
+          // Fall through to mailto
+        }
+      }
+      
+      // Use mailto as primary/fallback method (handles long content better)
       // Detect mobile device for better UX
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
       
