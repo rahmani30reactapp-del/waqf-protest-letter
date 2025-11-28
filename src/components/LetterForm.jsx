@@ -155,6 +155,7 @@ Identity and Mutawalli appointment proof`
   const [submitStatus, setSubmitStatus] = useState(null)
   const [iCheckboxChecked, setICheckboxChecked] = useState(true) // Default checked
   const [showPreview, setShowPreview] = useState(false) // Preview modal state
+  const [copySuccess, setCopySuccess] = useState(false) // Copy to clipboard success state
   const [attachments, setAttachments] = useState({
     registrationForms: null,
     titleDocuments: null,
@@ -735,6 +736,72 @@ Identity and Mutawalli appointment proof`
     URL.revokeObjectURL(url)
   }
 
+  const handleCompose = () => {
+    try {
+      const letterContent = generateFinalLetter()
+      const toEmail = process.env.REACT_APP_TO_EMAIL || ''
+      const ccEmail = process.env.REACT_APP_CC_EMAIL || ''
+      const subject = 'Submission of Registration Documents UNDER SOLEMN PROTEST'
+      
+      // Build attachment list for body
+      const attachmentList = []
+      if (attachments.registrationForms) {
+        attachmentList.push(`- ${attachments.registrationForms.name}`)
+      }
+      if (attachments.titleDocuments) {
+        attachmentList.push(`- ${attachments.titleDocuments.name}`)
+      }
+      if (attachments.identityProof) {
+        attachmentList.push(`- ${attachments.identityProof.name}`)
+      }
+      
+      // Add PDF attachment mention
+      const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
+      const dateStr = new Date().toISOString().split('T')[0]
+      const pdfFilename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
+      attachmentList.push(`- ${pdfFilename} (PDF)`)
+      
+      // Build email body with attachment references
+      let emailBody = letterContent
+      if (attachmentList.length > 0) {
+        emailBody += `\n\n---\nNote: Please attach the following files:\n${attachmentList.join('\n')}`
+      }
+      
+      // Encode components for mailto link
+      const encodeMailtoParam = (str) => encodeURIComponent(str).replace(/%20/g, '%20')
+      
+      // Build mailto link
+      let mailtoLink = 'mailto:'
+      
+      if (toEmail) {
+        mailtoLink += encodeMailtoParam(toEmail)
+      }
+      
+      const params = []
+      if (ccEmail) {
+        params.push(`cc=${encodeMailtoParam(ccEmail)}`)
+      }
+      params.push(`subject=${encodeMailtoParam(subject)}`)
+      params.push(`body=${encodeMailtoParam(emailBody)}`)
+      
+      if (params.length > 0) {
+        mailtoLink += '?' + params.join('&')
+      }
+      
+      // Open mailto link
+      window.location.href = mailtoLink
+      
+      // Show success message
+      setCopySuccess(true)
+      setTimeout(() => {
+        setCopySuccess(false)
+      }, 3000)
+    } catch (error) {
+      console.error('Failed to open email composer:', error)
+      alert('Failed to open email composer. Please check your email client settings.')
+    }
+  }
+
   const fields = extractFields(letterTemplate)
   const filledFields = fields.filter(field => fieldValues[field.id] && fieldValues[field.id].trim() !== '').length
   const totalFields = fields.length
@@ -883,6 +950,24 @@ Identity and Mutawalli appointment proof`
               <span className="btn-text">Preview</span>
             </button>
             <button
+              type="button"
+              onClick={handleCompose}
+              className="compose-btn"
+              disabled={filledFields < totalFields}
+            >
+              {copySuccess ? (
+                <>
+                  <span className="btn-icon">✓</span>
+                  <span className="btn-text">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <span className="btn-icon">📋</span>
+                  <span className="btn-text">Compose</span>
+                </>
+              )}
+            </button>
+            <button
               type="submit"
               className="submit-btn"
               disabled={isSubmitting || filledFields < totalFields}
@@ -900,6 +985,12 @@ Identity and Mutawalli appointment proof`
               )}
             </button>
           </div>
+          {copySuccess && (
+            <div className="copy-success-message">
+              <span className="copy-success-icon">✓</span>
+              <span className="copy-success-text">Email composer opened! To, CC, Subject, and Body are pre-filled. Please attach the files mentioned in the email.</span>
+            </div>
+          )}
           <p className="action-hint">
             Your letter will be sent to: <strong>{process.env.REACT_APP_TO_EMAIL || 'Configured recipient'}</strong>
           </p>

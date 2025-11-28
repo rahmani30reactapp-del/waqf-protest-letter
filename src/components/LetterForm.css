@@ -455,7 +455,8 @@
 }
 
 .submit-btn,
-.download-btn {
+.download-btn,
+.compose-btn {
   padding: 16px 32px;
   border: none;
   border-radius: 10px;
@@ -514,6 +515,62 @@
 
 .download-btn:active {
   transform: translateY(0);
+}
+
+.compose-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.compose-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.compose-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.compose-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.copy-success-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border: 2px solid #10b981;
+  border-radius: 8px;
+  margin-top: 16px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.copy-success-icon {
+  font-size: 20px;
+  color: #059669;
+  font-weight: bold;
+}
+
+.copy-success-text {
+  color: #065f46;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Action Section */

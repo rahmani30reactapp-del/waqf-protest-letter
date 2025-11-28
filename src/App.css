@@ -203,34 +203,10 @@
   border-color: #667eea;
 }
 
-.sender-email-info {
-  margin-top: 12px;
-}
-
 .sender-email-hint {
+  margin-top: 8px;
   font-size: 14px;
-  color: #444;
-  line-height: 1.6;
-  margin-bottom: 8px;
-}
-
-.sender-email-hint strong {
-  color: #667eea;
-}
-
-.sender-email-note {
-  font-size: 13px;
   color: #666;
-  line-height: 1.5;
-  margin: 0;
-  padding: 8px 12px;
-  background: #fff3cd;
-  border-left: 3px solid #ffc107;
-  border-radius: 4px;
-}
-
-.sender-email-note strong {
-  color: #856404;
 }
 
 @media (max-width: 768px) {

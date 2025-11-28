@@ -156,6 +156,7 @@ Identity and Mutawalli appointment proof`
   const [submitStatus, setSubmitStatus] = useState(null)
   const [iCheckboxChecked, setICheckboxChecked] = useState(true) // Default checked
   const [showPreview, setShowPreview] = useState(false) // Preview modal state
+  const [copySuccess, setCopySuccess] = useState(false) // Copy to clipboard success state
   const [attachments, setAttachments] = useState({
     registrationForms: null,
     titleDocuments: null,
@@ -535,7 +536,7 @@ Identity and Mutawalli appointment proof`
       // Wait for all attachments to be converted
       await Promise.all(attachmentPromises)
 
-      // Prepare email parameters (without OAuth token - uses SendGrid only)
+      // Prepare email parameters (without OAuth token - uses SMTP only)
       const emailData = {
         to_email: process.env.REACT_APP_TO_EMAIL,
         cc_email: process.env.REACT_APP_CC_EMAIL,
@@ -544,13 +545,13 @@ Identity and Mutawalli appointment proof`
         subject: 'Submission of Registration Documents UNDER SOLEMN PROTEST',
         message: letterContent,
         reply_to: senderEmail,
-        // No access_token - will use SendGrid only (required for public mode)
+        // No access_token - will use SMTP only
         pdf_attachment: pdfBase64, // PDF as base64
         pdf_filename: filename, // PDF filename
         attachments: attachmentData, // Additional attachments
       }
 
-      // Send email using SendGrid (required for public mode)
+      // Send email using SMTP route (no OAuth token)
       const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: {
@@ -560,70 +561,23 @@ Identity and Mutawalli appointment proof`
       })
 
       if (!response.ok) {
-        let errorData
-        try {
-          errorData = await response.json()
-        } catch (parseError) {
-          // If response is not JSON, get text
-          const textError = await response.text()
-          throw new Error(`Server error (${response.status}): ${textError || 'Unknown error'}`)
-        }
-        
-        console.error('API Error Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData
-        })
-        
+        const errorData = await response.json()
         let errorMessage = errorData.error || 'Failed to send email'
-        let errorDetails = errorData.details || ''
         
-        // Provide helpful error messages for SendGrid errors
-        if (errorMessage.includes('SendGrid') || errorMessage.includes('SENDGRID_API_KEY')) {
-          if (errorMessage.includes('required') || errorMessage.includes('not configured')) {
-            errorMessage = 'SendGrid is required for public mode. Please configure SENDGRID_API_KEY in Vercel environment variables.'
-            errorDetails = 'See SENDGRID_SETUP.md for setup instructions.'
-          } else if (errorMessage.includes('verified') || errorDetails.includes('verified')) {
-            errorMessage = 'SendGrid sender verification error'
-            errorDetails = 'The sender email address must be verified in SendGrid. Go to Settings > Sender Authentication and verify your sender email or domain.'
-          } else if (errorMessage.includes('API key') || errorMessage.includes('Invalid')) {
-            errorMessage = 'Invalid SendGrid API key'
-            errorDetails = 'Please check SENDGRID_API_KEY in Vercel environment variables. Make sure it starts with "SG." and has no extra spaces or quotes.'
-          } else if (errorDetails) {
-            errorMessage = errorMessage
-            // Keep errorDetails as is
-          } else {
-            errorMessage = errorMessage
-            errorDetails = 'Please check SendGrid configuration in Vercel environment variables.'
-          }
+        // Provide helpful error messages for common SMTP errors
+        if (errorMessage.includes('Invalid login') || errorMessage.includes('BadCredentials') || errorMessage.includes('EAUTH')) {
+          errorMessage = 'SMTP authentication failed. Please check:\n1. SMTP credentials are correctly configured in Vercel\n2. Gmail App Password is correct (16 characters, no spaces)\n3. 2-Step Verification is enabled'
+        } else if (errorMessage.includes('SMTP')) {
+          errorMessage = 'SMTP configuration error. Please verify SMTP settings in Vercel environment variables.'
         }
         
-        // Combine error message and details
-        const fullErrorMessage = errorDetails 
-          ? `${errorMessage}\n\n${errorDetails}`
-          : errorMessage
-        
-        throw new Error(fullErrorMessage)
+        throw new Error(errorMessage)
       }
 
       setSubmitStatus({ type: 'success', message: 'Letter sent successfully!' })
     } catch (error) {
       console.error('Error sending email:', error)
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        response: error.response
-      })
-      
-      // Extract error message - handle both Error objects and strings
-      let errorMessage = error.message || error.toString() || 'Failed to send letter. Please try again.'
-      
-      // If error message is too long, truncate it but keep important parts
-      if (errorMessage.length > 500) {
-        const lines = errorMessage.split('\n')
-        errorMessage = lines.slice(0, 5).join('\n') + '\n\n... (error truncated)'
-      }
-      
+      const errorMessage = error.message || 'Failed to send letter. Please try again.'
       setSubmitStatus({
         type: 'error',
         message: errorMessage,
@@ -810,6 +764,72 @@ Identity and Mutawalli appointment proof`
     URL.revokeObjectURL(url)
   }
 
+  const handleCompose = () => {
+    try {
+      const letterContent = generateFinalLetter()
+      const toEmail = process.env.REACT_APP_TO_EMAIL || ''
+      const ccEmail = process.env.REACT_APP_CC_EMAIL || ''
+      const subject = 'Submission of Registration Documents UNDER SOLEMN PROTEST'
+      
+      // Build attachment list for body
+      const attachmentList = []
+      if (attachments.registrationForms) {
+        attachmentList.push(`- ${attachments.registrationForms.name}`)
+      }
+      if (attachments.titleDocuments) {
+        attachmentList.push(`- ${attachments.titleDocuments.name}`)
+      }
+      if (attachments.identityProof) {
+        attachmentList.push(`- ${attachments.identityProof.name}`)
+      }
+      
+      // Add PDF attachment mention
+      const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
+      const dateStr = new Date().toISOString().split('T')[0]
+      const pdfFilename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
+      attachmentList.push(`- ${pdfFilename} (PDF)`)
+      
+      // Build email body with attachment references
+      let emailBody = letterContent
+      if (attachmentList.length > 0) {
+        emailBody += `\n\n---\nNote: Please attach the following files:\n${attachmentList.join('\n')}`
+      }
+      
+      // Encode components for mailto link
+      const encodeMailtoParam = (str) => encodeURIComponent(str).replace(/%20/g, '%20')
+      
+      // Build mailto link
+      let mailtoLink = 'mailto:'
+      
+      if (toEmail) {
+        mailtoLink += encodeMailtoParam(toEmail)
+      }
+      
+      const params = []
+      if (ccEmail) {
+        params.push(`cc=${encodeMailtoParam(ccEmail)}`)
+      }
+      params.push(`subject=${encodeMailtoParam(subject)}`)
+      params.push(`body=${encodeMailtoParam(emailBody)}`)
+      
+      if (params.length > 0) {
+        mailtoLink += '?' + params.join('&')
+      }
+      
+      // Open mailto link
+      window.location.href = mailtoLink
+      
+      // Show success message
+      setCopySuccess(true)
+      setTimeout(() => {
+        setCopySuccess(false)
+      }, 3000)
+    } catch (error) {
+      console.error('Failed to open email composer:', error)
+      alert('Failed to open email composer. Please check your email client settings.')
+    }
+  }
+
   const fields = extractFields(letterTemplate)
   const filledFields = fields.filter(field => fieldValues[field.id] && fieldValues[field.id].trim() !== '').length
   const totalFields = fields.length
@@ -826,12 +846,12 @@ Identity and Mutawalli appointment proof`
 
       <div className="info-card">
         <div className="info-icon">ℹ️</div>
-          <div className="info-content">
+        <div className="info-content">
           <h3>How to Use</h3>
           <ul>
             <li>Click on any <strong className="highlight">input field</strong> in the letter to fill in your information</li>
             <li>All fields must be completed before sending or downloading</li>
-            <li>Enter your email address below - emails will be sent FROM this address using SendGrid</li>
+            <li>Enter your email address below - this will be used as the sender email</li>
             <li>Fields are highlighted when you focus on them</li>
             <li>You can download as PDF or send directly via email</li>
           </ul>
@@ -853,16 +873,9 @@ Identity and Mutawalli appointment proof`
             onChange={(e) => setSenderEmail(e.target.value)}
             required
           />
-          <div className="sender-email-info">
-            <p className="sender-email-hint">
-              <strong>📧 How it works:</strong> This email will be used as the sender email and reply-to address. 
-              The email will be sent via SendGrid and will appear to come from this address.
-            </p>
-            <p className="sender-email-note">
-              <strong>Note:</strong> Make sure to enter a valid email address where you can receive replies. 
-              The sender email must be verified in SendGrid settings.
-            </p>
-          </div>
+          <p className="sender-email-hint">
+            This email will be used as the sender email and reply-to address
+          </p>
         </div>
 
         <div className="editor-header">
@@ -985,6 +998,24 @@ Identity and Mutawalli appointment proof`
               <span className="btn-text">Preview</span>
             </button>
             <button
+              type="button"
+              onClick={handleCompose}
+              className="compose-btn"
+              disabled={filledFields < totalFields}
+            >
+              {copySuccess ? (
+                <>
+                  <span className="btn-icon">✓</span>
+                  <span className="btn-text">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <span className="btn-icon">📋</span>
+                  <span className="btn-text">Compose</span>
+                </>
+              )}
+            </button>
+            <button
               type="submit"
               className="submit-btn"
               disabled={isSubmitting || filledFields < totalFields || !senderEmail}
@@ -1002,6 +1033,12 @@ Identity and Mutawalli appointment proof`
               )}
             </button>
           </div>
+          {copySuccess && (
+            <div className="copy-success-message">
+              <span className="copy-success-icon">✓</span>
+              <span className="copy-success-text">Email composer opened! To, CC, Subject, and Body are pre-filled. Please attach the files mentioned in the email.</span>
+            </div>
+          )}
           <p className="action-hint">
             Your letter will be sent to: <strong>{process.env.REACT_APP_TO_EMAIL || 'Configured recipient'}</strong>
           </p>
