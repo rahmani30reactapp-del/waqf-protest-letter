@@ -806,108 +806,95 @@ Identity and Mutawalli appointment proof`
         emailBody += `\n\n---\nAttachments:\n${attachmentList.join('\n')}\n\nNote: The PDF has been automatically downloaded. Please attach all files mentioned above.`
       }
       
+      // Copy full email body to clipboard
+      try {
+        await navigator.clipboard.writeText(emailBody)
+      } catch (clipError) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea')
+        textArea.value = emailBody
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.select()
+        try {
+          document.execCommand('copy')
+        } catch (err) {
+          console.error('Fallback copy failed:', err)
+          setSubmitStatus({
+            type: 'error',
+            message: 'Failed to copy email body. Please copy it manually from the Preview.',
+          })
+          return
+        }
+        document.body.removeChild(textArea)
+      }
+      
       // Encode components for mailto link
       const encodeMailtoParam = (str) => encodeURIComponent(str)
       
       // Check if sender email is Gmail
       const isGmailUser = senderEmail?.includes('@gmail.com') || senderEmail?.includes('@googlemail.com')
       
-      // Gmail compose URLs have length limitations (~2000 chars), so use mailto as primary
-      // Mailto handles long content better and works with all email clients
+      // Build email URL with only To, CC, and Subject (no body)
+      // Body is copied to clipboard for user to paste
       
-      // Build mailto link (works with all email clients including Gmail)
-      let mailtoLink = 'mailto:'
-      
-      if (toEmail && toEmail.trim()) {
-        mailtoLink += encodeMailtoParam(toEmail.trim())
-      } else {
-        // If no To email, use empty mailto
-        mailtoLink += ''
-      }
-      
-      const params = []
-      if (ccEmail && ccEmail.trim()) {
-        params.push(`cc=${encodeMailtoParam(ccEmail.trim())}`)
-      }
-      if (subject) {
-        params.push(`subject=${encodeMailtoParam(subject)}`)
-      }
-      if (emailBody) {
-        params.push(`body=${encodeMailtoParam(emailBody)}`)
-      }
-      
-      if (params.length > 0) {
-        mailtoLink += '?' + params.join('&')
-      }
-      
-      // For Gmail users, try Gmail compose URL first (but with truncated body if needed)
       if (isGmailUser) {
-        try {
-          // Gmail compose URL format - limit body length to avoid 400 errors
-          const maxBodyLength = 1500 // Safe limit for Gmail URLs
-          const truncatedBody = emailBody.length > maxBodyLength 
-            ? emailBody.substring(0, maxBodyLength) + '\n\n[Content truncated - full content will be in email body]'
-            : emailBody
-          
-          const gmailParams = new URLSearchParams()
-          if (toEmail && toEmail.trim()) {
-            gmailParams.append('to', toEmail.trim())
-          }
-          if (ccEmail && ccEmail.trim()) {
-            gmailParams.append('cc', ccEmail.trim())
-          }
-          gmailParams.append('su', subject)
-          gmailParams.append('body', truncatedBody)
-          
-          const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&${gmailParams.toString()}`
-          
-          // Check URL length (browsers have ~2000 char limit)
-          if (gmailUrl.length < 2000) {
-            // Open Gmail compose
-            window.open(gmailUrl, '_blank')
-            
-            // Also copy full body to clipboard for easy pasting
-            try {
-              await navigator.clipboard.writeText(emailBody)
-            } catch (clipError) {
-              console.log('Clipboard copy failed, continuing...')
-            }
-            
-            // Show success message
-            setCopySuccess(true)
-            setTimeout(() => {
-              setCopySuccess(false)
-            }, 5000)
-            return
-          }
-        } catch (gmailError) {
-          console.log('Gmail URL failed, falling back to mailto:', gmailError)
-          // Fall through to mailto
+        // Gmail compose URL format - only To, CC, Subject (no body)
+        const gmailParams = new URLSearchParams()
+        if (toEmail && toEmail.trim()) {
+          gmailParams.append('to', toEmail.trim())
         }
-      }
-      
-      // Use mailto as primary/fallback method (handles long content better)
-      // Detect mobile device for better UX
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-      
-      // Open email composer
-      if (isMobile) {
-        // On mobile, try to open in new tab/window
-        const mailtoWindow = window.open(mailtoLink, '_blank')
-        // Fallback if popup blocked
-        if (!mailtoWindow || mailtoWindow.closed) {
+        if (ccEmail && ccEmail.trim()) {
+          gmailParams.append('cc', ccEmail.trim())
+        }
+        gmailParams.append('su', subject)
+        // No body parameter - user will paste from clipboard
+        
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&${gmailParams.toString()}`
+        
+        // Open Gmail compose
+        window.open(gmailUrl, '_blank')
+      } else {
+        // Build mailto link with only To, CC, Subject (no body)
+        let mailtoLink = 'mailto:'
+        
+        if (toEmail && toEmail.trim()) {
+          mailtoLink += encodeMailtoParam(toEmail.trim())
+        } else {
+          mailtoLink += ''
+        }
+        
+        const params = []
+        if (ccEmail && ccEmail.trim()) {
+          params.push(`cc=${encodeMailtoParam(ccEmail.trim())}`)
+        }
+        params.push(`subject=${encodeMailtoParam(subject)}`)
+        // No body parameter - user will paste from clipboard
+        
+        if (params.length > 0) {
+          mailtoLink += '?' + params.join('&')
+        }
+        
+        // Detect mobile device for better UX
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+        
+        // Open email composer
+        if (isMobile) {
+          const mailtoWindow = window.open(mailtoLink, '_blank')
+          if (!mailtoWindow || mailtoWindow.closed) {
+            window.location.href = mailtoLink
+          }
+        } else {
           window.location.href = mailtoLink
         }
-      } else {
-        // Desktop: direct navigation
-        window.location.href = mailtoLink
       }
       
       // Show success message
       setCopySuccess(true)
       setTimeout(() => {
         setCopySuccess(false)
-      }, 5000)
+      }, 6000) // Longer timeout to give user time to paste
     } catch (error) {
       console.error('Failed to open email composer:', error)
       setSubmitStatus({
@@ -1106,7 +1093,10 @@ Identity and Mutawalli appointment proof`
           {copySuccess && (
             <div className="copy-success-message">
               <span className="copy-success-icon">✓</span>
-              <span className="copy-success-text">PDF downloaded and email composer opened! To, CC, Subject, and Body are pre-filled. Please attach the files mentioned in the email.</span>
+              <span className="copy-success-text">
+                <strong>Email body copied to clipboard!</strong> PDF downloaded and email composer opened with To, CC, and Subject pre-filled. 
+                <strong> Press Ctrl+V (Cmd+V on Mac) to paste the body</strong> in the email composer, then attach the files.
+              </span>
             </div>
           )}
           <p className="action-hint">

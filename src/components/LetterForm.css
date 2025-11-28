@@ -577,6 +577,12 @@ input[type="file"] {
   color: #065f46;
   font-size: 14px;
   font-weight: 500;
+  line-height: 1.6;
+}
+
+.copy-success-text strong {
+  color: #047857;
+  font-weight: 600;
 }
 
 @keyframes slideIn {
