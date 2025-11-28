@@ -160,44 +160,188 @@ input[type="file"] {
   display: inline;
 }
 
+/* Field Wrapper */
+.inline-field-wrapper {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  margin: 0 3px;
+  vertical-align: baseline;
+}
+
+/* Input Field Base Styles */
 .inline-field {
   display: inline-block;
   min-width: 150px;
-  padding: 3px 8px; /* Reduced padding for compact layout */
-  margin: 0 3px; /* Reduced margin for compact layout */
+  padding: 6px 28px 6px 10px; /* Added right padding for indicator */
+  margin: 0;
   border: 2px solid #cbd5e1;
   border-radius: 6px;
   background: #f8fafc;
   font-family: 'Georgia', 'Times New Roman', serif;
-  font-size: 13px; /* Reduced from 14px for compact layout */
+  font-size: 13px;
   color: #1a1a1a;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   vertical-align: baseline;
   outline: none;
+  position: relative;
+  cursor: text;
 }
 
+/* Empty Field State */
+.inline-field.field-empty {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  border-style: dashed;
+}
+
+.inline-field.field-empty:hover {
+  border-color: #94a3b8;
+  background: #f1f5f9;
+}
+
+/* Filled Field State */
+.inline-field.field-filled {
+  border-color: #10b981;
+  background: #ffffff;
+  border-style: solid;
+}
+
+.inline-field.field-filled:hover {
+  border-color: #059669;
+}
+
+/* Focus State */
 .inline-field:focus {
   border-color: #4f46e5;
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
   transform: scale(1.02);
+  border-style: solid;
+  z-index: 1;
 }
 
+.inline-field:focus.field-empty {
+  border-color: #4f46e5;
+  border-style: solid;
+}
+
+.inline-field:focus.field-filled {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* Placeholder Styles */
 .inline-field::placeholder {
   color: #94a3b8;
   font-style: italic;
+  opacity: 0.7;
 }
 
+.inline-field.field-empty::placeholder {
+  color: #94a3b8;
+}
+
+.inline-field.field-filled::placeholder {
+  opacity: 0;
+}
+
+/* Field Type Specific Styles */
+.inline-field[data-field-type="name"] {
+  text-transform: capitalize;
+}
+
+.inline-field[data-field-type="phone"] {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+
+.inline-field[data-field-type="email"] {
+  font-family: inherit;
+}
+
+/* Short Field (Day/Month) */
 .inline-field.short-field {
   min-width: 60px;
   max-width: 80px;
   text-align: center;
-  padding: 4px 8px;
+  padding: 6px 8px;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
 }
 
-.inline-field:not(:focus):not(:placeholder-shown) {
-  background: #ffffff;
-  border-color: #e2e8f0;
+.inline-field.short-field.field-empty {
+  padding-right: 8px;
+}
+
+/* Field Indicator (Icon) */
+.field-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.field-indicator-icon {
+  font-size: 12px;
+  line-height: 1;
+  display: block;
+}
+
+/* Empty Field Indicator */
+.field-indicator:not(.filled) {
+  background: rgba(148, 163, 184, 0.2);
+  color: #64748b;
+}
+
+.inline-field-wrapper:hover .field-indicator:not(.filled) {
+  background: rgba(148, 163, 184, 0.3);
+  color: #475569;
+}
+
+.inline-field:focus ~ .field-indicator:not(.filled) {
+  background: rgba(79, 70, 229, 0.2);
+  color: #4f46e5;
+}
+
+/* Filled Field Indicator */
+.field-indicator.filled {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  animation: checkmark-appear 0.3s ease;
+}
+
+@keyframes checkmark-appear {
+  0% {
+    transform: translateY(-50%) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-50%) scale(1.2);
+  }
+  100% {
+    transform: translateY(-50%) scale(1);
+    opacity: 1;
+  }
+}
+
+.inline-field:focus ~ .field-indicator.filled {
+  background: rgba(16, 185, 129, 0.25);
+  color: #059669;
+}
+
+/* Enhanced tooltip styling for better visibility */
+.inline-field[title]:hover {
+  cursor: help;
 }
 
 .i-checkbox {
@@ -223,6 +367,15 @@ input[type="file"] {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.footer-hint::before {
+  content: '💡';
+  margin-right: 4px;
+  flex-shrink: 0;
 }
 
 /* Attachments Section */
@@ -847,6 +1000,50 @@ input[type="file"] {
   }
 }
 
+/* Mobile Responsive Styles for Enhanced Fields */
+@media (max-width: 768px) {
+  .inline-field-wrapper {
+    margin: 0 2px;
+  }
+  
+  .inline-field {
+    min-width: 120px;
+    padding: 5px 24px 5px 8px;
+    font-size: 12px;
+  }
+  
+  .inline-field.short-field {
+    min-width: 50px;
+    max-width: 70px;
+    padding: 5px 6px;
+  }
+  
+  .field-indicator {
+    right: 6px;
+    width: 16px;
+    height: 16px;
+  }
+  
+  .field-indicator-icon {
+    font-size: 11px;
+  }
+  
+  .field-guide {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+  
+  .field-guide-list {
+    font-size: 11px;
+  }
+  
+  /* Hide tooltips on mobile (touch devices) */
+  .inline-field-wrapper:hover::after,
+  .inline-field-wrapper:hover::before {
+    display: none;
+  }
+}
+
 @media (max-width: 480px) {
   .title-group h2 {
     font-size: 20px;
@@ -860,7 +1057,32 @@ input[type="file"] {
 
   .inline-field {
     font-size: 13px;
-    padding: 5px 8px;
+    padding: 5px 24px 5px 8px;
+    min-width: 100px;
+  }
+  
+  .inline-field.short-field {
+    padding: 5px 6px;
+  }
+  
+  .field-indicator {
+    right: 6px;
+    width: 14px;
+    height: 14px;
+  }
+  
+  .field-indicator-icon {
+    font-size: 10px;
+  }
+  
+  .field-guide {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+  
+  .field-guide-list {
+    font-size: 11px;
+    padding-left: 16px;
   }
 
   .info-card {

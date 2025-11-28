@@ -351,21 +351,62 @@ Identity and Mutawalli appointment proof`
         }
       }
 
-      // Add input field
+      // Add input field with enhanced UX
       const isShortField = field.placeholder.includes('Day') || field.placeholder.includes('Month')
+      const fieldValue = fieldValues[field.id] || ''
+      const isEmpty = !fieldValue.trim()
+      
+      // Determine field type for better UX
+      let fieldType = 'text'
+      let fieldHint = ''
+      if (field.placeholder.toLowerCase().includes('name')) {
+        fieldType = 'name'
+        fieldHint = 'Enter full name (e.g., John Smith)'
+      } else if (field.placeholder.toLowerCase().includes('mobile') || field.placeholder.toLowerCase().includes('phone')) {
+        fieldType = 'phone'
+        fieldHint = 'Enter 10-digit mobile number (e.g., 9876543210)'
+      } else if (field.placeholder.toLowerCase().includes('email')) {
+        fieldType = 'email'
+        fieldHint = 'Enter email address (e.g., name@example.com)'
+      } else if (field.placeholder.toLowerCase().includes('day') || field.placeholder.toLowerCase().includes('month')) {
+        fieldType = 'date'
+        fieldHint = isShortField ? (field.placeholder.includes('Day') ? 'Enter day (01-31)' : 'Enter month (01-12)') : ''
+      } else if (field.placeholder.toLowerCase().includes('address')) {
+        fieldType = 'address'
+        fieldHint = 'Enter complete address'
+      } else if (field.placeholder.toLowerCase().includes('waqf') || field.placeholder.toLowerCase().includes('property')) {
+        fieldType = 'property'
+        fieldHint = 'Enter property/waqf name'
+      }
+      
       parts.push(
-        <input
-          key={field.id}
-          type="text"
-          className={`inline-field ${isShortField ? 'short-field' : ''}`}
-          placeholder={field.placeholder}
-          value={fieldValues[field.id] || ''}
-          onChange={(e) => handleFieldChange(field.id, e.target.value)}
-          maxLength={isShortField ? 2 : undefined}
-          autoCapitalize="words"
-          autoComplete="off"
-          spellCheck="false"
-        />
+        <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
+          <input
+            key={field.id}
+            type={fieldType === 'email' ? 'email' : fieldType === 'phone' ? 'tel' : 'text'}
+            className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
+            placeholder={field.placeholder}
+            value={fieldValue}
+            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+            maxLength={isShortField ? 2 : undefined}
+            autoCapitalize="words"
+            autoComplete="off"
+            spellCheck="false"
+            data-field-type={fieldType}
+            title={fieldHint || field.placeholder}
+            aria-label={field.placeholder}
+          />
+          {isEmpty && (
+            <span className="field-indicator" aria-hidden="true">
+              <span className="field-indicator-icon">✎</span>
+            </span>
+          )}
+          {!isEmpty && (
+            <span className="field-indicator filled" aria-hidden="true">
+              <span className="field-indicator-icon">✓</span>
+            </span>
+          )}
+        </span>
       )
 
       lastIndex = field.index + field.fullMatch.length
@@ -963,7 +1004,19 @@ Identity and Mutawalli appointment proof`
             {renderLetterWithFields()}
           </div>
           <div className="editor-footer">
-            <span className="footer-hint">💡 Tip: Click on any highlighted field to enter your information</span>
+            <span className="footer-hint">Tip: Click on any field to enter your information. Empty fields show a pencil icon (✎), filled fields show a checkmark (✓). Hover over fields for helpful hints.</span>
+            <div className="field-guide">
+              <span className="field-guide-icon">📝</span>
+              <div className="field-guide-content">
+                <div className="field-guide-title">Field Guide:</div>
+                <ul className="field-guide-list">
+                  <li><strong>Dashed border</strong> = Empty field (needs to be filled)</li>
+                  <li><strong>Green border</strong> = Field is filled correctly</li>
+                  <li><strong>Blue border</strong> = Field is currently focused</li>
+                  <li><strong>Hover over fields</strong> to see helpful examples and hints</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
