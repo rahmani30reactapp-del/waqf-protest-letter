@@ -1005,18 +1005,6 @@ Identity and Mutawalli appointment proof`
           </div>
           <div className="editor-footer">
             <span className="footer-hint">Tip: Click on any field to enter your information. Empty fields show a pencil icon (✎), filled fields show a checkmark (✓). Hover over fields for helpful hints.</span>
-            <div className="field-guide">
-              <span className="field-guide-icon">📝</span>
-              <div className="field-guide-content">
-                <div className="field-guide-title">Field Guide:</div>
-                <ul className="field-guide-list">
-                  <li><strong>Dashed border</strong> = Empty field (needs to be filled)</li>
-                  <li><strong>Green border</strong> = Field is filled correctly</li>
-                  <li><strong>Blue border</strong> = Field is currently focused</li>
-                  <li><strong>Hover over fields</strong> to see helpful examples and hints</li>
-                </ul>
-              </div>
-            </div>
           </div>
         </div>
 
