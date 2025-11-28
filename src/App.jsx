@@ -38,7 +38,6 @@ function App() {
         <div className="container">
           <header className="header">
             <h1>Waqf Protest Letter Generator</h1>
-            <p className="header-subtitle">Generate and send professional protest letters to State Waqf Boards</p>
           </header>
           <div className="mode-selection">
             <div className="mode-intro">
@@ -125,8 +124,8 @@ function App() {
             </div>
             <div className="mode-footer">
               <p className="mode-footer-text">
-                <strong>Note:</strong> Both options provide the same letter generation features. 
-                The main difference is how emails are sent - directly via Gmail API (Login) or through your email client (Public).
+                <strong>Note:</strong> Both options provide the same letter generation features and functionality. 
+                The primary difference is the email sending method - Login with Google sends emails directly via Gmail API from your verified account, while No Login Required opens your email client with pre-filled content for you to send manually.
               </p>
             </div>
           </div>
