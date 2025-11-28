@@ -199,6 +199,7 @@ Identity and Mutawalli appointment proof`
   const [iCheckboxChecked, setICheckboxChecked] = useState(true) // Default checked
   const [showPreview, setShowPreview] = useState(false) // Preview modal state
   const [copySuccess, setCopySuccess] = useState(false) // Copy to clipboard success state
+  const [copyBodySuccess, setCopyBodySuccess] = useState(false) // Copy body button success state
   // Objection checkboxes - all default to true
   const [objectionCheckboxes, setObjectionCheckboxes] = useState({
     objection1: true,
@@ -1011,6 +1012,51 @@ Identity and Mutawalli appointment proof`
     URL.revokeObjectURL(url)
   }
 
+  const handleCopyBody = async () => {
+    try {
+      const letterContent = generateFinalLetter()
+      
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(letterContent)
+        setCopyBodySuccess(true)
+        setTimeout(() => {
+          setCopyBodySuccess(false)
+        }, 3000)
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea')
+        textArea.value = letterContent
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        try {
+          document.execCommand('copy')
+          setCopyBodySuccess(true)
+          setTimeout(() => {
+            setCopyBodySuccess(false)
+          }, 3000)
+        } catch (err) {
+          console.error('Fallback copy failed:', err)
+          setSubmitStatus({
+            type: 'error',
+            message: 'Failed to copy email body. Please try selecting and copying manually.',
+          })
+        }
+        document.body.removeChild(textArea)
+      }
+    } catch (error) {
+      console.error('Failed to copy body:', error)
+      setSubmitStatus({
+        type: 'error',
+        message: 'Failed to copy email body. Please try selecting and copying manually.',
+      })
+    }
+  }
+
   const handleCompose = async () => {
     try {
       const letterContent = generateFinalLetter()
@@ -1251,6 +1297,25 @@ Identity and Mutawalli appointment proof`
             </button>
             <button
               type="button"
+              onClick={handleCopyBody}
+              className="copy-body-btn"
+              disabled={filledFields < totalFields}
+              title="Copy email body to clipboard"
+            >
+              {copyBodySuccess ? (
+                <>
+                  <span className="btn-icon">✓</span>
+                  <span className="btn-text">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <span className="btn-icon">📋</span>
+                  <span className="btn-text">Copy Body</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
               onClick={handleCompose}
               className="compose-btn"
               disabled={filledFields < totalFields}
@@ -1262,18 +1327,26 @@ Identity and Mutawalli appointment proof`
                 </>
               ) : (
                 <>
-                  <span className="btn-icon">📋</span>
+                  <span className="btn-icon">✉️</span>
                   <span className="btn-text">Compose</span>
                 </>
               )}
             </button>
           </div>
-          {copySuccess && (
+          {(copySuccess || copyBodySuccess) && (
             <div className="copy-success-message">
               <span className="copy-success-icon">✓</span>
               <span className="copy-success-text">
-                <strong>Email body copied to clipboard!</strong> PDF downloaded and email composer opened with To, CC, and Subject pre-filled. 
-                <strong> Press Ctrl+V (Cmd+V on Mac) to paste the body</strong> in the email composer, then attach the files.
+                {copyBodySuccess ? (
+                  <>
+                    <strong>Email body copied to clipboard!</strong> You can now paste it (Ctrl+V / Cmd+V) into your email client.
+                  </>
+                ) : (
+                  <>
+                    <strong>Email body copied to clipboard!</strong> PDF downloaded and email composer opened with To, CC, and Subject pre-filled. 
+                    <strong> Press Ctrl+V (Cmd+V on Mac) to paste the body</strong> in the email composer, then attach the files.
+                  </>
+                )}
               </span>
             </div>
           )}

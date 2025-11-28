@@ -649,6 +649,7 @@ input[type="file"] {
 
 .submit-btn,
 .download-btn,
+.copy-body-btn,
 .compose-btn {
   padding: 16px 32px;
   border: none;
@@ -708,6 +709,27 @@ input[type="file"] {
 
 .download-btn:active {
   transform: translateY(0);
+}
+
+.copy-body-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+}
+
+.copy-body-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+.copy-body-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.copy-body-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .compose-btn {
@@ -950,6 +972,7 @@ input[type="file"] {
 
   .submit-btn,
   .download-btn,
+  .copy-body-btn,
   .compose-btn,
   .preview-btn {
     min-width: 100%;
@@ -1141,6 +1164,7 @@ input[type="file"] {
 
   .submit-btn,
   .download-btn,
+  .copy-body-btn,
   .compose-btn,
   .preview-btn {
     min-width: 180px;
@@ -1157,6 +1181,7 @@ input[type="file"] {
 
   .submit-btn:hover:not(:disabled),
   .download-btn:hover:not(:disabled),
+  .copy-body-btn:hover:not(:disabled),
   .compose-btn:hover:not(:disabled),
   .preview-btn:hover:not(:disabled) {
     transform: translateY(-3px);
@@ -1171,6 +1196,7 @@ input[type="file"] {
 @media (hover: none) and (pointer: coarse) {
   .submit-btn:active:not(:disabled),
   .download-btn:active:not(:disabled),
+  .copy-body-btn:active:not(:disabled),
   .compose-btn:active:not(:disabled),
   .preview-btn:active:not(:disabled) {
     transform: scale(0.98);
