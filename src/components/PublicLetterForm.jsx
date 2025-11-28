@@ -479,22 +479,39 @@ Identity and Mutawalli appointment proof`
       // Determine field type for better UX
       let fieldType = 'text'
       let fieldHint = ''
-      if (field.placeholder.toLowerCase().includes('name')) {
+      
+      // Check for specific fields that should not have tooltips
+      const noTooltipFields = [
+        'Name/Description of Waqf',
+        'Waqf Name',
+        'Existing Waqf Registration No. (if any)',
+        'Registration No.',
+        'Your Mobile Number',
+        'Mobile Number'
+      ]
+      const shouldShowTooltip = !noTooltipFields.some(noTooltip => 
+        field.placeholder.includes(noTooltip)
+      )
+      
+      if (field.placeholder.toLowerCase().includes('name') && !field.placeholder.toLowerCase().includes('waqf')) {
         fieldType = 'name'
-        fieldHint = 'Enter full name (e.g., Ahmed Ali Khan)'
-      } else if (field.placeholder.toLowerCase().includes('mobile') || field.placeholder.toLowerCase().includes('phone')) {
+        fieldHint = shouldShowTooltip ? 'Enter full name (e.g., Ahmed Ali Khan)' : ''
+      } else if (field.placeholder.toLowerCase().includes('state waqf board')) {
+        fieldType = 'text'
+        fieldHint = shouldShowTooltip ? 'State of Waqf Board, Example: Bihar' : ''
+      } else if ((field.placeholder.toLowerCase().includes('mobile') || field.placeholder.toLowerCase().includes('phone')) && shouldShowTooltip) {
         fieldType = 'phone'
         fieldHint = 'Enter 10-digit mobile number (e.g., 9876543210)'
       } else if (field.placeholder.toLowerCase().includes('email')) {
         fieldType = 'email'
-        fieldHint = 'Enter email address (e.g., name@example.com)'
+        fieldHint = shouldShowTooltip ? 'Enter email address (e.g., name@example.com)' : ''
       } else if (field.placeholder.toLowerCase().includes('day') || field.placeholder.toLowerCase().includes('month')) {
         fieldType = 'date'
-        fieldHint = isShortField ? (field.placeholder.includes('Day') ? 'Enter day (01-31)' : 'Enter month (01-12)') : ''
+        fieldHint = shouldShowTooltip && isShortField ? (field.placeholder.includes('Day') ? 'Enter day (01-31)' : 'Enter month (01-12)') : ''
       } else if (field.placeholder.toLowerCase().includes('address')) {
         fieldType = 'address'
-        fieldHint = 'Enter complete address'
-      } else if (field.placeholder.toLowerCase().includes('waqf') || field.placeholder.toLowerCase().includes('property')) {
+        fieldHint = shouldShowTooltip ? 'Enter complete address' : ''
+      } else if ((field.placeholder.toLowerCase().includes('waqf') || field.placeholder.toLowerCase().includes('property')) && shouldShowTooltip) {
         fieldType = 'property'
         fieldHint = 'Enter property/waqf name'
       }
@@ -513,7 +530,7 @@ Identity and Mutawalli appointment proof`
             autoComplete="off"
             spellCheck="false"
             data-field-type={fieldType}
-            title={fieldHint || field.placeholder}
+            title={shouldShowTooltip ? (fieldHint || field.placeholder) : ''}
             aria-label={field.placeholder}
           />
           {isEmpty && (
