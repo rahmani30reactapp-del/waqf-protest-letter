@@ -245,7 +245,36 @@ export default async function handler(req, res) {
         })
       } catch (sgError) {
         console.error('SendGrid error:', sgError)
-        throw sgError
+        
+        // Provide helpful error messages for common SendGrid errors
+        let errorMessage = 'SendGrid error: '
+        let errorDetails = ''
+        
+        if (sgError.response) {
+          const responseBody = sgError.response.body
+          if (responseBody && responseBody.errors) {
+            const errors = responseBody.errors
+            errorMessage += errors.map(e => e.message || e).join('; ')
+            errorDetails = errors.map(e => {
+              if (e.message && e.message.includes('verified')) {
+                return 'The sender email address must be verified in SendGrid. Go to Settings > Sender Authentication and verify your sender email or domain.'
+              }
+              if (e.message && e.message.includes('API key')) {
+                return 'Invalid SendGrid API key. Please check SENDGRID_API_KEY in Vercel environment variables.'
+              }
+              return e.message || ''
+            }).filter(Boolean).join('\n')
+          } else {
+            errorMessage += sgError.message || 'Unknown error'
+          }
+        } else {
+          errorMessage += sgError.message || 'Unknown error'
+        }
+        
+        // Throw error with details
+        const enhancedError = new Error(errorMessage)
+        enhancedError.details = errorDetails
+        throw enhancedError
       }
     }
 
@@ -412,10 +441,25 @@ export default async function handler(req, res) {
     })
   } catch (error) {
     console.error('Error sending email:', error)
-    return res.status(500).json({
-      error: 'Failed to send email',
-      details: error.message,
-    })
+    
+    // Return detailed error information
+    const errorResponse = {
+      error: error.message || 'Failed to send email',
+    }
+    
+    // Include details if available
+    if (error.details) {
+      errorResponse.details = error.details
+    } else if (error.message) {
+      errorResponse.details = error.message
+    }
+    
+    // Include stack trace in development (not in production)
+    if (process.env.NODE_ENV === 'development') {
+      errorResponse.stack = error.stack
+    }
+    
+    return res.status(500).json(errorResponse)
   }
 }
 

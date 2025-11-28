@@ -560,25 +560,70 @@ Identity and Mutawalli appointment proof`
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch (parseError) {
+          // If response is not JSON, get text
+          const textError = await response.text()
+          throw new Error(`Server error (${response.status}): ${textError || 'Unknown error'}`)
+        }
+        
+        console.error('API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        })
+        
         let errorMessage = errorData.error || 'Failed to send email'
+        let errorDetails = errorData.details || ''
         
         // Provide helpful error messages for SendGrid errors
         if (errorMessage.includes('SendGrid') || errorMessage.includes('SENDGRID_API_KEY')) {
-          errorMessage = errorData.details 
-            ? `${errorMessage}\n\n${errorData.details}`
-            : 'SendGrid is required for public mode. Please configure SENDGRID_API_KEY in Vercel environment variables. See SENDGRID_SETUP.md for setup instructions.'
-        } else if (errorMessage.includes('Sender email') || errorMessage.includes('verified')) {
-          errorMessage = 'SendGrid sender verification error. Please ensure the sender email is verified in SendGrid settings (Settings > Sender Authentication).'
+          if (errorMessage.includes('required') || errorMessage.includes('not configured')) {
+            errorMessage = 'SendGrid is required for public mode. Please configure SENDGRID_API_KEY in Vercel environment variables.'
+            errorDetails = 'See SENDGRID_SETUP.md for setup instructions.'
+          } else if (errorMessage.includes('verified') || errorDetails.includes('verified')) {
+            errorMessage = 'SendGrid sender verification error'
+            errorDetails = 'The sender email address must be verified in SendGrid. Go to Settings > Sender Authentication and verify your sender email or domain.'
+          } else if (errorMessage.includes('API key') || errorMessage.includes('Invalid')) {
+            errorMessage = 'Invalid SendGrid API key'
+            errorDetails = 'Please check SENDGRID_API_KEY in Vercel environment variables. Make sure it starts with "SG." and has no extra spaces or quotes.'
+          } else if (errorDetails) {
+            errorMessage = errorMessage
+            // Keep errorDetails as is
+          } else {
+            errorMessage = errorMessage
+            errorDetails = 'Please check SendGrid configuration in Vercel environment variables.'
+          }
         }
         
-        throw new Error(errorMessage)
+        // Combine error message and details
+        const fullErrorMessage = errorDetails 
+          ? `${errorMessage}\n\n${errorDetails}`
+          : errorMessage
+        
+        throw new Error(fullErrorMessage)
       }
 
       setSubmitStatus({ type: 'success', message: 'Letter sent successfully!' })
     } catch (error) {
       console.error('Error sending email:', error)
-      const errorMessage = error.message || 'Failed to send letter. Please try again.'
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response
+      })
+      
+      // Extract error message - handle both Error objects and strings
+      let errorMessage = error.message || error.toString() || 'Failed to send letter. Please try again.'
+      
+      // If error message is too long, truncate it but keep important parts
+      if (errorMessage.length > 500) {
+        const lines = errorMessage.split('\n')
+        errorMessage = lines.slice(0, 5).join('\n') + '\n\n... (error truncated)'
+      }
+      
       setSubmitStatus({
         type: 'error',
         message: errorMessage,
