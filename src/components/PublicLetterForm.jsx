@@ -806,9 +806,15 @@ Identity and Mutawalli appointment proof`
             onChange={(e) => setSenderEmail(e.target.value)}
             required
           />
-          <p className="sender-email-hint">
-            This email will be used as the sender email and reply-to address
-          </p>
+          <div className="sender-email-info">
+            <p className="sender-email-hint">
+              <strong>📧 How it works:</strong> This email will be used as the sender email and reply-to address. 
+              The email will be sent via SMTP (configured on the server) and will appear to come from this address.
+            </p>
+            <p className="sender-email-note">
+              <strong>Note:</strong> Make sure to enter a valid email address where you can receive replies.
+            </p>
+          </div>
         </div>
 
         <div className="editor-header">
