@@ -74,6 +74,20 @@
   gap: 25px;
 }
 
+/* Improve form inputs for mobile */
+input[type="text"],
+input[type="email"],
+input[type="file"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Better file input styling */
+input[type="file"] {
+  font-size: 16px; /* Prevents zoom on iOS */
+}
+
 /* Editor Header */
 .editor-header {
   display: flex;
@@ -408,16 +422,19 @@
   background: #e5e7eb;
 }
 
-.preview-send-btn {
+.preview-send-btn,
+.preview-compose-btn {
   background: #4f46e5;
   color: #ffffff;
 }
 
-.preview-send-btn:hover:not(:disabled) {
+.preview-send-btn:hover:not(:disabled),
+.preview-compose-btn:hover:not(:disabled) {
   background: #4338ca;
 }
 
-.preview-send-btn:disabled {
+.preview-send-btn:disabled,
+.preview-compose-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -630,10 +647,15 @@
   flex: 1;
 }
 
-/* Responsive Design */
+/* Responsive Design - Mobile First */
 @media (max-width: 768px) {
+  .header-section {
+    margin-bottom: 20px;
+  }
+
   .title-group h2 {
-    font-size: 24px;
+    font-size: 22px;
+    line-height: 1.3;
   }
 
   .subtitle {
@@ -643,67 +665,267 @@
   .info-card {
     flex-direction: column;
     padding: 16px;
+    gap: 12px;
+  }
+
+  .info-icon {
+    font-size: 20px;
   }
 
   .info-content h3 {
     font-size: 15px;
+    margin-bottom: 10px;
   }
 
   .info-content ul {
     font-size: 13px;
+    line-height: 1.7;
   }
 
   .editor-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
+  }
+
+  .editor-label {
+    font-size: 15px;
   }
 
   .editor-stats {
     width: 100%;
     justify-content: space-between;
+    gap: 12px;
+  }
+
+  .stat-item {
+    font-size: 13px;
   }
 
   .letter-content-wrapper {
     min-height: 500px;
-    font-size: 13px;
-    padding: 18px;
+    font-size: 14px;
+    padding: 16px;
     line-height: 1.8;
   }
 
   .inline-field {
     min-width: 120px;
-    font-size: 13px;
-    padding: 3px 8px;
+    font-size: 14px;
+    padding: 6px 10px;
+    min-height: 36px; /* Better touch target */
   }
 
   .inline-field.short-field {
-    min-width: 50px;
-    max-width: 70px;
+    min-width: 60px;
+    max-width: 80px;
+  }
+
+  .i-checkbox {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+  }
+
+  .attachments-section {
+    padding: 16px;
+  }
+
+  .attachments-title {
+    font-size: 16px;
+  }
+
+  .attachments-subtitle {
+    font-size: 13px;
+  }
+
+  .attachments-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .attachment-item {
+    padding: 14px;
+  }
+
+  .attachment-label {
+    padding: 12px;
+    min-height: var(--touch-target);
+  }
+
+  .attachment-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
   }
 
   .button-group {
     flex-direction: column;
+    gap: 12px;
   }
 
   .submit-btn,
-  .download-btn {
+  .download-btn,
+  .compose-btn,
+  .preview-btn {
     min-width: 100%;
     width: 100%;
-    padding: 14px 24px;
+    padding: 16px 24px;
+    min-height: var(--touch-target);
+    font-size: 16px;
+  }
+
+  .btn-icon {
+    font-size: 20px;
+  }
+
+  .copy-success-message {
+    padding: 14px 16px;
+    margin-top: 12px;
+  }
+
+  .copy-success-text {
+    font-size: 13px;
+    line-height: 1.5;
   }
 
   .action-hint {
     font-size: 12px;
+    margin-top: 12px;
+    padding: 0 8px;
+  }
+
+  .submit-status {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+
+  /* Preview Modal Mobile */
+  .preview-modal {
+    width: 95%;
+    max-width: 95%;
+    max-height: 90vh;
+    margin: 5vh auto;
+  }
+
+  .preview-modal-header {
+    padding: 16px;
+  }
+
+  .preview-modal-header h3 {
+    font-size: 18px;
+  }
+
+  .preview-modal-content {
+    padding: 16px;
+    max-height: calc(90vh - 140px);
+  }
+
+  .preview-letter-text {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .preview-modal-footer {
+    padding: 16px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .preview-download-btn,
+  .preview-send-btn {
+    width: 100%;
+    min-height: var(--touch-target);
   }
 }
 
 @media (max-width: 480px) {
-  .editable-letter {
+  .title-group h2 {
+    font-size: 20px;
+  }
+
+  .letter-content-wrapper {
     min-height: 400px;
-    padding: 16px;
+    font-size: 13px;
+    padding: 14px;
+  }
+
+  .inline-field {
+    font-size: 13px;
+    padding: 5px 8px;
   }
 
   .info-card {
     padding: 14px;
+  }
+
+  .attachments-section {
+    padding: 14px;
+  }
+
+  .attachment-item {
+    padding: 12px;
+  }
+
+  .preview-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+}
+
+/* Tablet improvements */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container {
+    padding: 32px;
+  }
+
+  .button-group {
+    gap: 12px;
+  }
+
+  .submit-btn,
+  .download-btn,
+  .compose-btn,
+  .preview-btn {
+    min-width: 180px;
+    flex: 1;
+  }
+}
+
+/* Desktop hover improvements */
+@media (hover: hover) and (pointer: fine) {
+  .mode-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  }
+
+  .submit-btn:hover:not(:disabled),
+  .download-btn:hover:not(:disabled),
+  .compose-btn:hover:not(:disabled),
+  .preview-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+  }
+
+  .attachment-label:hover {
+    background: #f0f0f0;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .submit-btn:active:not(:disabled),
+  .download-btn:active:not(:disabled),
+  .compose-btn:active:not(:disabled),
+  .preview-btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .mode-card:active {
+    transform: scale(0.98);
   }
 }

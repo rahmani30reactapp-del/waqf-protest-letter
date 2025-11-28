@@ -798,6 +798,9 @@ Identity and Mutawalli appointment proof`
       // Encode components for mailto link
       const encodeMailtoParam = (str) => encodeURIComponent(str).replace(/%20/g, '%20')
       
+      // Detect mobile device for better UX
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+      
       // Build mailto link
       let mailtoLink = 'mailto:'
       
@@ -816,17 +819,30 @@ Identity and Mutawalli appointment proof`
         mailtoLink += '?' + params.join('&')
       }
       
-      // Open mailto link
-      window.location.href = mailtoLink
+      // For mobile, use window.open with a small delay for better UX
+      if (isMobile) {
+        // On mobile, try to open in new tab/window
+        const mailtoWindow = window.open(mailtoLink, '_blank')
+        // Fallback if popup blocked
+        if (!mailtoWindow || mailtoWindow.closed) {
+          window.location.href = mailtoLink
+        }
+      } else {
+        // Desktop: direct navigation
+        window.location.href = mailtoLink
+      }
       
       // Show success message
       setCopySuccess(true)
       setTimeout(() => {
         setCopySuccess(false)
-      }, 3000)
+      }, 4000) // Longer timeout for mobile
     } catch (error) {
       console.error('Failed to open email composer:', error)
-      alert('Failed to open email composer. Please check your email client settings.')
+      setSubmitStatus({
+        type: 'error',
+        message: 'Failed to open email composer. Please check your email client settings or try copying the content manually.',
+      })
     }
   }
 
@@ -850,15 +866,15 @@ Identity and Mutawalli appointment proof`
           <h3>How to Use</h3>
           <ul>
             <li>Click on any <strong className="highlight">input field</strong> in the letter to fill in your information</li>
-            <li>All fields must be completed before sending or downloading</li>
-            <li>Enter your email address below - this will be used as the sender email</li>
+            <li>All fields must be completed before downloading or composing</li>
+            <li>Enter your email address below - this will be used in the Compose email</li>
             <li>Fields are highlighted when you focus on them</li>
-            <li>You can download as PDF or send directly via email</li>
+            <li>You can download as PDF or use Compose to open your email client</li>
           </ul>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="letter-form">
+      <form className="letter-form">
         {/* Sender Email Input */}
         <div className="sender-email-section">
           <label htmlFor="sender-email" className="sender-email-label">
@@ -1015,23 +1031,6 @@ Identity and Mutawalli appointment proof`
                 </>
               )}
             </button>
-            <button
-              type="submit"
-              className="submit-btn"
-              disabled={isSubmitting || filledFields < totalFields || !senderEmail}
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="btn-icon">⏳</span>
-                  <span className="btn-text">Sending...</span>
-                </>
-              ) : (
-                <>
-                  <span className="btn-icon">✉️</span>
-                  <span className="btn-text">Send via Email</span>
-                </>
-              )}
-            </button>
           </div>
           {copySuccess && (
             <div className="copy-success-message">
@@ -1040,7 +1039,7 @@ Identity and Mutawalli appointment proof`
             </div>
           )}
           <p className="action-hint">
-            Your letter will be sent to: <strong>{process.env.REACT_APP_TO_EMAIL || 'Configured recipient'}</strong>
+            Use the <strong>Compose</strong> button to open your email client with pre-filled content, or <strong>Download PDF</strong> to save the letter.
           </p>
         </div>
       </form>
@@ -1076,15 +1075,15 @@ Identity and Mutawalli appointment proof`
                 <span className="btn-text">Download PDF</span>
               </button>
               <button
-                className="preview-send-btn"
+                className="preview-compose-btn"
                 onClick={() => {
                   setShowPreview(false)
-                  document.querySelector('.submit-btn')?.click()
+                  handleCompose()
                 }}
-                disabled={filledFields < totalFields || !senderEmail}
+                disabled={filledFields < totalFields}
               >
-                <span className="btn-icon">✉️</span>
-                <span className="btn-text">Send via Email</span>
+                <span className="btn-icon">📋</span>
+                <span className="btn-text">Compose Email</span>
               </button>
             </div>
           </div>

@@ -770,6 +770,9 @@ Identity and Mutawalli appointment proof`
       // Encode components for mailto link
       const encodeMailtoParam = (str) => encodeURIComponent(str).replace(/%20/g, '%20')
       
+      // Detect mobile device for better UX
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+      
       // Build mailto link
       let mailtoLink = 'mailto:'
       
@@ -788,17 +791,30 @@ Identity and Mutawalli appointment proof`
         mailtoLink += '?' + params.join('&')
       }
       
-      // Open mailto link
-      window.location.href = mailtoLink
+      // For mobile, use window.open with a small delay for better UX
+      if (isMobile) {
+        // On mobile, try to open in new tab/window
+        const mailtoWindow = window.open(mailtoLink, '_blank')
+        // Fallback if popup blocked
+        if (!mailtoWindow || mailtoWindow.closed) {
+          window.location.href = mailtoLink
+        }
+      } else {
+        // Desktop: direct navigation
+        window.location.href = mailtoLink
+      }
       
       // Show success message
       setCopySuccess(true)
       setTimeout(() => {
         setCopySuccess(false)
-      }, 3000)
+      }, 4000) // Longer timeout for mobile
     } catch (error) {
       console.error('Failed to open email composer:', error)
-      alert('Failed to open email composer. Please check your email client settings.')
+      setSubmitStatus({
+        type: 'error',
+        message: 'Failed to open email composer. Please check your email client settings or try copying the content manually.',
+      })
     }
   }
 
