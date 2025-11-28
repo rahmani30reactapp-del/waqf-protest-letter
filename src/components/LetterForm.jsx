@@ -736,12 +736,28 @@ Identity and Mutawalli appointment proof`
     URL.revokeObjectURL(url)
   }
 
-  const handleCompose = () => {
+  const handleCompose = async () => {
     try {
       const letterContent = generateFinalLetter()
       const toEmail = process.env.REACT_APP_TO_EMAIL || ''
       const ccEmail = process.env.REACT_APP_CC_EMAIL || ''
       const subject = 'Submission of Registration Documents UNDER SOLEMN PROTEST'
+      
+      // First, auto-download the PDF
+      const pdfBlob = generatePDFBlob()
+      const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
+      const dateStr = new Date().toISOString().split('T')[0]
+      const pdfFilename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
+      
+      // Download PDF automatically
+      const url = URL.createObjectURL(pdfBlob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = pdfFilename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
       
       // Build attachment list for body
       const attachmentList = []
@@ -754,25 +770,46 @@ Identity and Mutawalli appointment proof`
       if (attachments.identityProof) {
         attachmentList.push(`- ${attachments.identityProof.name}`)
       }
-      
-      // Add PDF attachment mention
-      const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
-      const dateStr = new Date().toISOString().split('T')[0]
-      const pdfFilename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
-      attachmentList.push(`- ${pdfFilename} (PDF)`)
+      attachmentList.push(`- ${pdfFilename} (PDF - already downloaded)`)
       
       // Build email body with attachment references
       let emailBody = letterContent
       if (attachmentList.length > 0) {
-        emailBody += `\n\n---\nNote: Please attach the following files:\n${attachmentList.join('\n')}`
+        emailBody += `\n\n---\nAttachments:\n${attachmentList.join('\n')}\n\nNote: The PDF has been automatically downloaded. Please attach all files mentioned above.`
       }
       
       // Encode components for mailto link
-      const encodeMailtoParam = (str) => encodeURIComponent(str).replace(/%20/g, '%20')
+      const encodeMailtoParam = (str) => encodeURIComponent(str)
       
-      // Detect mobile device for better UX
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+      // Try Gmail compose URL first (works better for Gmail users)
+      const isGmailUser = user?.email?.includes('@gmail.com') || user?.email?.includes('@googlemail.com')
       
+      if (isGmailUser) {
+        // Gmail compose URL format
+        const gmailParams = new URLSearchParams()
+        if (toEmail) {
+          gmailParams.append('to', toEmail)
+        }
+        if (ccEmail) {
+          gmailParams.append('cc', ccEmail)
+        }
+        gmailParams.append('su', subject)
+        gmailParams.append('body', emailBody)
+        
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&${gmailParams.toString()}`
+        
+        // Open Gmail compose
+        window.open(gmailUrl, '_blank')
+        
+        // Show success message
+        setCopySuccess(true)
+        setTimeout(() => {
+          setCopySuccess(false)
+        }, 5000)
+        return
+      }
+      
+      // Fallback to mailto for other email clients
       // Build mailto link
       let mailtoLink = 'mailto:'
       
@@ -791,7 +828,10 @@ Identity and Mutawalli appointment proof`
         mailtoLink += '?' + params.join('&')
       }
       
-      // For mobile, use window.open with a small delay for better UX
+      // Detect mobile device for better UX
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+      
+      // Open email composer
       if (isMobile) {
         // On mobile, try to open in new tab/window
         const mailtoWindow = window.open(mailtoLink, '_blank')
@@ -808,7 +848,7 @@ Identity and Mutawalli appointment proof`
       setCopySuccess(true)
       setTimeout(() => {
         setCopySuccess(false)
-      }, 4000) // Longer timeout for mobile
+      }, 5000)
     } catch (error) {
       console.error('Failed to open email composer:', error)
       setSubmitStatus({
@@ -1004,7 +1044,7 @@ Identity and Mutawalli appointment proof`
           {copySuccess && (
             <div className="copy-success-message">
               <span className="copy-success-icon">✓</span>
-              <span className="copy-success-text">Email composer opened! To, CC, Subject, and Body are pre-filled. Please attach the files mentioned in the email.</span>
+              <span className="copy-success-text">PDF downloaded and email composer opened! To, CC, Subject, and Body are pre-filled. Please attach the files mentioned in the email.</span>
             </div>
           )}
           <p className="action-hint">
