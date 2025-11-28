@@ -41,6 +41,7 @@ export default async function handler(req, res) {
 
   try {
     // Priority 1: Use Gmail API with user's OAuth token (sends from logged-in user's email)
+    // Only used in login mode (when access_token is provided)
     if (access_token && from_email) {
       try {
         // Generate boundary for multipart message
@@ -179,22 +180,34 @@ export default async function handler(req, res) {
       }
     }
 
-    // Priority 2: Using SendGrid (recommended for production)
+    // Priority 2: Using SendGrid
+    // REQUIRED for public mode (when no access_token)
+    // SendGrid allows sending from any verified email address
     if (process.env.SENDGRID_API_KEY) {
       try {
         // Dynamic import for SendGrid (ES modules)
         const sgMail = (await import('@sendgrid/mail')).default
         sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
+        // In public mode (no access_token), SendGrid is REQUIRED
+        // SendGrid allows sending from any verified sender email in your SendGrid account
+        // Make sure the sender email is verified in SendGrid settings (Settings > Sender Authentication)
+        if (!from_email && !process.env.FROM_EMAIL) {
+          throw new Error('Sender email address is required. Please provide from_email or set FROM_EMAIL in environment variables.')
+        }
+        
+        // Use user's email if provided (public mode), otherwise fall back to FROM_EMAIL
         const msg = {
           to: to_email,
           cc: cc_email ? cc_email.split(',').map(email => email.trim()) : undefined,
-          from: from_email || process.env.FROM_EMAIL,
-          replyTo: reply_to || from_email,
+          from: from_email ? `"${from_name}" <${from_email}>` : `"${from_name}" <${process.env.FROM_EMAIL}>`,
+          replyTo: reply_to || from_email || process.env.FROM_EMAIL,
           subject: subject,
           text: message,
           html: `<pre style="font-family: monospace; white-space: pre-wrap; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</pre>`,
         }
+        
+        console.log('SendGrid: Sending email from', msg.from, 'in public mode:', !access_token)
 
         // Add PDF attachment if provided
         const msgAttachments = []
@@ -226,14 +239,27 @@ export default async function handler(req, res) {
         }
 
         await sgMail.send(msg)
-        return res.status(200).json({ success: true, message: 'Email sent successfully' })
+        return res.status(200).json({ 
+          success: true, 
+          message: 'Email sent successfully via SendGrid' + (!access_token ? ' (public mode)' : '')
+        })
       } catch (sgError) {
         console.error('SendGrid error:', sgError)
         throw sgError
       }
     }
 
-    // Using Gmail SMTP with App Password
+    // Public mode requires SendGrid - return error if not configured
+    if (!access_token) {
+      return res.status(500).json({
+        error: 'SendGrid is required for public mode. Please configure SENDGRID_API_KEY in Vercel environment variables. See SENDGRID_SETUP.md for setup instructions.',
+        details: 'Public mode (without login) requires SendGrid to send emails from user-entered email addresses. Gmail SMTP cannot be used in public mode as it restricts the "from" address to the authenticated account.'
+      })
+    }
+
+    // Priority 3: Using Gmail SMTP with App Password (only for login mode fallback)
+    // NOTE: Gmail SMTP restricts "from" address to authenticated account
+    // This is only used as a fallback for login mode if Gmail API fails
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
       try {
         const nodemailer = (await import('nodemailer')).default
@@ -248,7 +274,9 @@ export default async function handler(req, res) {
           port: process.env.SMTP_PORT,
           user: cleanUser,
           passwordLength: cleanPassword.length,
-          passwordStartsWith: cleanPassword.substring(0, 2) + '...'
+          passwordStartsWith: cleanPassword.substring(0, 2) + '...',
+          publicMode: !access_token,
+          requestedFrom: from_email
         })
 
         // Validate password length
@@ -284,15 +312,30 @@ export default async function handler(req, res) {
           throw verifyError
         }
 
-        // Use logged-in user's email as sender (SMTP_USER is only for authentication)
+        // In public mode (no access_token), try to use user's email as sender
+        // Gmail may override this to the authenticated account, but we'll try
+        // For best results in public mode, use SendGrid (Priority 2) instead
+        let senderAddress = from_email || cleanUser
+        
+        // If in public mode and from_email is different from cleanUser, 
+        // Gmail will likely override it, but we set it anyway
+        // The replyTo will still be the user's email for replies
         const mailOptions = {
-          from: `"${from_name}" <${from_email || cleanUser}>`,
+          from: `"${from_name}" <${senderAddress}>`,
           to: to_email,
           cc: cc_email || undefined,
-          replyTo: reply_to || from_email,
+          replyTo: reply_to || from_email || cleanUser,
           subject: subject,
           text: message,
           html: `<pre style="font-family: monospace; white-space: pre-wrap; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</pre>`,
+        }
+        
+        // Try to set envelope sender to user's email (may not work with Gmail)
+        if (!access_token && from_email && from_email !== cleanUser) {
+          mailOptions.envelope = {
+            from: from_email,
+            to: to_email
+          }
         }
 
         // Add PDF attachment if provided
@@ -325,7 +368,18 @@ export default async function handler(req, res) {
         }
 
         await transporter.sendMail(mailOptions)
-        console.log('Email sent successfully')
+        console.log('Email sent successfully via SMTP')
+        
+        // Warn if in public mode and from_email differs from authenticated account
+        if (!access_token && from_email && from_email.toLowerCase() !== cleanUser) {
+          console.warn(`Warning: Gmail SMTP may override "from" address. Requested: ${from_email}, Authenticated: ${cleanUser}`)
+          return res.status(200).json({ 
+            success: true, 
+            message: `Email sent successfully via Gmail SMTP. Note: Gmail may show the sender as ${cleanUser} instead of ${from_email}. For best results in public mode, use SendGrid.`,
+            warning: `Gmail SMTP restricts "from" address to authenticated account (${cleanUser}). Consider using SendGrid for public mode.`
+          })
+        }
+        
         return res.status(200).json({ success: true, message: 'Email sent successfully via Gmail SMTP' })
       } catch (smtpError) {
         console.error('SMTP error details:', {
@@ -346,8 +400,15 @@ export default async function handler(req, res) {
     }
 
     // If no email service configured, return error
+    if (!access_token) {
+      return res.status(500).json({
+        error: 'SendGrid is required for public mode. Please configure SENDGRID_API_KEY in Vercel environment variables.',
+        details: 'See SENDGRID_SETUP.md for setup instructions.'
+      })
+    }
+    
     return res.status(500).json({
-      error: 'Email service not configured. Please set up SendGrid (SENDGRID_API_KEY) or Gmail SMTP (SMTP_HOST, SMTP_USER, SMTP_PASS) in Vercel environment variables, or use EmailJS instead.',
+      error: 'Email service not configured. Please set up Gmail API (with OAuth), SendGrid (SENDGRID_API_KEY), or Gmail SMTP (SMTP_HOST, SMTP_USER, SMTP_PASS) in Vercel environment variables.',
     })
   } catch (error) {
     console.error('Error sending email:', error)

@@ -535,7 +535,7 @@ Identity and Mutawalli appointment proof`
       // Wait for all attachments to be converted
       await Promise.all(attachmentPromises)
 
-      // Prepare email parameters (without OAuth token - uses SMTP only)
+      // Prepare email parameters (without OAuth token - uses SendGrid only)
       const emailData = {
         to_email: process.env.REACT_APP_TO_EMAIL,
         cc_email: process.env.REACT_APP_CC_EMAIL,
@@ -544,13 +544,13 @@ Identity and Mutawalli appointment proof`
         subject: 'Submission of Registration Documents UNDER SOLEMN PROTEST',
         message: letterContent,
         reply_to: senderEmail,
-        // No access_token - will use SMTP only
+        // No access_token - will use SendGrid only (required for public mode)
         pdf_attachment: pdfBase64, // PDF as base64
         pdf_filename: filename, // PDF filename
         attachments: attachmentData, // Additional attachments
       }
 
-      // Send email using SMTP route (no OAuth token)
+      // Send email using SendGrid (required for public mode)
       const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: {
@@ -563,11 +563,13 @@ Identity and Mutawalli appointment proof`
         const errorData = await response.json()
         let errorMessage = errorData.error || 'Failed to send email'
         
-        // Provide helpful error messages for common SMTP errors
-        if (errorMessage.includes('Invalid login') || errorMessage.includes('BadCredentials') || errorMessage.includes('EAUTH')) {
-          errorMessage = 'SMTP authentication failed. Please check:\n1. SMTP credentials are correctly configured in Vercel\n2. Gmail App Password is correct (16 characters, no spaces)\n3. 2-Step Verification is enabled'
-        } else if (errorMessage.includes('SMTP')) {
-          errorMessage = 'SMTP configuration error. Please verify SMTP settings in Vercel environment variables.'
+        // Provide helpful error messages for SendGrid errors
+        if (errorMessage.includes('SendGrid') || errorMessage.includes('SENDGRID_API_KEY')) {
+          errorMessage = errorData.details 
+            ? `${errorMessage}\n\n${errorData.details}`
+            : 'SendGrid is required for public mode. Please configure SENDGRID_API_KEY in Vercel environment variables. See SENDGRID_SETUP.md for setup instructions.'
+        } else if (errorMessage.includes('Sender email') || errorMessage.includes('verified')) {
+          errorMessage = 'SendGrid sender verification error. Please ensure the sender email is verified in SendGrid settings (Settings > Sender Authentication).'
         }
         
         throw new Error(errorMessage)
@@ -779,12 +781,12 @@ Identity and Mutawalli appointment proof`
 
       <div className="info-card">
         <div className="info-icon">ℹ️</div>
-        <div className="info-content">
+          <div className="info-content">
           <h3>How to Use</h3>
           <ul>
             <li>Click on any <strong className="highlight">input field</strong> in the letter to fill in your information</li>
             <li>All fields must be completed before sending or downloading</li>
-            <li>Enter your email address below - this will be used as the sender email</li>
+            <li>Enter your email address below - emails will be sent FROM this address using SendGrid</li>
             <li>Fields are highlighted when you focus on them</li>
             <li>You can download as PDF or send directly via email</li>
           </ul>
@@ -809,10 +811,11 @@ Identity and Mutawalli appointment proof`
           <div className="sender-email-info">
             <p className="sender-email-hint">
               <strong>📧 How it works:</strong> This email will be used as the sender email and reply-to address. 
-              The email will be sent via SMTP (configured on the server) and will appear to come from this address.
+              The email will be sent via SendGrid and will appear to come from this address.
             </p>
             <p className="sender-email-note">
-              <strong>Note:</strong> Make sure to enter a valid email address where you can receive replies.
+              <strong>Note:</strong> Make sure to enter a valid email address where you can receive replies. 
+              The sender email must be verified in SendGrid settings.
             </p>
           </div>
         </div>
