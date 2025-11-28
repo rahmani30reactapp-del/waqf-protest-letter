@@ -588,6 +588,44 @@ Identity and Mutawalli appointment proof`
     doc.setFontSize(fontSize)
     doc.setFont('helvetica', 'normal')
     
+    // Helper function to determine alignment for a line
+    const getLineAlignment = (line, lineIndex, allLines) => {
+      const trimmed = line.trim()
+      
+      // Title - center align
+      if (trimmed === 'REGISTRATION UNDER PROTEST') {
+        return 'center'
+      }
+      
+      // Labels and headers - left align
+      if (
+        trimmed.startsWith('To,') ||
+        trimmed.startsWith('The Chief Executive Officer') ||
+        trimmed.startsWith('Date:') ||
+        trimmed.startsWith('Subject:') ||
+        trimmed.startsWith('Respected Sir,') ||
+        trimmed.startsWith('Yours faithfully,') ||
+        trimmed.match(/^[0-9]+\.[0-9]+/) || // Numbered items like "1.1", "2.3"
+        trimmed.match(/^\([a-z]\)/) || // Lettered items like "(a)", "(b)"
+        trimmed.startsWith('•') || // Bullet points
+        trimmed.startsWith('Enclosures:') ||
+        trimmed.startsWith('Phone:') ||
+        trimmed.startsWith('Email:') ||
+        trimmed.match(/^[A-Z][a-z]+ [A-Z][a-z]+$/) && trimmed.length < 50 // Short name patterns
+      ) {
+        return 'left'
+      }
+      
+      // Body paragraphs - justify (for substantial text content)
+      // Only justify paragraphs that are longer than 40 characters
+      if (trimmed.length > 40) {
+        return 'justify'
+      }
+      
+      // Default to left for short lines
+      return 'left'
+    }
+    
     // Split text into lines
     const lines = letterContent.split('\n')
     let yPosition = topMargin
@@ -597,6 +635,18 @@ Identity and Mutawalli appointment proof`
       if (line.trim() === '') {
         yPosition += paragraphSpacing
         return
+      }
+      
+      // Determine alignment for this line
+      const alignment = getLineAlignment(line, lineIndex, lines)
+      
+      // Special handling for title - make it bold and larger
+      if (line.trim() === 'REGISTRATION UNDER PROTEST') {
+        doc.setFontSize(14)
+        doc.setFont('helvetica', 'bold')
+      } else {
+        doc.setFontSize(fontSize)
+        doc.setFont('helvetica', 'normal')
       }
       
       // Check if we need a new page before adding content
@@ -618,7 +668,7 @@ Identity and Mutawalli appointment proof`
         }
       }
       
-      // Add text with proper wrapping and spacing
+      // Add text with proper wrapping, spacing, and alignment
       splitLines.forEach((textLine, index) => {
         // Check page break before each line
         if (yPosition + lineHeight > pageHeight - bottomMargin) {
@@ -626,14 +676,38 @@ Identity and Mutawalli appointment proof`
           yPosition = topMargin
         }
         
-        // Add the text line
-        doc.text(textLine, leftMargin, yPosition, {
-          maxWidth: maxWidth,
-          align: 'left',
-        })
+        // Calculate x position based on alignment
+        let xPosition = leftMargin
+        if (alignment === 'center') {
+          const textWidth = doc.getTextWidth(textLine)
+          xPosition = (pageWidth - textWidth) / 2
+        } else if (alignment === 'right') {
+          const textWidth = doc.getTextWidth(textLine)
+          xPosition = pageWidth - rightMargin - textWidth
+        }
+        
+        // Add the text line with appropriate alignment
+        // For justified text, apply justify to all lines of a paragraph
+        if (alignment === 'justify') {
+          doc.text(textLine, leftMargin, yPosition, {
+            maxWidth: maxWidth,
+            align: 'justify',
+          })
+        } else {
+          doc.text(textLine, xPosition, yPosition, {
+            maxWidth: maxWidth,
+            align: alignment,
+          })
+        }
         
         yPosition += lineHeight
       })
+      
+      // Reset font after title
+      if (line.trim() === 'REGISTRATION UNDER PROTEST') {
+        doc.setFontSize(fontSize)
+        doc.setFont('helvetica', 'normal')
+      }
     })
     
     // Generate PDF as blob
