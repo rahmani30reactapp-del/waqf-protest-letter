@@ -136,6 +136,48 @@ No waiver of rights
 
 This letter and filing are made without prejudice to all my legal, constitutional and personal‑law rights, and to the rights of the beneficiaries, worshippers and the wider community, including the right to initiate, join and support present or future litigation challenging the Amended Act, the UMEED portal and any adverse action taken under them.
 
+Additional Objections:
+
+[OBJECTION_1_CHECKBOX] I object that the UMEED and amended waqf regime abolish Section 104 and thereby strip non‑Muslims (such as Hindus and other communities) of their long‑recognised right to create waqf, which is a form of enjoying and disposing of property protected under Article 300A. By selectively taking away this lawful option only from non‑Muslims, purely on the ground of religion, the State not only violates their equality and property rights today but also sets a dangerous precedent that Parliament may, at its will and fancy, withdraw or disable recognised property rights and legal forms in future for any community it chooses.
+
+[OBJECTION_2_CHECKBOX] I object to taking away the rights of tribals (both Muslim and non‑Muslim) and creating a dangerous principle under which the State can selectively switch off religious and charitable property rights in tribal areas, a principle that could tomorrow be used to question or dismantle even centuries‑old temples, churches and other institutions standing on tribal land. Today this tool is being used first against tribal Muslims, by flatly barring them from using the Islamic institution of waqf on their own land while analogous religious and charitable uses remain open for others, thereby stripping them of their constitutional right to property under Article 300A and their rights to religion and equality under Articles 25, 26, 14 and 15, and serving as a warning that the same mechanism can later be turned against any community.
+
+[OBJECTION_3_CHECKBOX] I object that the UMEED portal forces me to disclose my religion, sect and detailed personal profile (education, employment, full address, etc.), which violates my right to privacy, informational self‑determination and freedom of conscience.
+
+[OBJECTION_4_CHECKBOX] I object to being compelled to upload multiple identity and address proofs (such as Aadhaar, bank passbook, voter ID, etc.) on a central government portal, without any clear legal necessity, purpose limitation or effective data‑protection safeguards.
+
+[OBJECTION_5_CHECKBOX] I object that the UMEED portal collects geo‑tagged photographs and detailed land‑revenue records for every waqf, creating a single, centralised map of Muslim religious and community sites that can be misused for surveillance, profiling or targeting.
+
+[OBJECTION_6_CHECKBOX] I object that the UMEED portal has no clear, publicly accessible privacy and data‑protection policy explaining data security, retention, deletion, breach‑notification, inter‑agency sharing and user rights, thereby exposing Mutawallis and waqf properties to serious risk of data breach and misuse.
+
+[OBJECTION_7_CHECKBOX] I object to the centralised digital profiling of only Muslim waqf properties, leaders and donors on the UMEED portal, when no comparable national system exists for Hindu temples, churches, secular charities, public trusts, societies or other associations, which is discriminatory and creates an unequal surveillance burden on one community.
+
+[OBJECTION_8_CHECKBOX] I object to being forced, through the UMEED portal, to answer whether the waqf property includes "Government land", because such compelled self‑reporting can later be used against the waqf in title or encroachment disputes, undermining basic fairness in adjudication.
+
+[OBJECTION_9_CHECKBOX] I object that the UMEED portal uses or enables automatic / algorithmic flagging and status changes (for example on encroachment, government land, incomplete audits), without clear reasons, an individualised hearing or any built‑in appeal mechanism, in violation of principles of natural justice and due process.
+
+[OBJECTION_10_CHECKBOX] I object that the UMEED portal forces re‑registration and uploading of complete details within an arbitrary, short deadline, which is unworkable for many rural, small and resource‑constrained waqfs and results in unreasonable and unequal treatment.
+
+[OBJECTION_11_CHECKBOX] I object that non‑compliance with UMEED procedures has been criminalised with fines and imprisonment (for example under Sections 3B, 36, 61 and 62), which places Mutawallis under statutory duress and converts technical or digital‑access difficulties into potential criminal offences.
+
+[OBJECTION_12_CHECKBOX] I object that, although I serve as Mutawalli purely as a religious and charitable duty and not as an employee of the Waqf Board or the Government, the amended law and the UMEED portal treat me as if I am a paid government functionary and impose heavy administrative and legal obligations on me without any remuneration or support.
+
+[OBJECTION_13_CHECKBOX] I object that I am being threatened with fines and imprisonment for non‑completion of complex online and paperwork formalities, even though I am an unpaid Mutawalli and my waqf (especially a graveyard) generates little or no income, which makes such criminal liability arbitrary and unjust.
+
+[OBJECTION_14_CHECKBOX] I object that the same level of documentation, audit and portal compliance is being demanded from a zero‑income graveyard waqf as from large commercial waqf estates, which is disproportionate and ignores the financial and practical realities of small, purely religious waqf.
+
+[OBJECTION_15_CHECKBOX] I object that I am being effectively penalised for looking after a graveyard and performing voluntary charitable service for my community, instead of being supported or facilitated in this work, which discourages people from serving as Mutawallis and undermines our religious and community institutions.
+
+[OBJECTION_16_CHECKBOX] I object to the inclusion and potential dominance of non‑Muslim members in the Central Waqf Council and State Waqf Boards, which undermines the Muslim community's right to manage its own religious endowments and dilutes the Islamic character of waqf administration.
+
+[OBJECTION_17_CHECKBOX] I object to the rule that no waqf can be created without a written deed, which effectively abolishes oral waqf and waqf‑by‑user recognised in Islamic law and under the earlier waqf framework, and unjustly harms ancient and customary endowments.
+
+[OBJECTION_18_CHECKBOX] I object to the new "five‑year practising Muslim" condition for creating waqf (waqif), which unfairly discriminates against new Muslims, converts and tribals and treats Muslim endowments differently from other religious and charitable trusts.
+
+[OBJECTION_19_CHECKBOX] I object to any provision that bars suits or legal proceedings for enforcement of waqf rights solely because registration or uploading under UMEED was not completed within a fixed time, as this unjustly closes the doors of courts and tribunals to waqf and its beneficiaries.
+
+[OBJECTION_20_CHECKBOX] I state that I am submitting this registration only under protest and under statutory duress, and that nothing in this filing should be treated as waiver, consent or acceptance of the Waqf (Amendment) Act, 2025, the UMEED portal rules, or any provision that violates my constitutional, statutory or personal‑law rights, or the rights of any other community.
+
 Yours faithfully,
 
  Name: [SIGNATURE_NAME]
@@ -156,6 +198,29 @@ Identity and Mutawalli appointment proof`
   const [iCheckboxChecked, setICheckboxChecked] = useState(true) // Default checked
   const [showPreview, setShowPreview] = useState(false) // Preview modal state
   const [copySuccess, setCopySuccess] = useState(false) // Copy to clipboard success state
+  // Objection checkboxes - all default to true
+  const [objectionCheckboxes, setObjectionCheckboxes] = useState({
+    objection1: true,
+    objection2: true,
+    objection3: true,
+    objection4: true,
+    objection5: true,
+    objection6: true,
+    objection7: true,
+    objection8: true,
+    objection9: true,
+    objection10: true,
+    objection11: true,
+    objection12: true,
+    objection13: true,
+    objection14: true,
+    objection15: true,
+    objection16: true,
+    objection17: true,
+    objection18: true,
+    objection19: true,
+    objection20: true,
+  })
   const [attachments, setAttachments] = useState({
     registrationForms: null,
     titleDocuments: null,
@@ -223,6 +288,10 @@ Identity and Mutawalli appointment proof`
       if (match[1] === 'I_CHECKBOX') {
         continue
       }
+      // Skip OBJECTION_X_CHECKBOX as they're handled separately
+      if (match[1].startsWith('OBJECTION_') && match[1].endsWith('_CHECKBOX')) {
+        continue
+      }
       fields.push({
         id: `field_${id++}`,
         placeholder: match[1],
@@ -251,6 +320,57 @@ Identity and Mutawalli appointment proof`
     // Use text-based checkbox for better PDF compatibility
     const checkboxSymbol = iCheckboxChecked ? '[✓]' : '[ ]'
     finalContent = finalContent.replace('[I_CHECKBOX]', checkboxSymbol)
+    
+    // Handle objection checkboxes - only include checked ones
+    const objectionPlaceholders = [
+      'OBJECTION_1_CHECKBOX', 'OBJECTION_2_CHECKBOX', 'OBJECTION_3_CHECKBOX', 'OBJECTION_4_CHECKBOX',
+      'OBJECTION_5_CHECKBOX', 'OBJECTION_6_CHECKBOX', 'OBJECTION_7_CHECKBOX', 'OBJECTION_8_CHECKBOX',
+      'OBJECTION_9_CHECKBOX', 'OBJECTION_10_CHECKBOX', 'OBJECTION_11_CHECKBOX', 'OBJECTION_12_CHECKBOX',
+      'OBJECTION_13_CHECKBOX', 'OBJECTION_14_CHECKBOX', 'OBJECTION_15_CHECKBOX', 'OBJECTION_16_CHECKBOX',
+      'OBJECTION_17_CHECKBOX', 'OBJECTION_18_CHECKBOX', 'OBJECTION_19_CHECKBOX', 'OBJECTION_20_CHECKBOX'
+    ]
+    
+    // Process objections in reverse order to maintain indices
+    for (let i = objectionPlaceholders.length - 1; i >= 0; i--) {
+      const placeholder = `[${objectionPlaceholders[i]}]`
+      const objectionKey = `objection${i + 1}`
+      const isChecked = objectionCheckboxes[objectionKey]
+      
+      // Find the paragraph starting with this checkbox placeholder
+      // Pattern: [OBJECTION_X_CHECKBOX] followed by text until next [OBJECTION_ or "Yours faithfully,"
+      const placeholderIndex = finalContent.indexOf(placeholder)
+      
+      if (placeholderIndex !== -1) {
+        // Find the end of this paragraph (start of next objection or "Yours faithfully,")
+        const afterPlaceholder = finalContent.substring(placeholderIndex + placeholder.length)
+        let paragraphEnd = afterPlaceholder.length
+        
+        // Check for next objection placeholder
+        for (let j = 0; j < objectionPlaceholders.length; j++) {
+          const nextPlaceholder = `[${objectionPlaceholders[j]}]`
+          const nextIndex = afterPlaceholder.indexOf(nextPlaceholder)
+          if (nextIndex !== -1 && nextIndex < paragraphEnd) {
+            paragraphEnd = nextIndex
+          }
+        }
+        
+        // Check for "Yours faithfully,"
+        const faithfullyIndex = afterPlaceholder.indexOf('Yours faithfully,')
+        if (faithfullyIndex !== -1 && faithfullyIndex < paragraphEnd) {
+          paragraphEnd = faithfullyIndex
+        }
+        
+        if (isChecked) {
+          // Replace checkbox placeholder with checked symbol
+          finalContent = finalContent.replace(placeholder, '[✓]')
+        } else {
+          // Remove the entire paragraph including the checkbox placeholder and following newline
+          const paragraphText = afterPlaceholder.substring(0, paragraphEnd)
+          const fullParagraph = placeholder + paragraphText
+          finalContent = finalContent.replace(fullParagraph, '')
+        }
+      }
+    }
     
     // Get Mutawalli name for signature
     const mutawalliNameField = extractFields(letterTemplate).find(f => f.placeholder === 'Name of Mutawalli')
@@ -405,7 +525,7 @@ Identity and Mutawalli appointment proof`
       lastIndex = field.index + field.fullMatch.length
     })
 
-    // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_PHONE, USER_EMAIL, and I_CHECKBOX replacement if at the end)
+    // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_PHONE, USER_EMAIL, I_CHECKBOX, and objection checkboxes)
     if (lastIndex < letterTemplate.length) {
       let remainingText = letterTemplate.substring(lastIndex)
       remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
@@ -413,11 +533,98 @@ Identity and Mutawalli appointment proof`
       remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
       remainingText = remainingText.replace('[USER_PHONE]', mobileNumber || '[Phone]')
       remainingText = remainingText.replace('[USER_EMAIL]', user?.email || '[Email]')
-      parts.push(
-        <span key="text_end" className="letter-text">
-          {remainingText}
-        </span>
-      )
+      
+      // Handle objection checkboxes in remaining text
+      const objectionPlaceholders = [
+        'OBJECTION_1_CHECKBOX', 'OBJECTION_2_CHECKBOX', 'OBJECTION_3_CHECKBOX', 'OBJECTION_4_CHECKBOX',
+        'OBJECTION_5_CHECKBOX', 'OBJECTION_6_CHECKBOX', 'OBJECTION_7_CHECKBOX', 'OBJECTION_8_CHECKBOX',
+        'OBJECTION_9_CHECKBOX', 'OBJECTION_10_CHECKBOX', 'OBJECTION_11_CHECKBOX', 'OBJECTION_12_CHECKBOX',
+        'OBJECTION_13_CHECKBOX', 'OBJECTION_14_CHECKBOX', 'OBJECTION_15_CHECKBOX', 'OBJECTION_16_CHECKBOX',
+        'OBJECTION_17_CHECKBOX', 'OBJECTION_18_CHECKBOX', 'OBJECTION_19_CHECKBOX', 'OBJECTION_20_CHECKBOX'
+      ]
+      
+      // Split remaining text by objection placeholders and render accordingly
+      let processedText = remainingText
+      let currentPos = 0
+      
+      objectionPlaceholders.forEach((placeholder, index) => {
+        const placeholderText = `[${placeholder}]`
+        const placeholderIndex = processedText.indexOf(placeholderText, currentPos)
+        
+        if (placeholderIndex !== -1) {
+          // Add text before this placeholder
+          if (placeholderIndex > currentPos) {
+            const textBefore = processedText.substring(currentPos, placeholderIndex)
+            if (textBefore.trim()) {
+              parts.push(
+                <span key={`text_before_objection_${index + 1}`} className="letter-text">
+                  {textBefore}
+                </span>
+              )
+            }
+          }
+          
+          // Find the end of this paragraph
+          const afterPlaceholder = processedText.substring(placeholderIndex + placeholderText.length)
+          let paragraphEnd = afterPlaceholder.length
+          
+          // Check for next objection placeholder
+          for (let j = 0; j < objectionPlaceholders.length; j++) {
+            const nextPlaceholder = `[${objectionPlaceholders[j]}]`
+            const nextIndex = afterPlaceholder.indexOf(nextPlaceholder)
+            if (nextIndex !== -1 && nextIndex < paragraphEnd) {
+              paragraphEnd = nextIndex
+            }
+          }
+          
+          // Check for "Yours faithfully,"
+          const faithfullyIndex = afterPlaceholder.indexOf('Yours faithfully,')
+          if (faithfullyIndex !== -1 && faithfullyIndex < paragraphEnd) {
+            paragraphEnd = faithfullyIndex
+          }
+          
+          const paragraphText = afterPlaceholder.substring(0, paragraphEnd)
+          const objectionKey = `objection${index + 1}`
+          const isChecked = objectionCheckboxes[objectionKey]
+          
+          // Render checkbox and paragraph
+          parts.push(
+            <div key={`objection_${index + 1}`} className="objection-paragraph">
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={(e) => setObjectionCheckboxes(prev => ({
+                  ...prev,
+                  [objectionKey]: e.target.checked
+                }))}
+                className="objection-checkbox"
+              />
+              <span className="letter-text">{paragraphText}</span>
+            </div>
+          )
+          
+          currentPos = placeholderIndex + placeholderText.length + paragraphText.length
+        }
+      })
+      
+      // Add any remaining text after the last placeholder
+      if (currentPos < processedText.length) {
+        const finalText = processedText.substring(currentPos)
+        if (finalText.trim()) {
+          parts.push(
+            <span key="text_end" className="letter-text">
+              {finalText}
+            </span>
+          )
+        }
+      } else if (currentPos === 0) {
+        // No objections found, render remaining text as-is
+        parts.push(
+          <span key="text_end" className="letter-text">
+            {remainingText}
+          </span>
+        )
+      }
     }
 
     return parts
