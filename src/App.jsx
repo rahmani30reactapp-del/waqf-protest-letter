@@ -88,7 +88,7 @@ function App() {
               <div className="mode-card" onClick={() => handleModeSelect('public')}>
                 <div className="mode-badge">Quick Access</div>
                 <div className="mode-icon">📝</div>
-                <h3>Public (No Login Required)</h3>
+                <h3>No Login Required</h3>
                 <p className="mode-description">
                   Use the letter generator without logging in. Simply enter your email address and use the 
                   "Compose" button to open your email client with pre-filled content.

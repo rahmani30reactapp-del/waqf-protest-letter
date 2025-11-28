@@ -1207,7 +1207,7 @@ Identity and Mutawalli appointment proof`
     <div className="letter-form-container">
       <div className="header-section">
         <div className="title-group">
-          <h2>Protest Letter Editor (Public - No Login Required)</h2>
+          <h2>Protest Letter Editor (No Login Required)</h2>
           <p className="subtitle">Fill in the fields directly in the letter below</p>
         </div>
       </div>
