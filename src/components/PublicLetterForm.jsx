@@ -980,61 +980,8 @@ Identity and Mutawalli appointment proof`
           </div>
         )}
 
-        <div className="attachments-section">
-          <h3 className="attachments-title">Enclosures (Optional)</h3>
-          <p className="attachments-subtitle">Upload supporting documents that will be attached to the email</p>
-          <div className="attachments-grid">
-            <div className="attachment-item">
-              <label htmlFor="registration-forms-public" className="attachment-label">
-                <span className="attachment-icon">📋</span>
-                <span className="attachment-text">Waqf registration / detail forms</span>
-                {attachments.registrationForms && (
-                  <span className="attachment-name">{attachments.registrationForms.name}</span>
-                )}
-              </label>
-              <input
-                id="registration-forms-public"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={(e) => setAttachments(prev => ({ ...prev, registrationForms: e.target.files[0] || null }))}
-                className="attachment-input"
-              />
-            </div>
-            <div className="attachment-item">
-              <label htmlFor="title-documents-public" className="attachment-label">
-                <span className="attachment-icon">📄</span>
-                <span className="attachment-text">Title / revenue documents (copies)</span>
-                {attachments.titleDocuments && (
-                  <span className="attachment-name">{attachments.titleDocuments.name}</span>
-                )}
-              </label>
-              <input
-                id="title-documents-public"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={(e) => setAttachments(prev => ({ ...prev, titleDocuments: e.target.files[0] || null }))}
-                className="attachment-input"
-              />
-            </div>
-            <div className="attachment-item">
-              <label htmlFor="identity-proof-public" className="attachment-label">
-                <span className="attachment-icon">🆔</span>
-                <span className="attachment-text">Identity and Mutawalli appointment proof</span>
-                {attachments.identityProof && (
-                  <span className="attachment-name">{attachments.identityProof.name}</span>
-                )}
-              </label>
-              <input
-                id="identity-proof-public"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={(e) => setAttachments(prev => ({ ...prev, identityProof: e.target.files[0] || null }))}
-                className="attachment-input"
-              />
-            </div>
-          </div>
-        </div>
-
+        {/* Attachments section hidden in public form - users can attach files manually in their email client */}
+        
         <div className="action-section">
           <div className="button-group">
             <button
