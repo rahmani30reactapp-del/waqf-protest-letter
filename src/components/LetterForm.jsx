@@ -1256,24 +1256,6 @@ Identity and Mutawalli appointment proof`
               <span className="btn-text">Preview</span>
             </button>
             <button
-              type="button"
-              onClick={handleCompose}
-              className="compose-btn"
-              disabled={filledFields < totalFields}
-            >
-              {copySuccess ? (
-                <>
-                  <span className="btn-icon">✓</span>
-                  <span className="btn-text">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <span className="btn-icon">📋</span>
-                  <span className="btn-text">Compose</span>
-                </>
-              )}
-            </button>
-            <button
               type="submit"
               className="submit-btn"
               disabled={isSubmitting || filledFields < totalFields}
@@ -1291,15 +1273,6 @@ Identity and Mutawalli appointment proof`
               )}
             </button>
           </div>
-          {copySuccess && (
-            <div className="copy-success-message">
-              <span className="copy-success-icon">✓</span>
-              <span className="copy-success-text">
-                <strong>Email body copied to clipboard!</strong> PDF downloaded and email composer opened with To, CC, and Subject pre-filled. 
-                <strong> Press Ctrl+V (Cmd+V on Mac) to paste the body</strong> in the email composer, then attach the files.
-              </span>
-            </div>
-          )}
           <p className="action-hint">
             Your letter will be sent to: <strong>{process.env.REACT_APP_TO_EMAIL || 'Configured recipient'}</strong>
           </p>
