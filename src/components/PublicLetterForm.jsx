@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import jsPDF from 'jspdf'
+import html2pdf from 'html2pdf.js'
 import './LetterForm.css'
 
 function PublicLetterForm() {
@@ -713,7 +713,7 @@ Identity and Mutawalli appointment proof`
       }
 
       // Generate PDF blob
-      const pdfBlob = generatePDFBlob()
+      const pdfBlob = await generatePDFBlob()
       
       // Convert PDF blob to base64
       const pdfBase64 = await new Promise((resolve) => {
@@ -852,9 +852,7 @@ Identity and Mutawalli appointment proof`
     }
   }
 
-  const generatePDFBlob = () => {
-
-    // STEP 1: Prepare text
+  const generatePDFBlob = async () => {
     let letterContent = generateFinalLetter();
   
     // Replace checkbox symbols for PDF compatibility
@@ -864,144 +862,163 @@ Identity and Mutawalli appointment proof`
       .replace(/☑/g, "[X]")
       .replace(/☐/g, "[ ]");
   
-    // STEP 2: Initialize PDF
-    const doc = new jsPDF();
-  
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-  
-    const leftMargin = 43;       // 15 mm
-    const rightMargin = 57;      // 20 mm
-    const topMargin = 57;        // 20 mm
-    const bottomMargin = 43;     // 15 mm
-  
-    const maxWidth = pageWidth - leftMargin - rightMargin - 10;
-    const safeMaxWidth = maxWidth - 8;
-  
-    const fontSize = 10;
-    const lineHeight = 4.7;
-    const paragraphSpacing = 2;
-  
-    doc.setFontSize(fontSize);
-    doc.setFont("helvetica", "normal");
-  
-    let y = topMargin;
-  
-    // STEP 3: Build paragraph list
-    const paragraphs = [];
-    let temp = [];
-  
-    letterContent.split("\n").forEach((line) => {
-      if (line.trim() === "") {
-        if (temp.length > 0) {
-          paragraphs.push(temp.join("\n"));
-          temp = [];
-        } else {
-          paragraphs.push("");
-        }
-      } else {
-        temp.push(line);
-      }
-    });
-  
-    if (temp.length > 0) paragraphs.push(temp.join("\n"));
-  
-    // Helper: Create new page if needed
-    const ensurePage = () => {
-      if (y + lineHeight > pageHeight - bottomMargin) {
-        doc.addPage();
-        y = topMargin;
-      }
+    // Escape HTML to prevent XSS
+    const escapeHtml = (text) => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
     };
   
-    // STEP 4: Render paragraphs
-    paragraphs.forEach((para, pIndex) => {
-      const trimmed = para.trim();
-      const lastPara = pIndex === paragraphs.length - 1;
+    // Group content into paragraphs (separated by empty lines)
+    const lines = letterContent.split('\n');
+    const paragraphs = [];
+    let currentParagraph = [];
+    
+    lines.forEach((line) => {
+      const trimmed = line.trim();
+      if (trimmed === '' && currentParagraph.length > 0) {
+        paragraphs.push(currentParagraph.join('\n'));
+        currentParagraph = [];
+      } else if (trimmed === '' && currentParagraph.length === 0) {
+        paragraphs.push('');
+      } else {
+        currentParagraph.push(line);
+      }
+    });
+    
+    if (currentParagraph.length > 0) {
+      paragraphs.push(currentParagraph.join('\n'));
+    }
   
-      // Blank paragraph → add small spacing
-      if (!trimmed) {
-        y += paragraphSpacing;
+    // Convert paragraphs to HTML with proper formatting
+    const htmlParts = [];
+    
+    paragraphs.forEach((para, paraIndex) => {
+      const trimmedPara = para.trim();
+      
+      // Handle empty paragraphs
+      if (!trimmedPara) {
+        htmlParts.push('<div style="height: 8px;"></div>');
         return;
       }
-  
-      ensurePage();
-  
-      // TITLE (Centered)
-      if (trimmed === "REGISTRATION UNDER PROTEST") {
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-  
-        const w = doc.getTextWidth(trimmed);
-        doc.text(trimmed, (pageWidth - w) / 2, y);
-  
-        doc.setFontSize(fontSize);
-        doc.setFont("helvetica", "normal");
-  
-        y += lineHeight * 2 + paragraphSpacing * 2;
+      
+      // Title - centered and bold
+      if (trimmedPara === 'REGISTRATION UNDER PROTEST') {
+        htmlParts.push('<h1 style="text-align: center; font-weight: bold; font-size: 12pt; margin: 20px 0 30px 0; line-height: 1.4;">REGISTRATION UNDER PROTEST</h1>');
         return;
       }
-  
-      // STEP 5: Process lines in the paragraph
-      const paraLines = trimmed.split("\n");
-  
-      paraLines.forEach((line, li) => {
-        const text = line.trim();
-        if (!text) return;
-  
-        ensurePage();
-  
-        // Header / Labels (Always Left Aligned)
-        const isHeader =
-          text.startsWith("To,") ||
-          text.startsWith("The Chief Executive Officer") ||
-          text.startsWith("Date:") ||
-          text.startsWith("Subject:") ||
-          text.startsWith("Respected Sir,") ||
-          text.startsWith("Yours faithfully,") ||
-          /^[0-9]+\.[0-9]+/.test(text) ||
-          text.startsWith("•") ||
-          text.startsWith("Enclosures:") ||
-          text.startsWith("Phone:") ||
-          text.startsWith("Email:") ||
-          text.startsWith("Name:");
-  
-        // Split long lines
-        const split = doc.splitTextToSize(text, safeMaxWidth);
-  
-        split.forEach((s, si) => {
-          ensurePage();
-  
-          if (isHeader) {
-            doc.text(s, leftMargin, y);
-          } else {
-            const lastLine = si === split.length - 1;
-            const lastParaLine = li === paraLines.length - 1;
-  
-            if (lastLine && lastParaLine && s.length < 40) {
-              doc.text(s, leftMargin, y); // prevent stretch
-            } else {
-              doc.text(s, leftMargin, y, {
-                maxWidth: safeMaxWidth,
-                align: "justify",
-              });
-            }
-          }
-  
-          y += lineHeight;
-        });
+      
+      // Process paragraph lines
+      const paraLines = trimmedPara.split('\n');
+      const paragraphContent = [];
+      
+      paraLines.forEach((line) => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        
+        // Determine if it's a header/label
+        const isHeader = trimmed.startsWith('To,') || 
+                        trimmed.startsWith('The Chief Executive Officer') ||
+                        trimmed.startsWith('Date:') ||
+                        trimmed.startsWith('Subject:') ||
+                        trimmed.startsWith('Respected Sir,') ||
+                        trimmed.startsWith('Yours faithfully,') ||
+                        /^[0-9]+\.[0-9]+/.test(trimmed) ||
+                        trimmed.startsWith('•') ||
+                        trimmed.startsWith('Enclosures:') ||
+                        trimmed.startsWith('Phone:') ||
+                        trimmed.startsWith('Email:') ||
+                        trimmed.startsWith('Name:') ||
+                        (trimmed.match(/^[A-Z][a-z]+ [A-Z][a-z]+$/) && trimmed.length < 50);
+        
+        if (isHeader) {
+          // Left-aligned headers
+          paragraphContent.push(`<div style="text-align: left; margin: 2px 0; font-size: 10pt; line-height: 1.5;">${escapeHtml(trimmed)}</div>`);
+        } else {
+          // Justified body paragraphs
+          paragraphContent.push(`<div style="text-align: justify; margin: 2px 0; font-size: 10pt; line-height: 1.5; text-justify: inter-word;">${escapeHtml(trimmed)}</div>`);
+        }
       });
-  
-      if (!lastPara) y += paragraphSpacing;
+      
+      if (paragraphContent.length > 0) {
+        htmlParts.push(`<div style="margin-bottom: 8px;">${paragraphContent.join('')}</div>`);
+      }
     });
   
-    return doc.output("blob");
+    // Create HTML document with proper A4 dimensions and margins
+    const htmlContent = `
+      <div style="
+        font-family: 'Helvetica', 'Arial', sans-serif;
+        color: #000;
+        padding: 20mm 15mm 15mm 15mm;
+        width: 210mm;
+        min-height: 297mm;
+        box-sizing: border-box;
+        line-height: 1.5;
+      ">
+        ${htmlParts.join('')}
+      </div>
+    `;
+  
+    // Create a temporary container element
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.width = '210mm';
+    container.style.backgroundColor = '#ffffff';
+    container.innerHTML = htmlContent;
+    document.body.appendChild(container);
+  
+    try {
+      // Configure html2pdf options for best quality
+      const opt = {
+        margin: [0, 0, 0, 0],
+        filename: 'letter.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          letterRendering: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          windowWidth: 794, // A4 width at 96 DPI
+          windowHeight: 1123 // A4 height at 96 DPI
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait',
+          compress: true
+        },
+        pagebreak: { 
+          mode: ['avoid-all', 'css', 'legacy'],
+          before: '.page-break-before',
+          after: '.page-break-after',
+          avoid: ['p', 'div']
+        }
+      };
+  
+      // Generate PDF blob
+      const pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob');
+      
+      // Clean up
+      document.body.removeChild(container);
+      
+      return pdfBlob;
+    } catch (error) {
+      // Clean up on error
+      if (container.parentNode) {
+        document.body.removeChild(container);
+      }
+      console.error('Error generating PDF:', error);
+      throw error;
+    }
   };
   
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     try {
       const letterContent = generateFinalLetter()
-      const pdfBlob = generatePDFBlob()
+      const pdfBlob = await generatePDFBlob()
       
       // Generate filename
       const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
@@ -1079,7 +1096,7 @@ Identity and Mutawalli appointment proof`
       const subject = 'Submission of Registration Documents UNDER SOLEMN PROTEST'
       
       // First, auto-download the PDF
-      const pdfBlob = generatePDFBlob()
+      const pdfBlob = await generatePDFBlob()
       const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
       const dateStr = new Date().toISOString().split('T')[0]
       const pdfFilename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
