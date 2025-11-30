@@ -920,85 +920,85 @@ Identity and Mutawalli appointment proof`
       return 'left'
     }
     
-    // Split text into lines
-    const lines = letterContent.split('\n')
+    // Split text into paragraphs (preserve paragraph breaks)
+    const paragraphs = letterContent.split(/\n\s*\n/)
     let yPosition = topMargin
-    
-    lines.forEach((line, lineIndex) => {
-      // Handle empty lines - add paragraph spacing
-      if (line.trim() === '') {
+
+    paragraphs.forEach((para) => {
+      // Normalize paragraph
+      const paragraph = para.replace(/\n/g, ' ').trim()
+
+      // Handle empty paragraph (extra spacing)
+      if (!paragraph) {
         yPosition += paragraphSpacing
         return
       }
-      
-      // Determine alignment for this line
-      const alignment = getLineAlignment(line, lineIndex, lines)
-      
+
+      // Determine alignment for this paragraph (use first line heuristics)
+      const alignment = getLineAlignment(paragraph, 0, [paragraph])
+
       // Special handling for title - make it bold and larger
-      if (line.trim() === 'REGISTRATION UNDER PROTEST') {
+      const isTitle = paragraph === 'REGISTRATION UNDER PROTEST'
+      if (isTitle) {
         doc.setFontSize(14)
         doc.setFont('helvetica', 'bold')
       } else {
         doc.setFontSize(fontSize)
         doc.setFont('helvetica', 'normal')
       }
-      
-      // Check if we need a new page before adding content
-      if (yPosition + lineHeight > pageHeight - bottomMargin) {
-        doc.addPage()
-        yPosition = topMargin
-      }
-      
-      // Handle long lines - split them with proper wrapping
-      const splitLines = doc.splitTextToSize(line, maxWidth)
-      
-      // Check if all split lines fit on current page
+
+      // Split paragraph into wrapped lines based on max width
+      const splitLines = doc.splitTextToSize(paragraph, maxWidth)
       const totalHeightNeeded = splitLines.length * lineHeight
+
+      // Page break if necessary
       if (yPosition + totalHeightNeeded > pageHeight - bottomMargin) {
-        // If content doesn't fit, start new page
         if (yPosition > topMargin) {
           doc.addPage()
           yPosition = topMargin
         }
       }
-      
-      // Add text with proper wrapping, spacing, and alignment
-      splitLines.forEach((textLine, index) => {
-        // Check page break before each line
-        if (yPosition + lineHeight > pageHeight - bottomMargin) {
-          doc.addPage()
-          yPosition = topMargin
+
+      // Render paragraph. For justification, only justify when paragraph wraps to multiple lines
+      if (alignment === 'justify' && splitLines.length > 1) {
+        doc.text(splitLines, leftMargin, yPosition, { maxWidth: maxWidth, align: 'justify' })
+      } else if (alignment === 'center') {
+        // Center each wrapped line
+        splitLines.forEach((lineText) => {
+          const textWidth = doc.getTextWidth(lineText)
+          const x = (pageWidth - textWidth) / 2
+          doc.text(lineText, x, yPosition)
+          yPosition += lineHeight
+        })
+        // Add paragraph spacing and continue to next paragraph
+        yPosition += paragraphSpacing
+        // Reset font after title
+        if (isTitle) {
+          doc.setFontSize(fontSize)
+          doc.setFont('helvetica', 'normal')
         }
-        
-        // Calculate x position based on alignment
-        let xPosition = leftMargin
-        if (alignment === 'center') {
-          const textWidth = doc.getTextWidth(textLine)
-          xPosition = (pageWidth - textWidth) / 2
-        } else if (alignment === 'right') {
-          const textWidth = doc.getTextWidth(textLine)
-          xPosition = pageWidth - rightMargin - textWidth
-        }
-        
-        // Add the text line with appropriate alignment
-        // For justified text, apply justify to all lines of a paragraph
-        if (alignment === 'justify') {
-          doc.text(textLine, leftMargin, yPosition, {
-            maxWidth: maxWidth,
-            align: 'justify',
+        return
+      } else {
+        // Left or right alignment for whole paragraph
+        if (alignment === 'right') {
+          // Render each line right-aligned
+          splitLines.forEach((lineText) => {
+            const textWidth = doc.getTextWidth(lineText)
+            const x = pageWidth - rightMargin - textWidth
+            doc.text(lineText, x, yPosition)
+            yPosition += lineHeight
           })
         } else {
-          doc.text(textLine, xPosition, yPosition, {
-            maxWidth: maxWidth,
-            align: alignment,
-          })
+          // Default left alignment; pass array so jsPDF handles line breaks
+          doc.text(splitLines, leftMargin, yPosition, { maxWidth: maxWidth, align: 'left' })
         }
-        
-        yPosition += lineHeight
-      })
-      
+      }
+
+      // Advance yPosition after rendering multiline paragraph
+      yPosition += (splitLines.length * lineHeight) + paragraphSpacing
+
       // Reset font after title
-      if (line.trim() === 'REGISTRATION UNDER PROTEST') {
+      if (isTitle) {
         doc.setFontSize(fontSize)
         doc.setFont('helvetica', 'normal')
       }
@@ -1173,16 +1173,11 @@ Identity and Mutawalli appointment proof`
           mailtoLink += '?' + params.join('&')
         }
         
-        // Detect mobile device for better UX
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-        
-        // Open email composer
-        if (isMobile) {
-          const mailtoWindow = window.open(mailtoLink, '_blank')
-          if (!mailtoWindow || mailtoWindow.closed) {
-            window.location.href = mailtoLink
-          }
-        } else {
+        // Always attempt to open in a new tab/window first.
+        // Fall back to navigating the current tab if popups are blocked.
+        const mailtoWindow = window.open(mailtoLink, '_blank')
+        if (!mailtoWindow || mailtoWindow.closed) {
+          // Popup was likely blocked — navigate current tab as a fallback
           window.location.href = mailtoLink
         }
       }
