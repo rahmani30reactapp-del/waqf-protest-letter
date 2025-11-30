@@ -856,10 +856,40 @@ Identity and Mutawalli appointment proof`
     let letterContent = generateFinalLetter()
     
     // Replace checkbox symbols with PDF-compatible text
+    letterContent = letterContent.replace(/\[✓\]/g, '[X]')
+    letterContent = letterContent.replace(/☑/g, '[X]')
+    letterContent = letterContent.replace(/☐/g, '[ ]')
+    
+    // Create new PDF document
+    const doc = new jsPDF()
+    
+    // Professional margins for A4 paper
+    // jsPDF uses points: A4 = 595.28 x 841.89 points (210mm x 297mm)
+    // 1mm = 2.83465 points
+    const pageWidth = doc.internal.pageSize.getWidth() // ~595 points for A4
+    const pageHeight = doc.internal.pageSize.getHeight() // ~842 points for A4
+    
+    // Proper margins for professional document
+    const leftMargin = 43 // 15mm in points
+    const rightMargin = 57 // 20mm in points
+    const topMargin = 57 // 20mm in points
+    const bottomMargin = 43 // 15mm in points
+    
+    // Calculate max text width - ensure text never exceeds right margin
+    // Use larger buffer to prevent any stretching
+    const maxWidth = pageWidth - leftMargin - rightMargin - 10 // 10 point buffer to prevent stretching
+    
+    // Font settings to match email body exactly
+    const fontSize = 10 // Reduced font size
+    const lineHeight = 4.5 // Adjusted line height for smaller font
+    const paragraphSpacing = 2 // Match email body paragraph spacing
+    
+    doc.setFontSize(fontSize)
+    doc.setFont('helvetica', 'normal')
+    
     // Simpler paragraph-based rendering:
     // Split content into paragraphs (double newlines) and render each paragraph
-    // left-aligned to better match the on-screen letter body. Title lines are
-    // treated specially (centered and bold).
+    // with justified alignment to match professional document formatting
     const paragraphs = letterContent.split(/\n\s*\n/)
     let yPosition = topMargin
 
@@ -893,80 +923,32 @@ Identity and Mutawalli appointment proof`
       }
 
       // For other paragraphs, preserve internal single newlines as line breaks
-      // and render everything left-aligned with natural wrapping.
+      // and render with justified alignment (both sides aligned)
       const paraWithSingleBreaks = para.split('\n').map(p => p.trim()).join('\n')
-      const lines = doc.splitTextToSize(paraWithSingleBreaks, maxWidth)
+      const safeMaxWidth = maxWidth - 8 // Additional buffer to prevent stretching
+      const lines = doc.splitTextToSize(paraWithSingleBreaks, safeMaxWidth)
 
-      // Add lines to document with page-break checks
-      lines.forEach((line) => {
+      // Add lines to document with page-break checks and justified alignment
+      lines.forEach((line, index) => {
         if (yPosition + lineHeight > pageHeight - bottomMargin) {
           doc.addPage()
           yPosition = topMargin
         }
-        doc.text(line, leftMargin, yPosition)
+        
+        // Justify all lines except very short last lines to avoid stretching
+        const isLastLine = index === lines.length - 1
+        if (isLastLine && line.trim().length < 50) {
+          // Last line and short - use left align to avoid stretching
+          doc.text(line, leftMargin, yPosition)
+        } else {
+          // Justify the line with safeMaxWidth to prevent excessive stretching
+          doc.text(line, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'justify' })
+        }
         yPosition += lineHeight
       })
 
       // Add paragraph spacing after each paragraph
       yPosition += paragraphSpacing
-    })
-        // Check page break before each line
-        if (yPosition + lineHeight > pageHeight - bottomMargin) {
-          doc.addPage()
-          yPosition = topMargin
-        }
-        
-        // Render based on alignment - ensure proper margins and no stretching
-        if (alignment === 'center') {
-          const textWidth = doc.getTextWidth(textLine)
-          const xPosition = (pageWidth - textWidth) / 2
-          doc.text(textLine, xPosition, yPosition)
-        } else if (alignment === 'right') {
-          // Right alignment - ensure text aligns properly from right margin
-          const textWidth = doc.getTextWidth(textLine)
-          const xPosition = pageWidth - rightMargin - textWidth
-          // Ensure it doesn't go beyond left margin
-          if (xPosition < leftMargin) {
-            // If text is too wide, render from left margin with maxWidth constraint
-            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'right' })
-          } else {
-            doc.text(textLine, xPosition, yPosition)
-          }
-        } else if (alignment === 'justify') {
-          // Justified alignment - both sides aligned
-          // Use safeMaxWidth to prevent excessive word stretching
-          // Only justify if line is not the last line of a paragraph (to avoid stretching)
-          const isLastLine = index === splitLines.length - 1
-          if (isLastLine && textLine.trim().length < 50) {
-            // Last line and short - use left align to avoid stretching
-            doc.text(textLine, leftMargin, yPosition)
-          } else {
-            // Justify the line with safeMaxWidth to prevent excessive stretching
-            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'justify' })
-          }
-        } else {
-          // Left alignment - render exactly as email body
-          // Ensure text doesn't exceed right boundary - no stretching
-          const textWidth = doc.getTextWidth(textLine)
-          if (textWidth > safeMaxWidth) {
-            // Text is too wide - this shouldn't happen but handle it safely
-            // Render with maxWidth constraint to prevent stretching
-            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'left' })
-          } else {
-            // Text fits within bounds, render normally at leftMargin
-            // This ensures proper left alignment and no stretching
-            doc.text(textLine, leftMargin, yPosition)
-          }
-        }
-        
-        yPosition += lineHeight
-      })
-      
-      // Reset font after title
-      if (line.trim() === 'REGISTRATION UNDER PROTEST') {
-        doc.setFontSize(fontSize)
-        doc.setFont('helvetica', 'normal')
-      }
     })
     
     // Generate PDF as blob
