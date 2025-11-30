@@ -448,7 +448,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     }))
   }
 
-  const generateFinalLetter = () => {
+  const generateFinalLetter = (isForEmail = false) => {
     let finalContent = letterTemplate
     
     // Replace CURRENT_DATE first
@@ -535,6 +535,14 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       const value = fieldValues[field.id] || field.fullMatch
       finalContent = finalContent.replace(field.fullMatch, value)
     })
+
+    // Remove Place and Signature lines for email body (keep for PDF)
+    if (isForEmail) {
+      // Remove "Place: __________________" line
+      finalContent = finalContent.replace(/Place: __________________\s*\n\s*/g, '')
+      // Remove "Signature of Mutawalli: ___________________________" line
+      finalContent = finalContent.replace(/Signature of Mutawalli: ___________________________\s*\n\s*/g, '')
+    }
 
     return finalContent
   }
@@ -805,7 +813,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     setSubmitStatus(null)
 
     try {
-      const letterContent = generateFinalLetter()
+      const letterContent = generateFinalLetter(true) // true = for email (remove Place and Signature)
       const mutawalliName = extractMutawalliName(letterContent)
 
       // Validate required fields
@@ -1081,7 +1089,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
 
   const handleCompose = async () => {
     try {
-      const letterContent = generateFinalLetter()
+      const letterContent = generateFinalLetter(true) // true = for email (remove Place and Signature)
       const toEmail = process.env.REACT_APP_TO_EMAIL || ''
       const ccEmail = process.env.REACT_APP_CC_EMAIL || ''
       const subject = 'Registration under Solemn Protest and Duress – Without Prejudice to All Legal, Constitutional, and Islamic Law Rights'
