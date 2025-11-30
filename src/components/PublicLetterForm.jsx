@@ -500,10 +500,17 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
           }
         }
         
-        // Check for "Yours faithfully,"
-        const faithfullyIndex = afterPlaceholder.indexOf('Yours faithfully,')
-        if (faithfullyIndex !== -1 && faithfullyIndex < paragraphEnd) {
-          paragraphEnd = faithfullyIndex
+        // Check for section markers that indicate end of objections
+        const sectionMarkers = [
+          '9. SIGNATURES AND ATTESTATION',
+          '9. ADDITIONAL OBJECTIONS',
+          'ANNEXURES'
+        ]
+        for (const marker of sectionMarkers) {
+          const markerIndex = afterPlaceholder.indexOf(marker)
+          if (markerIndex !== -1 && markerIndex < paragraphEnd) {
+            paragraphEnd = markerIndex
+          }
         }
         
         if (isChecked) {
