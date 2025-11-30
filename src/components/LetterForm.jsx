@@ -841,7 +841,7 @@ Identity and Mutawalli appointment proof`
     const topMargin = 30
     const bottomMargin = 25
     const leftMargin = 25
-    const rightMargin = 35 // Increased right margin significantly to prevent text stretching
+    const rightMargin = 40 // Significantly increased right margin to prevent text stretching
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
     const maxWidth = pageWidth - (leftMargin + rightMargin)
@@ -921,12 +921,12 @@ Identity and Mutawalli appointment proof`
         yPosition = topMargin
       }
       
-      // For justified text, pass the full line to jsPDF and let it handle wrapping and justification
+      // For justified text, use a much more conservative width to prevent excessive stretching
       // For other alignments, split first for better control
       if (alignment === 'justify') {
-        // Reduce maxWidth significantly for justified text to prevent excessive word stretching
-        // Use both percentage and fixed reduction for better control
-        const justifyMaxWidth = Math.max(maxWidth * 0.92, maxWidth - 10) // 92% or 10mm reduction, whichever is larger
+        // Aggressively reduce maxWidth for justified text to prevent word stretching
+        // Use 88% of maxWidth or 15mm reduction, whichever provides more space
+        const justifyMaxWidth = Math.max(maxWidth * 0.88, maxWidth - 15)
         
         // Pre-calculate how many lines this will take using the reduced width
         const splitLines = doc.splitTextToSize(line, justifyMaxWidth)
@@ -940,10 +940,8 @@ Identity and Mutawalli appointment proof`
           }
         }
         
-        // Pass the full line to jsPDF with justify alignment - it will handle wrapping and justification
-        // doc.text() returns the doc object, not an array, so we use splitLines.length for height calculation
-        // Ensure text doesn't exceed right margin by using a conservative maxWidth
-        const finalMaxWidth = Math.min(justifyMaxWidth, pageWidth - leftMargin - rightMargin)
+        // Use the reduced width to ensure proper right margin and prevent stretching
+        const finalMaxWidth = Math.min(justifyMaxWidth, pageWidth - leftMargin - rightMargin - 2) // Extra 2mm buffer
         doc.text(line, leftMargin, yPosition, {
           maxWidth: finalMaxWidth,
           align: 'justify',
