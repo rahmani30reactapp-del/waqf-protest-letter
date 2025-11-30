@@ -847,6 +847,76 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     return user?.name || 'Mutawalli'
   }
 
+  const generateProfessionalFilename = () => {
+    // Get form values
+    const mutawalliNameField = extractFields(letterTemplate).find(f => f.placeholder === 'Name of Mutawalli')
+    const mutawalliName = mutawalliNameField ? (fieldValues[mutawalliNameField.id] || '') : ''
+    
+    const waqfNameField = extractFields(letterTemplate).find(f => f.placeholder === 'Waqf Name')
+    const waqfName = waqfNameField ? (fieldValues[waqfNameField.id] || '') : ''
+    
+    const registrationNoField = extractFields(letterTemplate).find(f => f.placeholder === 'Registration No.')
+    const registrationNo = registrationNoField ? (fieldValues[registrationNoField.id] || '') : ''
+    
+    const stateBoardField = extractFields(letterTemplate).find(f => f.placeholder === 'State Waqf Board')
+    const stateBoard = stateBoardField ? (fieldValues[stateBoardField.id] || '') : ''
+    
+    // Format date as YYYY-MM-DD
+    const dateStr = new Date().toISOString().split('T')[0]
+    
+    // Build filename parts
+    const parts = ['Registration_Under_Protest']
+    
+    // Add Waqf name (sanitized)
+    if (waqfName && waqfName.trim()) {
+      const sanitizedWaqfName = waqfName.trim()
+        .replace(/[^a-zA-Z0-9\s-]/g, '') // Remove special chars except spaces and hyphens
+        .replace(/\s+/g, '_') // Replace spaces with underscores
+        .substring(0, 50) // Limit length
+      if (sanitizedWaqfName) {
+        parts.push(sanitizedWaqfName)
+      }
+    }
+    
+    // Add Registration Number if available
+    if (registrationNo && registrationNo.trim()) {
+      const sanitizedRegNo = registrationNo.trim()
+        .replace(/[^a-zA-Z0-9-]/g, '') // Keep only alphanumeric and hyphens
+        .substring(0, 20) // Limit length
+      if (sanitizedRegNo) {
+        parts.push(`RegNo_${sanitizedRegNo}`)
+      }
+    }
+    
+    // Add Mutawalli name
+    if (mutawalliName && mutawalliName.trim()) {
+      const sanitizedMutawalli = mutawalliName.trim()
+        .replace(/[^a-zA-Z0-9\s-]/g, '') // Remove special chars
+        .replace(/\s+/g, '_') // Replace spaces with underscores
+        .substring(0, 30) // Limit length
+      if (sanitizedMutawalli) {
+        parts.push(`Mutawalli_${sanitizedMutawalli}`)
+      }
+    }
+    
+    // Add State Board if available
+    if (stateBoard && stateBoard.trim()) {
+      const sanitizedState = stateBoard.trim()
+        .replace(/[^a-zA-Z0-9\s-]/g, '') // Remove special chars
+        .replace(/\s+/g, '_') // Replace spaces with underscores
+        .substring(0, 20) // Limit length
+      if (sanitizedState) {
+        parts.push(`State_${sanitizedState}`)
+      }
+    }
+    
+    // Add date at the end
+    parts.push(dateStr)
+    
+    // Join parts and add .pdf extension
+    return `${parts.join('_')}.pdf`
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -885,10 +955,8 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         reader.readAsDataURL(pdfBlob)
       })
 
-      // Generate filename
-      const mutawalliNameForFile = mutawalliName.replace(/\s+/g, '_')
-      const dateStr = new Date().toISOString().split('T')[0]
-      const filename = `Waqf_Protest_Letter_${mutawalliNameForFile}_${dateStr}.pdf`
+      // Generate professional filename
+      const filename = generateProfessionalFilename()
 
       // Auto-download PDF
       const url = URL.createObjectURL(pdfBlob)
@@ -1123,10 +1191,8 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       const letterContent = generateFinalLetter()
       const pdfBlob = await generatePDFBlob()
       
-      // Generate filename
-      const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
-      const dateStr = new Date().toISOString().split('T')[0]
-      const filename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
+      // Generate professional filename
+      const filename = generateProfessionalFilename()
       
       // Create download link and trigger download
       const url = URL.createObjectURL(pdfBlob)
@@ -1155,9 +1221,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       
       // First, auto-download the PDF
       const pdfBlob = await generatePDFBlob()
-      const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
-      const dateStr = new Date().toISOString().split('T')[0]
-      const pdfFilename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
+      const pdfFilename = generateProfessionalFilename()
       
       // Download PDF automatically
       const url = URL.createObjectURL(pdfBlob)
