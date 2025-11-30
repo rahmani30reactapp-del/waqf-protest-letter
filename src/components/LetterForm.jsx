@@ -348,9 +348,6 @@ Email: [USER_EMAIL]`
     objection22: true,
   })
   const [attachments, setAttachments] = useState({
-    registrationForms: null,
-    titleDocuments: null,
-    identityProof: null,
     waqfDeed: null, // Annexure A
     beneficiariesList: null, // Annexure C
     courtCases: null, // Annexure D
@@ -897,60 +894,6 @@ Email: [USER_EMAIL]`
       const attachmentPromises = []
       const attachmentData = []
       
-      if (attachments.registrationForms) {
-        attachmentPromises.push(
-          new Promise((resolve) => {
-            const reader = new FileReader()
-            reader.onloadend = () => {
-              const base64String = reader.result.split(',')[1]
-              attachmentData.push({
-                filename: attachments.registrationForms.name,
-                content: base64String,
-                type: attachments.registrationForms.type,
-              })
-              resolve()
-            }
-            reader.readAsDataURL(attachments.registrationForms)
-          })
-        )
-      }
-      
-      if (attachments.titleDocuments) {
-        attachmentPromises.push(
-          new Promise((resolve) => {
-            const reader = new FileReader()
-            reader.onloadend = () => {
-              const base64String = reader.result.split(',')[1]
-              attachmentData.push({
-                filename: attachments.titleDocuments.name,
-                content: base64String,
-                type: attachments.titleDocuments.type,
-              })
-              resolve()
-            }
-            reader.readAsDataURL(attachments.titleDocuments)
-          })
-        )
-      }
-      
-      if (attachments.identityProof) {
-        attachmentPromises.push(
-          new Promise((resolve) => {
-            const reader = new FileReader()
-            reader.onloadend = () => {
-              const base64String = reader.result.split(',')[1]
-              attachmentData.push({
-                filename: attachments.identityProof.name,
-                content: base64String,
-                type: attachments.identityProof.type,
-              })
-              resolve()
-            }
-            reader.readAsDataURL(attachments.identityProof)
-          })
-        )
-      }
-      
       if (attachments.waqfDeed) {
         attachmentPromises.push(
           new Promise((resolve) => {
@@ -1392,54 +1335,6 @@ Email: [USER_EMAIL]`
           <h3 className="attachments-title">Enclosures (Optional)</h3>
           <p className="attachments-subtitle">Upload supporting documents that will be attached to the email</p>
           <div className="attachments-grid">
-            <div className="attachment-item">
-              <label htmlFor="registration-forms" className="attachment-label">
-                <span className="attachment-icon">📋</span>
-                <span className="attachment-text">Waqf registration / detail forms</span>
-                {attachments.registrationForms && (
-                  <span className="attachment-name">{attachments.registrationForms.name}</span>
-                )}
-              </label>
-              <input
-                id="registration-forms"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={(e) => setAttachments(prev => ({ ...prev, registrationForms: e.target.files[0] || null }))}
-                className="attachment-input"
-              />
-            </div>
-            <div className="attachment-item">
-              <label htmlFor="title-documents" className="attachment-label">
-                <span className="attachment-icon">📄</span>
-                <span className="attachment-text">Title / revenue documents (copies)</span>
-                {attachments.titleDocuments && (
-                  <span className="attachment-name">{attachments.titleDocuments.name}</span>
-                )}
-              </label>
-              <input
-                id="title-documents"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={(e) => setAttachments(prev => ({ ...prev, titleDocuments: e.target.files[0] || null }))}
-                className="attachment-input"
-              />
-            </div>
-            <div className="attachment-item">
-              <label htmlFor="identity-proof" className="attachment-label">
-                <span className="attachment-icon">🆔</span>
-                <span className="attachment-text">Identity and Mutawalli appointment proof</span>
-                {attachments.identityProof && (
-                  <span className="attachment-name">{attachments.identityProof.name}</span>
-                )}
-              </label>
-              <input
-                id="identity-proof"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={(e) => setAttachments(prev => ({ ...prev, identityProof: e.target.files[0] || null }))}
-                className="attachment-input"
-              />
-            </div>
             <div className="attachment-item">
               <label htmlFor="waqf-deed" className="attachment-label">
                 <span className="attachment-icon">📜</span>
