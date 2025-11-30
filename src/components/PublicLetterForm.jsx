@@ -455,14 +455,52 @@ Email: [USER_EMAIL]`
     const checkboxSymbol = iCheckboxChecked ? '[✓]' : '[ ]'
     finalContent = finalContent.replace('[I_CHECKBOX]', checkboxSymbol)
     
-    // Handle objection checkboxes - only include checked ones
+    // Handle OBJECTION_22 (Acknowledgment) SEPARATELY - always show in PDF, always remove from email
+    // This must be handled BEFORE processing other objections
+    const objection22Placeholder = '[OBJECTION_22_CHECKBOX]'
+    const objection22Key = 'objection22'
+    const isObjection22Checked = objectionCheckboxes[objection22Key]
+    
+    if (isForEmail) {
+      // For email: Remove the entire OBJECTION_22 paragraph
+      const placeholderIndex = finalContent.indexOf(objection22Placeholder)
+      if (placeholderIndex !== -1) {
+        const afterPlaceholder = finalContent.substring(placeholderIndex + objection22Placeholder.length)
+        let paragraphEnd = afterPlaceholder.length
+        
+        // Find end of paragraph (next section marker)
+        const sectionMarkers = ['9. SIGNATURES AND ATTESTATION', '9. ADDITIONAL OBJECTIONS']
+        for (const marker of sectionMarkers) {
+          const markerIndex = afterPlaceholder.indexOf(marker)
+          if (markerIndex !== -1 && markerIndex < paragraphEnd) {
+            paragraphEnd = markerIndex
+          }
+        }
+        
+        const paragraphText = afterPlaceholder.substring(0, paragraphEnd)
+        const fullParagraph = objection22Placeholder + paragraphText
+        finalContent = finalContent.replace(fullParagraph, '')
+      }
+    } else {
+      // For PDF: ALWAYS show the paragraph regardless of checkbox state
+      // Replace placeholder with checkbox symbol based on state
+      if (isObjection22Checked) {
+        finalContent = finalContent.replace(objection22Placeholder, '[✓]')
+      } else {
+        // If unchecked, replace with empty checkbox - paragraph still appears
+        finalContent = finalContent.replace(objection22Placeholder, '[ ]')
+      }
+    }
+    
+    // Handle other objection checkboxes - only include checked ones
+    // NOTE: OBJECTION_22 is NOT in this list - it's handled separately above
     const objectionPlaceholders = [
       'OBJECTION_1_CHECKBOX', 'OBJECTION_2_CHECKBOX', 'OBJECTION_3_CHECKBOX', 'OBJECTION_4_CHECKBOX',
       'OBJECTION_5_CHECKBOX', 'OBJECTION_6_CHECKBOX', 'OBJECTION_7_CHECKBOX', 'OBJECTION_8_CHECKBOX',
       'OBJECTION_9_CHECKBOX', 'OBJECTION_10_CHECKBOX', 'OBJECTION_11_CHECKBOX', 'OBJECTION_12_CHECKBOX',
       'OBJECTION_13_CHECKBOX', 'OBJECTION_14_CHECKBOX', 'OBJECTION_15_CHECKBOX', 'OBJECTION_16_CHECKBOX',
       'OBJECTION_17_CHECKBOX', 'OBJECTION_18_CHECKBOX', 'OBJECTION_19_CHECKBOX', 'OBJECTION_20_CHECKBOX',
-      'OBJECTION_21_CHECKBOX', 'OBJECTION_22_CHECKBOX'
+      'OBJECTION_21_CHECKBOX'
     ]
     
     // Process objections in reverse order to maintain indices
@@ -470,42 +508,6 @@ Email: [USER_EMAIL]`
       const placeholder = `[${objectionPlaceholders[i]}]`
       const objectionKey = `objection${i + 1}`
       const isChecked = objectionCheckboxes[objectionKey]
-      
-      // Handle OBJECTION_22 (Acknowledgment) separately - always show in PDF, always remove from email
-      if (placeholder === '[OBJECTION_22_CHECKBOX]') {
-        if (isForEmail) {
-          // For email: Remove the entire OBJECTION_22 paragraph
-          const placeholderIndex = finalContent.indexOf(placeholder)
-          if (placeholderIndex !== -1) {
-            const afterPlaceholder = finalContent.substring(placeholderIndex + placeholder.length)
-            let paragraphEnd = afterPlaceholder.length
-            
-            // Find end of paragraph (next section marker)
-            const sectionMarkers = ['9. SIGNATURES AND ATTESTATION', '9. ADDITIONAL OBJECTIONS']
-            for (const marker of sectionMarkers) {
-              const markerIndex = afterPlaceholder.indexOf(marker)
-              if (markerIndex !== -1 && markerIndex < paragraphEnd) {
-                paragraphEnd = markerIndex
-              }
-            }
-            
-            const paragraphText = afterPlaceholder.substring(0, paragraphEnd)
-            const fullParagraph = placeholder + paragraphText
-            finalContent = finalContent.replace(fullParagraph, '')
-          }
-        } else {
-          // For PDF: ALWAYS show the paragraph regardless of checkbox state
-          // Replace placeholder with checkbox symbol based on state
-          if (isChecked) {
-            finalContent = finalContent.replace(placeholder, '[✓]')
-          } else {
-            // If unchecked, replace with empty checkbox - paragraph still appears
-            finalContent = finalContent.replace(placeholder, '[ ]')
-          }
-        }
-        // Skip normal processing - we've handled it above
-        continue
-      }
       
       // Find the paragraph starting with this checkbox placeholder
       const placeholderIndex = finalContent.indexOf(placeholder)
