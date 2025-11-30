@@ -4,7 +4,7 @@ import pdfFonts from 'pdfmake/build/vfs_fonts'
 import './LetterForm.css'
 
 // Initialize pdfMake with fonts
-pdfMake.vfs = pdfFonts.pdfMake.vfs
+pdfMake.vfs = pdfFonts
 
 function LetterForm({ user, credential }) {
   // Get current date formatted
