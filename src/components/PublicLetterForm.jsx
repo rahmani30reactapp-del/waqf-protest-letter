@@ -543,12 +543,16 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       finalContent = finalContent.replace(field.fullMatch, value)
     })
 
-    // Remove Place and Signature lines for email body (keep for PDF)
+    // Remove Acknowledgment objection and entire signature section for email body (keep for PDF)
     if (isForEmail) {
-      // Remove "Place: __________________" line
-      finalContent = finalContent.replace(/Place: __________________\s*\n\s*/g, '')
-      // Remove "Signature of Mutawalli: ___________________________" line
-      finalContent = finalContent.replace(/Signature of Mutawalli: ___________________________\s*\n\s*/g, '')
+      // Remove OBJECTION_22 (Acknowledgment) - handle both checked ([✓]) and unchecked ([OBJECTION_22_CHECKBOX]) cases
+      // The objection text spans multiple lines, so we need to match until the next section
+      const objection22Pattern = /(\[✓\]|\[OBJECTION_22_CHECKBOX\])\s*Acknowledgment[\s\S]*?(?=\n9\. SIGNATURES AND ATTESTATION|\nANNEXURES)/g
+      finalContent = finalContent.replace(objection22Pattern, '')
+      
+      // Remove the entire "9. SIGNATURES AND ATTESTATION" section up to "ANNEXURES"
+      const signatureSectionPattern = /9\. SIGNATURES AND ATTESTATION[\s\S]*?(?=ANNEXURES)/g
+      finalContent = finalContent.replace(signatureSectionPattern, '')
     }
 
     return finalContent
