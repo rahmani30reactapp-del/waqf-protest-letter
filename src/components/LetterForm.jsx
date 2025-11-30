@@ -837,20 +837,20 @@ Identity and Mutawalli appointment proof`
     // Create new PDF document
     const doc = new jsPDF()
     
-    // Professional margins for A4 paper (210mm x 297mm)
-    // jsPDF uses points as units (72 points = 1 inch, 1mm ≈ 2.83465 points)
-    // But for simplicity and accuracy, we'll use mm values directly as jsPDF handles conversion
-    const topMargin = 30
-    const bottomMargin = 25
-    const leftMargin = 25
-    const rightMargin = 25
-    const pageWidth = doc.internal.pageSize.getWidth()
-    const pageHeight = doc.internal.pageSize.getHeight()
-    // Calculate maxWidth ensuring text stays within margins
-    // Convert margins to points for calculation: 1mm = 2.83465 points
-    const leftMarginPoints = leftMargin * 2.83465
-    const rightMarginPoints = rightMargin * 2.83465
-    const maxWidth = pageWidth - leftMarginPoints - rightMarginPoints
+    // Professional margins for A4 paper
+    // jsPDF uses points: A4 = 595.28 x 841.89 points (210mm x 297mm)
+    // 1mm = 2.83465 points, so 25mm = 70.86625 points
+    const pageWidth = doc.internal.pageSize.getWidth() // ~595 points for A4
+    const pageHeight = doc.internal.pageSize.getHeight() // ~842 points for A4
+    
+    // Set margins in points (25mm = ~71 points, 30mm = ~85 points)
+    const leftMargin = 71 // 25mm in points
+    const rightMargin = 71 // 25mm in points  
+    const topMargin = 85 // 30mm in points
+    const bottomMargin = 71 // 25mm in points
+    
+    // Calculate max text width - ensure text never exceeds right margin
+    const maxWidth = pageWidth - leftMargin - rightMargin
     
     // Professional font settings
     const fontSize = 11
@@ -895,7 +895,7 @@ Identity and Mutawalli appointment proof`
     
     // Split text into lines
     const lines = letterContent.split('\n')
-    let yPosition = topMargin * 2.83465 // Convert to points for yPosition
+    let yPosition = topMargin
     
     lines.forEach((line, lineIndex) => {
       // Handle empty lines - add paragraph spacing
@@ -917,10 +917,9 @@ Identity and Mutawalli appointment proof`
       }
       
       // Check if we need a new page before adding content
-      const bottomMarginPoints = bottomMargin * 2.83465
-      if (yPosition + lineHeight > pageHeight - bottomMarginPoints) {
+      if (yPosition + lineHeight > pageHeight - bottomMargin) {
         doc.addPage()
-        yPosition = topMargin * 2.83465
+        yPosition = topMargin
       }
       
       // Split text to fit within maxWidth - this ensures proper wrapping
@@ -928,20 +927,20 @@ Identity and Mutawalli appointment proof`
       
       // Check if all split lines fit on current page
       const totalHeightNeeded = splitLines.length * lineHeight
-      if (yPosition + totalHeightNeeded > pageHeight - bottomMarginPoints) {
+      if (yPosition + totalHeightNeeded > pageHeight - bottomMargin) {
         // If content doesn't fit, start new page
-        if (yPosition > topMargin * 2.83465) {
+        if (yPosition > topMargin) {
           doc.addPage()
-          yPosition = topMargin * 2.83465
+          yPosition = topMargin
         }
       }
       
       // Render each line with proper alignment and margin constraints
       splitLines.forEach((textLine, index) => {
         // Check page break before each line
-        if (yPosition + lineHeight > pageHeight - bottomMarginPoints) {
+        if (yPosition + lineHeight > pageHeight - bottomMargin) {
           doc.addPage()
-          yPosition = topMargin * 2.83465
+          yPosition = topMargin
         }
         
         // Calculate x position based on alignment
@@ -951,12 +950,12 @@ Identity and Mutawalli appointment proof`
           doc.text(textLine, xPosition, yPosition)
         } else if (alignment === 'right') {
           const textWidth = doc.getTextWidth(textLine)
-          const xPosition = pageWidth - rightMarginPoints - textWidth
+          const xPosition = pageWidth - rightMargin - textWidth
           doc.text(textLine, xPosition, yPosition)
         } else {
-          // Left alignment - text is already split to maxWidth, render directly at leftMargin
-          // This prevents any stretching or additional wrapping
-          doc.text(textLine, leftMarginPoints, yPosition)
+          // Left alignment - render at leftMargin
+          // Text is already split to fit maxWidth, so it won't exceed right margin
+          doc.text(textLine, leftMargin, yPosition)
         }
         
         yPosition += lineHeight
