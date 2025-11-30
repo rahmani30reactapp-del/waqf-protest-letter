@@ -852,10 +852,10 @@ Identity and Mutawalli appointment proof`
     // Calculate max text width - ensure text never exceeds right margin
     const maxWidth = pageWidth - leftMargin - rightMargin
     
-    // Professional font settings - matching email body appearance
+    // Font settings to match email body exactly
     const fontSize = 11
-    const lineHeight = 5.5 // Tighter line height to match email body
-    const paragraphSpacing = 3 // Minimal spacing between paragraphs to match email
+    const lineHeight = 5 // Match email body line spacing
+    const paragraphSpacing = 2 // Match email body paragraph spacing
     
     doc.setFontSize(fontSize)
     doc.setFont('helvetica', 'normal')
@@ -897,7 +897,7 @@ Identity and Mutawalli appointment proof`
     let yPosition = topMargin
     
     lines.forEach((line, lineIndex) => {
-      // Handle empty lines - minimal spacing to match email body
+      // Handle empty lines - match email body spacing exactly
       if (line.trim() === '') {
         yPosition += paragraphSpacing
         return
@@ -921,15 +921,15 @@ Identity and Mutawalli appointment proof`
         yPosition = topMargin
       }
       
-      // Split text to fit within maxWidth - preserve email body line breaks where possible
-      // Only wrap if line exceeds maxWidth, otherwise keep as-is to match email formatting
+      // Render line exactly as it appears in email body
+      // Only wrap if absolutely necessary (line exceeds maxWidth)
       let splitLines
       const lineWidth = doc.getTextWidth(line)
       if (lineWidth > maxWidth) {
-        // Line is too long, split it
+        // Line is too long, must split it to fit within margins
         splitLines = doc.splitTextToSize(line, maxWidth)
       } else {
-        // Line fits, keep it as-is to match email body formatting
+        // Line fits - keep it exactly as in email body (no wrapping)
         splitLines = [line]
       }
       
@@ -951,7 +951,7 @@ Identity and Mutawalli appointment proof`
           yPosition = topMargin
         }
         
-        // Calculate x position based on alignment
+        // Render based on alignment - match email body exactly
         if (alignment === 'center') {
           const textWidth = doc.getTextWidth(textLine)
           const xPosition = (pageWidth - textWidth) / 2
@@ -962,7 +962,7 @@ Identity and Mutawalli appointment proof`
           doc.text(textLine, xPosition, yPosition)
         } else {
           // Left alignment - render exactly as email body
-          // Preserve original line structure - only wrap if necessary
+          // Preserve original line structure - only wrap if absolutely necessary
           doc.text(textLine, leftMargin, yPosition)
         }
         
