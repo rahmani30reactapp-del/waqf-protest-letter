@@ -949,53 +949,70 @@ Identity and Mutawalli appointment proof`
         yPosition = topMargin
       }
       
-      // Handle long lines - split them with proper wrapping
-      const splitLines = doc.splitTextToSize(line, maxWidth)
-      
-      // Check if all split lines fit on current page
-      const totalHeightNeeded = splitLines.length * lineHeight
-      if (yPosition + totalHeightNeeded > pageHeight - bottomMargin) {
-        // If content doesn't fit, start new page
-        if (yPosition > topMargin) {
-          doc.addPage()
-          yPosition = topMargin
-        }
-      }
-      
-      // Add text with proper wrapping, spacing, and alignment
-      splitLines.forEach((textLine, index) => {
-        // Check page break before each line
-        if (yPosition + lineHeight > pageHeight - bottomMargin) {
-          doc.addPage()
-          yPosition = topMargin
+      // For justified text, pass the full line to jsPDF and let it handle wrapping and justification
+      // For other alignments, split first for better control
+      if (alignment === 'justify') {
+        // Pre-calculate how many lines this will take
+        const splitLines = doc.splitTextToSize(line, maxWidth)
+        const totalHeightNeeded = splitLines.length * lineHeight
+        
+        // Check if content fits on current page
+        if (yPosition + totalHeightNeeded > pageHeight - bottomMargin) {
+          if (yPosition > topMargin) {
+            doc.addPage()
+            yPosition = topMargin
+          }
         }
         
-        // Calculate x position based on alignment
-        let xPosition = leftMargin
-        if (alignment === 'center') {
-          const textWidth = doc.getTextWidth(textLine)
-          xPosition = (pageWidth - textWidth) / 2
-        } else if (alignment === 'right') {
-          const textWidth = doc.getTextWidth(textLine)
-          xPosition = pageWidth - rightMargin - textWidth
+        // Pass the full line to jsPDF with justify alignment - it will handle wrapping and justification
+        const lines = doc.text(line, leftMargin, yPosition, {
+          maxWidth: maxWidth,
+          align: 'justify',
+        })
+        
+        // Update yPosition based on actual lines rendered
+        yPosition += lines.length * lineHeight
+      } else {
+        // Handle long lines - split them with proper wrapping
+        const splitLines = doc.splitTextToSize(line, maxWidth)
+        
+        // Check if all split lines fit on current page
+        const totalHeightNeeded = splitLines.length * lineHeight
+        if (yPosition + totalHeightNeeded > pageHeight - bottomMargin) {
+          // If content doesn't fit, start new page
+          if (yPosition > topMargin) {
+            doc.addPage()
+            yPosition = topMargin
+          }
         }
         
-        // Add the text line with appropriate alignment
-        // For justified text, apply justify to all lines of a paragraph
-        if (alignment === 'justify') {
-          doc.text(textLine, leftMargin, yPosition, {
-            maxWidth: maxWidth,
-            align: 'justify',
-          })
-        } else {
+        // Add text with proper wrapping, spacing, and alignment
+        splitLines.forEach((textLine, index) => {
+          // Check page break before each line
+          if (yPosition + lineHeight > pageHeight - bottomMargin) {
+            doc.addPage()
+            yPosition = topMargin
+          }
+          
+          // Calculate x position based on alignment
+          let xPosition = leftMargin
+          if (alignment === 'center') {
+            const textWidth = doc.getTextWidth(textLine)
+            xPosition = (pageWidth - textWidth) / 2
+          } else if (alignment === 'right') {
+            const textWidth = doc.getTextWidth(textLine)
+            xPosition = pageWidth - rightMargin - textWidth
+          }
+          
+          // Add the text line with appropriate alignment
           doc.text(textLine, xPosition, yPosition, {
             maxWidth: maxWidth,
             align: alignment,
           })
-        }
-        
-        yPosition += lineHeight
-      })
+          
+          yPosition += lineHeight
+        })
+      }
       
       // Reset font after title
       if (line.trim() === 'REGISTRATION UNDER PROTEST') {
@@ -1173,11 +1190,16 @@ Identity and Mutawalli appointment proof`
           mailtoLink += '?' + params.join('&')
         }
         
-        // Always attempt to open in a new tab/window first.
-        // Fall back to navigating the current tab if popups are blocked.
-        const mailtoWindow = window.open(mailtoLink, '_blank')
-        if (!mailtoWindow || mailtoWindow.closed) {
-          // Popup was likely blocked — navigate current tab as a fallback
+        // Detect mobile device for better UX
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+        
+        // Open email composer
+        if (isMobile) {
+          const mailtoWindow = window.open(mailtoLink, '_blank')
+          if (!mailtoWindow || mailtoWindow.closed) {
+            window.location.href = mailtoLink
+          }
+        } else {
           window.location.href = mailtoLink
         }
       }
