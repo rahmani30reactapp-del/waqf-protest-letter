@@ -867,15 +867,15 @@ Identity and Mutawalli appointment proof`
     
     // Professional margins for A4 paper
     // jsPDF uses points: A4 = 595.28 x 841.89 points (210mm x 297mm)
-    // 1mm = 2.83465 points, so 25mm = 70.86625 points
+    // 1mm = 2.83465 points
     const pageWidth = doc.internal.pageSize.getWidth() // ~595 points for A4
     const pageHeight = doc.internal.pageSize.getHeight() // ~842 points for A4
     
-    // Set margins in points (25mm = ~71 points, 30mm = ~85 points)
-    const leftMargin = 71 // 25mm in points
-    const rightMargin = 71 // 25mm in points  
-    const topMargin = 85 // 30mm in points
-    const bottomMargin = 71 // 25mm in points
+    // Reduced margins in points (15mm = ~43 points, 20mm = ~57 points)
+    const leftMargin = 43 // 15mm in points
+    const rightMargin = 43 // 15mm in points  
+    const topMargin = 57 // 20mm in points
+    const bottomMargin = 43 // 15mm in points
     
     // Calculate max text width - ensure text never exceeds right margin
     const maxWidth = pageWidth - leftMargin - rightMargin
