@@ -468,12 +468,36 @@ Email: [USER_EMAIL]`
       const isChecked = objectionCheckboxes[objectionKey]
       
       // Skip OBJECTION_22 (Acknowledgment) - it's handled separately for email/PDF
+      // For PDF: Always show regardless of checkbox state
+      // For Email: Always remove
       if (placeholder === '[OBJECTION_22_CHECKBOX]') {
-        // Always show in PDF, but handle checkbox state
-        if (isChecked) {
-          finalContent = finalContent.replace(placeholder, '[✓]')
+        if (isForEmail) {
+          // For email: Remove the entire OBJECTION_22 paragraph
+          const placeholderIndex = finalContent.indexOf(placeholder)
+          if (placeholderIndex !== -1) {
+            const afterPlaceholder = finalContent.substring(placeholderIndex + placeholder.length)
+            let paragraphEnd = afterPlaceholder.length
+            
+            // Find end of paragraph (next section marker)
+            const sectionMarkers = ['9. SIGNATURES AND ATTESTATION', '9. ADDITIONAL OBJECTIONS']
+            for (const marker of sectionMarkers) {
+              const markerIndex = afterPlaceholder.indexOf(marker)
+              if (markerIndex !== -1 && markerIndex < paragraphEnd) {
+                paragraphEnd = markerIndex
+              }
+            }
+            
+            const paragraphText = afterPlaceholder.substring(0, paragraphEnd)
+            const fullParagraph = placeholder + paragraphText
+            finalContent = finalContent.replace(fullParagraph, '')
+          }
+        } else {
+          // For PDF: Always show, handle checkbox state
+          if (isChecked) {
+            finalContent = finalContent.replace(placeholder, '[✓]')
+          }
+          // If unchecked, keep placeholder - it will show in PDF
         }
-        // If unchecked, keep placeholder but will be removed for email later
         continue
       }
       
@@ -542,24 +566,11 @@ Email: [USER_EMAIL]`
       finalContent = finalContent.replace(field.fullMatch, value)
     })
 
-    // Remove Acknowledgment objection and entire signature section for email body only (always keep for PDF)
+    // Remove entire signature section for email body only (always keep for PDF)
     if (isForEmail) {
-      // Remove OBJECTION_22 (Acknowledgment) - handle both checked ([✓]) and unchecked ([OBJECTION_22_CHECKBOX]) cases
-      // The objection text spans multiple lines, so we need to match until the next section
-      const objection22Pattern = /(\[✓\]|\[OBJECTION_22_CHECKBOX\])\s*Acknowledgment[\s\S]*?(?=\n9\. SIGNATURES AND ATTESTATION|\nANNEXURES)/g
-      finalContent = finalContent.replace(objection22Pattern, '')
-      
-      // Remove the entire "9. SIGNATURES AND ATTESTATION" section up to "ANNEXURES"
-      const signatureSectionPattern = /9\. SIGNATURES AND ATTESTATION[\s\S]*?(?=ANNEXURES)/g
+      // Remove the entire "9. SIGNATURES AND ATTESTATION" section up to end of template
+      const signatureSectionPattern = /9\. SIGNATURES AND ATTESTATION[\s\S]*$/g
       finalContent = finalContent.replace(signatureSectionPattern, '')
-    } else {
-      // For PDF: Ensure OBJECTION_22 is always shown (replace placeholder with checkbox if unchecked)
-      // If it was already replaced with [✓] above, this won't match
-      const objection22UncheckedPattern = /\[OBJECTION_22_CHECKBOX\]\s*Acknowledgment/g
-      if (objection22UncheckedPattern.test(finalContent)) {
-        // If unchecked, still show it but without checkbox symbol (or keep placeholder)
-        // Actually, let's just ensure it's there - the checkbox state is already handled above
-      }
     }
     
     // Remove ANNEXURES section from both email and PDF
