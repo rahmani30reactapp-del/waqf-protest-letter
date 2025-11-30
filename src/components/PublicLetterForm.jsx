@@ -871,18 +871,19 @@ Identity and Mutawalli appointment proof`
     const pageWidth = doc.internal.pageSize.getWidth() // ~595 points for A4
     const pageHeight = doc.internal.pageSize.getHeight() // ~842 points for A4
     
-    // Reduced margins in points (15mm = ~43 points, 20mm = ~57 points)
-    const leftMargin = 43 // 15mm in points
-    const rightMargin = 43 // 15mm in points  
+    // Adjusted margins: reduced left, increased right to prevent text stretching
+    const leftMargin = 28 // 10mm in points (reduced)
+    const rightMargin = 71 // 25mm in points (increased)
     const topMargin = 57 // 20mm in points
     const bottomMargin = 43 // 15mm in points
     
     // Calculate max text width - ensure text never exceeds right margin
-    const maxWidth = pageWidth - leftMargin - rightMargin
+    // Add small buffer to prevent any stretching
+    const maxWidth = pageWidth - leftMargin - rightMargin - 5 // 5 point buffer
     
     // Font settings to match email body exactly
-    const fontSize = 11
-    const lineHeight = 5 // Match email body line spacing
+    const fontSize = 10 // Reduced font size
+    const lineHeight = 4.5 // Adjusted line height for smaller font
     const paragraphSpacing = 2 // Match email body paragraph spacing
     
     doc.setFontSize(fontSize)
@@ -936,7 +937,7 @@ Identity and Mutawalli appointment proof`
       
       // Special handling for title - make it bold and larger
       if (line.trim() === 'REGISTRATION UNDER PROTEST') {
-        doc.setFontSize(14)
+        doc.setFontSize(12) // Reduced title size proportionally
         doc.setFont('helvetica', 'bold')
       } else {
         doc.setFontSize(fontSize)
@@ -951,13 +952,15 @@ Identity and Mutawalli appointment proof`
       
       // Render line exactly as it appears in email body
       // Only wrap if absolutely necessary (line exceeds maxWidth)
+      // Use a slightly smaller width to prevent any stretching
       let splitLines
+      const safeMaxWidth = maxWidth - 2 // Additional 2 point buffer to prevent stretching
       const lineWidth = doc.getTextWidth(line)
-      if (lineWidth > maxWidth) {
+      if (lineWidth > safeMaxWidth) {
         // Line is too long, must split it to fit within margins
-        splitLines = doc.splitTextToSize(line, maxWidth)
+        splitLines = doc.splitTextToSize(line, safeMaxWidth)
       } else {
-        // Line fits - keep it exactly as in email body (no wrapping)
+        // Line fits - keep it exactly as in email body (no wrapping, no stretching)
         splitLines = [line]
       }
       
