@@ -973,16 +973,18 @@ Identity and Mutawalli appointment proof`
           if (alignment === 'center') {
             const textWidth = doc.getTextWidth(textLine)
             xPosition = (pageWidth - textWidth) / 2
+            // For center alignment, render without maxWidth since text is already split
+            doc.text(textLine, xPosition, yPosition)
           } else if (alignment === 'right') {
             const textWidth = doc.getTextWidth(textLine)
             xPosition = pageWidth - rightMargin - textWidth
+            // For right alignment, render without maxWidth since text is already split
+            doc.text(textLine, xPosition, yPosition)
+          } else {
+            // For left alignment, render at leftMargin without maxWidth to respect right margin
+            // Text is already split to fit within maxWidth, so just render it
+            doc.text(textLine, leftMargin, yPosition)
           }
-          
-          // Add the text line with appropriate alignment
-          doc.text(textLine, xPosition, yPosition, {
-            maxWidth: maxWidth,
-            align: alignment,
-          })
           
           yPosition += lineHeight
         })
