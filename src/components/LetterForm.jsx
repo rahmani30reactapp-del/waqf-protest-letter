@@ -22,9 +22,7 @@ To,
 
  The Chief Executive Officer
 
- [State Waqf Board]
-
- [Address]
+ [State Waqf Board] State Waqf Board
 
 Subject: Submission of Registration Documents UNDER SOLEMN PROTEST – Complete Reservation of All Legal, Constitutional, Islamic and Property Rights (No Waiver / No Acquiescence)
 
@@ -317,8 +315,6 @@ Name of Mutawalli (BLOCK LETTERS): [SIGNATURE_NAME]
 Mobile No.: [USER_PHONE]
 
 Email: [USER_EMAIL]
-
-Aadhaar No. (optional): ____________________
 
 ANNEXURES (AS APPLICABLE)
 
