@@ -946,31 +946,51 @@ Identity and Mutawalli appointment proof`
     });
   
     // Create HTML document with proper A4 dimensions and margins
+    // Use pixels for better compatibility with html2canvas
     const htmlContent = `
       <div style="
         font-family: 'Helvetica', 'Arial', sans-serif;
-        color: #000;
-        padding: 20mm 15mm 15mm 15mm;
-        width: 210mm;
-        min-height: 297mm;
+        color: #000000;
+        padding: 76px 57px 57px 57px;
+        width: 680px;
+        min-height: 1100px;
         box-sizing: border-box;
         line-height: 1.5;
+        background-color: #ffffff;
+        display: block;
       ">
-        ${htmlParts.join('')}
+        ${htmlParts.length > 0 ? htmlParts.join('') : '<p>No content available</p>'}
       </div>
     `;
   
-    // Create a temporary container element
+    // Create a temporary container element - positioned in viewport but invisible
     const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.width = '210mm';
+    container.style.position = 'fixed';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '794px'; // 210mm in pixels (at 96 DPI)
+    container.style.minHeight = '1123px'; // 297mm in pixels
     container.style.backgroundColor = '#ffffff';
+    container.style.zIndex = '9999';
+    container.style.overflow = 'hidden';
     container.innerHTML = htmlContent;
     document.body.appendChild(container);
   
+    // Force a reflow to ensure content is rendered
+    container.offsetHeight;
+  
     try {
-      // Configure html2pdf options for best quality
+      // Wait for fonts and content to fully render
+      await new Promise(resolve => {
+        // Wait for next frame
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setTimeout(resolve, 200);
+          });
+        });
+      });
+      
+      // Configure html2pdf options
       const opt = {
         margin: [0, 0, 0, 0],
         filename: 'letter.pdf',
@@ -981,8 +1001,10 @@ Identity and Mutawalli appointment proof`
           letterRendering: true,
           logging: false,
           backgroundColor: '#ffffff',
-          windowWidth: 794, // A4 width at 96 DPI
-          windowHeight: 1123 // A4 height at 96 DPI
+          width: 794,
+          height: container.scrollHeight || 1123,
+          windowWidth: 794,
+          windowHeight: container.scrollHeight || 1123
         },
         jsPDF: { 
           unit: 'mm', 
@@ -991,10 +1013,7 @@ Identity and Mutawalli appointment proof`
           compress: true
         },
         pagebreak: { 
-          mode: ['avoid-all', 'css', 'legacy'],
-          before: '.page-break-before',
-          after: '.page-break-after',
-          avoid: ['p', 'div']
+          mode: ['avoid-all', 'css', 'legacy']
         }
       };
   
@@ -1002,7 +1021,9 @@ Identity and Mutawalli appointment proof`
       const pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob');
       
       // Clean up
-      document.body.removeChild(container);
+      if (container.parentNode) {
+        document.body.removeChild(container);
+      }
       
       return pdfBlob;
     } catch (error) {
