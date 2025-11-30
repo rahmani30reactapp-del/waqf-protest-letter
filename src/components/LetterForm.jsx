@@ -837,14 +837,16 @@ Identity and Mutawalli appointment proof`
     // Create new PDF document
     const doc = new jsPDF()
     
-    // Professional margins - more space on all sides
+    // Professional margins for A4 paper (210mm x 297mm)
+    // Standard professional letter margins
     const topMargin = 30
     const bottomMargin = 25
     const leftMargin = 25
-    const rightMargin = 40 // Significantly increased right margin to prevent text stretching
+    const rightMargin = 25 // Standard right margin matching left margin
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
-    const maxWidth = pageWidth - (leftMargin + rightMargin)
+    // Calculate maxWidth with safety buffer to prevent text from touching edges
+    const maxWidth = pageWidth - (leftMargin + rightMargin) - 2 // 2mm safety buffer
     
     // Professional font settings
     const fontSize = 11
@@ -920,6 +922,7 @@ Identity and Mutawalli appointment proof`
       // Split text and render with left alignment
       {
         // Handle long lines - split them with proper wrapping
+        // Use maxWidth to ensure text fits within margins
         const splitLines = doc.splitTextToSize(line, maxWidth)
         
         // Check if all split lines fit on current page
@@ -953,9 +956,21 @@ Identity and Mutawalli appointment proof`
             // For right alignment, render without maxWidth since text is already split
             doc.text(textLine, xPosition, yPosition)
           } else {
-            // For left alignment, render at leftMargin without maxWidth to respect right margin
+            // For left alignment, render at leftMargin
             // Text is already split to fit within maxWidth, so just render it
-            doc.text(textLine, leftMargin, yPosition)
+            // Ensure text doesn't exceed right boundary by checking width
+            const textWidth = doc.getTextWidth(textLine)
+            if (textWidth > maxWidth) {
+              // If somehow text is too wide, split it again
+              const reSplit = doc.splitTextToSize(textLine, maxWidth)
+              reSplit.forEach((subLine) => {
+                doc.text(subLine, leftMargin, yPosition)
+                yPosition += lineHeight
+              })
+              yPosition -= lineHeight // Adjust since we already added lineHeight in the forEach
+            } else {
+              doc.text(textLine, leftMargin, yPosition)
+            }
           }
           
           yPosition += lineHeight
