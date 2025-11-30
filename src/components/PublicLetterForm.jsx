@@ -869,7 +869,7 @@ Identity and Mutawalli appointment proof`
     const topMargin = 30
     const bottomMargin = 25
     const leftMargin = 25
-    const rightMargin = 30 // Increased right margin to prevent text stretching
+    const rightMargin = 35 // Increased right margin significantly to prevent text stretching
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
     const maxWidth = pageWidth - (leftMargin + rightMargin)
@@ -952,8 +952,9 @@ Identity and Mutawalli appointment proof`
       // For justified text, pass the full line to jsPDF and let it handle wrapping and justification
       // For other alignments, split first for better control
       if (alignment === 'justify') {
-        // Slightly reduce maxWidth for justified text to prevent excessive word stretching
-        const justifyMaxWidth = maxWidth * 0.98 // 98% of maxWidth to prevent stretching
+        // Reduce maxWidth significantly for justified text to prevent excessive word stretching
+        // Use both percentage and fixed reduction for better control
+        const justifyMaxWidth = Math.max(maxWidth * 0.92, maxWidth - 10) // 92% or 10mm reduction, whichever is larger
         
         // Pre-calculate how many lines this will take using the reduced width
         const splitLines = doc.splitTextToSize(line, justifyMaxWidth)
@@ -969,8 +970,10 @@ Identity and Mutawalli appointment proof`
         
         // Pass the full line to jsPDF with justify alignment - it will handle wrapping and justification
         // doc.text() returns the doc object, not an array, so we use splitLines.length for height calculation
+        // Ensure text doesn't exceed right margin by using a conservative maxWidth
+        const finalMaxWidth = Math.min(justifyMaxWidth, pageWidth - leftMargin - rightMargin)
         doc.text(line, leftMargin, yPosition, {
-          maxWidth: justifyMaxWidth,
+          maxWidth: finalMaxWidth,
           align: 'justify',
         })
         
