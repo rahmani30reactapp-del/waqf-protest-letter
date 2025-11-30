@@ -871,15 +871,15 @@ Identity and Mutawalli appointment proof`
     const pageWidth = doc.internal.pageSize.getWidth() // ~595 points for A4
     const pageHeight = doc.internal.pageSize.getHeight() // ~842 points for A4
     
-    // Adjusted margins: reduced left, increased right to prevent text stretching
-    const leftMargin = 28 // 10mm in points (reduced)
-    const rightMargin = 71 // 25mm in points (increased)
+    // Proper margins for professional document
+    const leftMargin = 43 // 15mm in points
+    const rightMargin = 57 // 20mm in points
     const topMargin = 57 // 20mm in points
     const bottomMargin = 43 // 15mm in points
     
     // Calculate max text width - ensure text never exceeds right margin
-    // Add small buffer to prevent any stretching
-    const maxWidth = pageWidth - leftMargin - rightMargin - 5 // 5 point buffer
+    // Use larger buffer to prevent any stretching
+    const maxWidth = pageWidth - leftMargin - rightMargin - 10 // 10 point buffer to prevent stretching
     
     // Font settings to match email body exactly
     const fontSize = 10 // Reduced font size
@@ -952,9 +952,9 @@ Identity and Mutawalli appointment proof`
       
       // Render line exactly as it appears in email body
       // Only wrap if absolutely necessary (line exceeds maxWidth)
-      // Use a conservative width to prevent any stretching
+      // Use a very conservative width to prevent any stretching
       let splitLines
-      const safeMaxWidth = maxWidth - 5 // Additional 5 point buffer to prevent stretching
+      const safeMaxWidth = maxWidth - 8 // Additional 8 point buffer to prevent stretching
       const lineWidth = doc.getTextWidth(line)
       if (lineWidth > safeMaxWidth) {
         // Line is too long, must split it to fit within margins
@@ -983,29 +983,33 @@ Identity and Mutawalli appointment proof`
           yPosition = topMargin
         }
         
-        // Render based on alignment - match email body exactly
+        // Render based on alignment - ensure proper margins and no stretching
         if (alignment === 'center') {
           const textWidth = doc.getTextWidth(textLine)
           const xPosition = (pageWidth - textWidth) / 2
           doc.text(textLine, xPosition, yPosition)
         } else if (alignment === 'right') {
-          // Right alignment - ensure text doesn't exceed right margin
+          // Right alignment - ensure text aligns properly from right margin
           const textWidth = doc.getTextWidth(textLine)
-          // Calculate position from right margin, ensuring it doesn't exceed maxWidth
-          const maxRightX = pageWidth - rightMargin
-          const xPosition = Math.min(maxRightX - textWidth, leftMargin + maxWidth - textWidth)
-          doc.text(textLine, xPosition, yPosition)
+          const xPosition = pageWidth - rightMargin - textWidth
+          // Ensure it doesn't go beyond left margin
+          if (xPosition < leftMargin) {
+            // If text is too wide, render from left margin with maxWidth constraint
+            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'right' })
+          } else {
+            doc.text(textLine, xPosition, yPosition)
+          }
         } else {
           // Left alignment - render exactly as email body
-          // Preserve original line structure - only wrap if absolutely necessary
-          // Ensure text doesn't exceed right boundary
+          // Ensure text doesn't exceed right boundary - no stretching
           const textWidth = doc.getTextWidth(textLine)
           if (textWidth > safeMaxWidth) {
-            // If somehow text is still too wide, render at leftMargin and let it wrap naturally
-            // But this shouldn't happen since we already split it
+            // Text is too wide - this shouldn't happen but handle it safely
+            // Render with maxWidth constraint to prevent stretching
             doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'left' })
           } else {
-            // Text fits within bounds, render normally
+            // Text fits within bounds, render normally at leftMargin
+            // This ensures proper left alignment and no stretching
             doc.text(textLine, leftMargin, yPosition)
           }
         }
