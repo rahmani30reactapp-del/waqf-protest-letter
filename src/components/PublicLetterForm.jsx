@@ -853,184 +853,151 @@ Identity and Mutawalli appointment proof`
   }
 
   const generatePDFBlob = () => {
-    let letterContent = generateFinalLetter()
-    
-    // Replace checkbox symbols with PDF-compatible text
-    // Handle both bracketed and standalone checkmarks
-    letterContent = letterContent.replace(/\[✓\]/g, '[X]')
-    letterContent = letterContent.replace(/✓/g, '[X]') // Standalone checkmarks
-    letterContent = letterContent.replace(/☑/g, '[X]')
-    letterContent = letterContent.replace(/☐/g, '[ ]')
-    
-    // Create new PDF document
-    const doc = new jsPDF()
-    
-    // Professional margins for A4 paper
-    // jsPDF uses points: A4 = 595.28 x 841.89 points (210mm x 297mm)
-    // 1mm = 2.83465 points
-    const pageWidth = doc.internal.pageSize.getWidth() // ~595 points for A4
-    const pageHeight = doc.internal.pageSize.getHeight() // ~842 points for A4
-    
-    // Proper margins for professional document
-    const leftMargin = 43 // 15mm in points
-    const rightMargin = 57 // 20mm in points
-    const topMargin = 57 // 20mm in points
-    const bottomMargin = 43 // 15mm in points
-    
-    // Calculate max text width - ensure text never exceeds right margin
-    // Use larger buffer to prevent any stretching
-    const maxWidth = pageWidth - leftMargin - rightMargin - 10 // 10 point buffer to prevent stretching
-    
-    // Font settings to match email body exactly
-    const fontSize = 10 // Reduced font size
-    const lineHeight = 4.5 // Adjusted line height for smaller font
-    const paragraphSpacing = 2 // Match email body paragraph spacing
-    
-    doc.setFontSize(fontSize)
-    doc.setFont('helvetica', 'normal')
-    
-    // Process content paragraph by paragraph to match image formatting
-    // Group lines into paragraphs (separated by empty lines)
-    const lines = letterContent.split('\n')
-    let yPosition = topMargin
-    const safeMaxWidth = maxWidth - 8 // Additional buffer to prevent stretching
-    
-    // Group lines into paragraphs
-    const paragraphs = []
-    let currentParagraph = []
-    
-    lines.forEach((line, index) => {
-      const trimmed = line.trim()
-      if (trimmed === '' && currentParagraph.length > 0) {
-        // Empty line - end current paragraph
-        paragraphs.push(currentParagraph.join('\n'))
-        currentParagraph = []
-      } else if (trimmed !== '') {
-        // Add line to current paragraph
-        currentParagraph.push(line)
-      } else if (trimmed === '' && currentParagraph.length === 0) {
-        // Multiple empty lines - add as empty paragraph
-        paragraphs.push('')
-      }
-    })
-    
-    // Add last paragraph if exists
-    if (currentParagraph.length > 0) {
-      paragraphs.push(currentParagraph.join('\n'))
-    }
 
-    // Render each paragraph
-    paragraphs.forEach((para, paraIndex) => {
-      const trimmedPara = para.trim()
-      
-      // Handle empty paragraphs
-      if (!trimmedPara) {
-        yPosition += paragraphSpacing
-        return
-      }
-
-      // Check if we need a new page
-      if (yPosition + lineHeight > pageHeight - bottomMargin) {
-        doc.addPage()
-        yPosition = topMargin
-      }
-
-      // Title handling - center align with extra spacing
-      if (trimmedPara === 'REGISTRATION UNDER PROTEST') {
-        doc.setFontSize(12)
-        doc.setFont('helvetica', 'bold')
-        const textWidth = doc.getTextWidth(trimmedPara)
-        const x = (pageWidth - textWidth) / 2
-        doc.text(trimmedPara, x, yPosition)
-        doc.setFontSize(fontSize)
-        doc.setFont('helvetica', 'normal')
-        yPosition += lineHeight * 2 + paragraphSpacing * 2
-        return
-      }
-
-      // Process paragraph lines
-      const paraLines = trimmedPara.split('\n')
-      const isLastParagraph = paraIndex === paragraphs.length - 1
-      
-      paraLines.forEach((line, lineIndex) => {
-        const trimmedLine = line.trim()
-        
-        if (!trimmedLine) {
-          return
-        }
-
-        // Check if we need a new page
-        if (yPosition + lineHeight > pageHeight - bottomMargin) {
-          doc.addPage()
-          yPosition = topMargin
-        }
-
-        // Determine alignment based on content
-        const isHeader = trimmedLine.startsWith('To,') || 
-                        trimmedLine.startsWith('The Chief Executive Officer') ||
-                        trimmedLine.startsWith('Date:') ||
-                        trimmedLine.startsWith('Subject:') ||
-                        trimmedLine.startsWith('Respected Sir,') ||
-                        trimmedLine.startsWith('Yours faithfully,') ||
-                        trimmedLine.match(/^[0-9]+\.[0-9]+/) ||
-                        trimmedLine.startsWith('•') ||
-                        trimmedLine.startsWith('Enclosures:') ||
-                        trimmedLine.startsWith('Phone:') ||
-                        trimmedLine.startsWith('Email:') ||
-                        trimmedLine.startsWith('Name:') ||
-                        (trimmedLine.match(/^[A-Z][a-z]+ [A-Z][a-z]+$/) && trimmedLine.length < 50)
-
-        // Determine if line needs wrapping
-        const lineWidth = doc.getTextWidth(trimmedLine)
-        let splitLines
-        
-        if (lineWidth > safeMaxWidth) {
-          splitLines = doc.splitTextToSize(trimmedLine, safeMaxWidth)
+    // STEP 1: Prepare text
+    let letterContent = generateFinalLetter();
+  
+    // Replace checkbox symbols for PDF compatibility
+    letterContent = letterContent
+      .replace(/\[✓\]/g, "[X]")
+      .replace(/✓/g, "[X]")
+      .replace(/☑/g, "[X]")
+      .replace(/☐/g, "[ ]");
+  
+    // STEP 2: Initialize PDF
+    const doc = new jsPDF();
+  
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+  
+    const leftMargin = 43;       // 15 mm
+    const rightMargin = 57;      // 20 mm
+    const topMargin = 57;        // 20 mm
+    const bottomMargin = 43;     // 15 mm
+  
+    const maxWidth = pageWidth - leftMargin - rightMargin - 10;
+    const safeMaxWidth = maxWidth - 8;
+  
+    const fontSize = 10;
+    const lineHeight = 4.7;
+    const paragraphSpacing = 2;
+  
+    doc.setFontSize(fontSize);
+    doc.setFont("helvetica", "normal");
+  
+    let y = topMargin;
+  
+    // STEP 3: Build paragraph list
+    const paragraphs = [];
+    let temp = [];
+  
+    letterContent.split("\n").forEach((line) => {
+      if (line.trim() === "") {
+        if (temp.length > 0) {
+          paragraphs.push(temp.join("\n"));
+          temp = [];
         } else {
-          splitLines = [trimmedLine]
+          paragraphs.push("");
         }
-
-        // Render each split line
-        splitLines.forEach((textLine, splitIndex) => {
-          // Check page break
-          if (yPosition + lineHeight > pageHeight - bottomMargin) {
-            doc.addPage()
-            yPosition = topMargin
-          }
-
+      } else {
+        temp.push(line);
+      }
+    });
+  
+    if (temp.length > 0) paragraphs.push(temp.join("\n"));
+  
+    // Helper: Create new page if needed
+    const ensurePage = () => {
+      if (y + lineHeight > pageHeight - bottomMargin) {
+        doc.addPage();
+        y = topMargin;
+      }
+    };
+  
+    // STEP 4: Render paragraphs
+    paragraphs.forEach((para, pIndex) => {
+      const trimmed = para.trim();
+      const lastPara = pIndex === paragraphs.length - 1;
+  
+      // Blank paragraph → add small spacing
+      if (!trimmed) {
+        y += paragraphSpacing;
+        return;
+      }
+  
+      ensurePage();
+  
+      // TITLE (Centered)
+      if (trimmed === "REGISTRATION UNDER PROTEST") {
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+  
+        const w = doc.getTextWidth(trimmed);
+        doc.text(trimmed, (pageWidth - w) / 2, y);
+  
+        doc.setFontSize(fontSize);
+        doc.setFont("helvetica", "normal");
+  
+        y += lineHeight * 2 + paragraphSpacing * 2;
+        return;
+      }
+  
+      // STEP 5: Process lines in the paragraph
+      const paraLines = trimmed.split("\n");
+  
+      paraLines.forEach((line, li) => {
+        const text = line.trim();
+        if (!text) return;
+  
+        ensurePage();
+  
+        // Header / Labels (Always Left Aligned)
+        const isHeader =
+          text.startsWith("To,") ||
+          text.startsWith("The Chief Executive Officer") ||
+          text.startsWith("Date:") ||
+          text.startsWith("Subject:") ||
+          text.startsWith("Respected Sir,") ||
+          text.startsWith("Yours faithfully,") ||
+          /^[0-9]+\.[0-9]+/.test(text) ||
+          text.startsWith("•") ||
+          text.startsWith("Enclosures:") ||
+          text.startsWith("Phone:") ||
+          text.startsWith("Email:") ||
+          text.startsWith("Name:");
+  
+        // Split long lines
+        const split = doc.splitTextToSize(text, safeMaxWidth);
+  
+        split.forEach((s, si) => {
+          ensurePage();
+  
           if (isHeader) {
-            // Left align headers and labels
-            doc.text(textLine, leftMargin, yPosition)
+            doc.text(s, leftMargin, y);
           } else {
-            // Justify body paragraphs - both sides aligned
-            const isLastLine = splitIndex === splitLines.length - 1
-            const isLastParaLine = lineIndex === paraLines.length - 1
-            
-            // Justify unless it's a very short last line
-            if (isLastLine && isLastParaLine && textLine.trim().length < 40) {
-              // Very short last line - left align to avoid stretching
-              doc.text(textLine, leftMargin, yPosition)
+            const lastLine = si === split.length - 1;
+            const lastParaLine = li === paraLines.length - 1;
+  
+            if (lastLine && lastParaLine && s.length < 40) {
+              doc.text(s, leftMargin, y); // prevent stretch
             } else {
-              // Justify with safeMaxWidth for proper both-side alignment
-              doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'justify' })
+              doc.text(s, leftMargin, y, {
+                maxWidth: safeMaxWidth,
+                align: "justify",
+              });
             }
           }
-          
-          yPosition += lineHeight
-        })
-      })
-
-      // Add spacing after paragraph
-      if (!isLastParagraph) {
-        yPosition += paragraphSpacing
-      }
-    })
-    
-    // Generate PDF as blob
-    const pdfBlob = doc.output('blob')
-    return pdfBlob
-  }
-
+  
+          y += lineHeight;
+        });
+      });
+  
+      if (!lastPara) y += paragraphSpacing;
+    });
+  
+    return doc.output("blob");
+  };
+  
   const handleDownloadPDF = () => {
     try {
       const letterContent = generateFinalLetter()
