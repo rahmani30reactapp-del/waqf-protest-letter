@@ -889,8 +889,8 @@ Identity and Mutawalli appointment proof`
         return 'left'
       }
       
-      // Body paragraphs - left align (matching email body format exactly)
-      return 'left'
+      // Body paragraphs - justify (both sides aligned)
+      return 'justify'
     }
     
     // Split text into lines - preserve exact email body formatting
@@ -970,6 +970,18 @@ Identity and Mutawalli appointment proof`
             doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'right' })
           } else {
             doc.text(textLine, xPosition, yPosition)
+          }
+        } else if (alignment === 'justify') {
+          // Justified alignment - both sides aligned
+          // Use safeMaxWidth to prevent excessive word stretching
+          // Only justify if line is not the last line of a paragraph (to avoid stretching)
+          const isLastLine = index === splitLines.length - 1
+          if (isLastLine && textLine.trim().length < 50) {
+            // Last line and short - use left align to avoid stretching
+            doc.text(textLine, leftMargin, yPosition)
+          } else {
+            // Justify the line with safeMaxWidth to prevent excessive stretching
+            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'justify' })
           }
         } else {
           // Left alignment - render exactly as email body
