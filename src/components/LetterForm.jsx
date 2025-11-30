@@ -361,6 +361,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
   })
   const [attachments, setAttachments] = useState({
     waqfDeed: null, // Annexure A
+    titleDocuments: null, // Annexure B
     beneficiariesList: null, // Annexure C
     courtCases: null, // Annexure D
     correspondence: null, // Annexure E
@@ -529,6 +530,20 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
           const nextIndex = afterPlaceholder.indexOf(nextPlaceholder)
           if (nextIndex !== -1 && nextIndex < paragraphEnd) {
             paragraphEnd = nextIndex
+          }
+        }
+        
+        // Check for OBJECTION_22 (Acknowledgment) - it's handled separately and should not be removed
+        // Check for both the placeholder and the replaced forms ([✓] or [ ] followed by "Acknowledgment")
+        const objection22Patterns = [
+          '[OBJECTION_22_CHECKBOX]',
+          '[✓] Acknowledgment',
+          '[ ] Acknowledgment'
+        ]
+        for (const pattern of objection22Patterns) {
+          const patternIndex = afterPlaceholder.indexOf(pattern)
+          if (patternIndex !== -1 && patternIndex < paragraphEnd) {
+            paragraphEnd = patternIndex
           }
         }
         
@@ -970,7 +985,13 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
 
-      // Convert attachments to base64
+      // Helper function to get file extension
+      const getFileExtension = (filename) => {
+        const lastDot = filename.lastIndexOf('.')
+        return lastDot !== -1 ? filename.substring(lastDot) : ''
+      }
+      
+      // Convert attachments to base64 with annexure-based filenames
       const attachmentPromises = []
       const attachmentData = []
       
@@ -980,8 +1001,9 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             const reader = new FileReader()
             reader.onloadend = () => {
               const base64String = reader.result.split(',')[1]
+              const extension = getFileExtension(attachments.waqfDeed.name)
               attachmentData.push({
-                filename: attachments.waqfDeed.name,
+                filename: `Annexure_A${extension}`,
                 content: base64String,
                 type: attachments.waqfDeed.type,
               })
@@ -992,14 +1014,34 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         )
       }
       
+      if (attachments.titleDocuments) {
+        attachmentPromises.push(
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              const base64String = reader.result.split(',')[1]
+              const extension = getFileExtension(attachments.titleDocuments.name)
+              attachmentData.push({
+                filename: `Annexure_B${extension}`,
+                content: base64String,
+                type: attachments.titleDocuments.type,
+              })
+              resolve()
+            }
+            reader.readAsDataURL(attachments.titleDocuments)
+          })
+        )
+      }
+      
       if (attachments.beneficiariesList) {
         attachmentPromises.push(
           new Promise((resolve) => {
             const reader = new FileReader()
             reader.onloadend = () => {
               const base64String = reader.result.split(',')[1]
+              const extension = getFileExtension(attachments.beneficiariesList.name)
               attachmentData.push({
-                filename: attachments.beneficiariesList.name,
+                filename: `Annexure_C${extension}`,
                 content: base64String,
                 type: attachments.beneficiariesList.type,
               })
@@ -1016,8 +1058,9 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             const reader = new FileReader()
             reader.onloadend = () => {
               const base64String = reader.result.split(',')[1]
+              const extension = getFileExtension(attachments.courtCases.name)
               attachmentData.push({
-                filename: attachments.courtCases.name,
+                filename: `Annexure_D${extension}`,
                 content: base64String,
                 type: attachments.courtCases.type,
               })
@@ -1034,8 +1077,9 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             const reader = new FileReader()
             reader.onloadend = () => {
               const base64String = reader.result.split(',')[1]
+              const extension = getFileExtension(attachments.correspondence.name)
               attachmentData.push({
-                filename: attachments.correspondence.name,
+                filename: `Annexure_E${extension}`,
                 content: base64String,
                 type: attachments.correspondence.type,
               })
@@ -1425,6 +1469,22 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                 onChange={(e) => setAttachments(prev => ({ ...prev, waqfDeed: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+            <div className="attachment-item">
+              <label htmlFor="title-documents" className="attachment-label">
+                <span className="attachment-icon">📄</span>
+                <span className="attachment-text">Annexure B: Certified copies of title documents / revenue records</span>
+                {attachments.titleDocuments && (
+                  <span className="attachment-name">{attachments.titleDocuments.name}</span>
+                )}
+              </label>
+              <input
+                id="title-documents"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, titleDocuments: e.target.files[0] || null }))}
                 className="attachment-input"
               />
             </div>

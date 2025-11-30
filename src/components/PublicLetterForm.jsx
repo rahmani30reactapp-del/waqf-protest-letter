@@ -526,6 +526,20 @@ Email: [USER_EMAIL]`
           }
         }
         
+        // Check for OBJECTION_22 (Acknowledgment) - it's handled separately and should not be removed
+        // Check for both the placeholder and the replaced forms ([✓] or [ ] followed by "Acknowledgment")
+        const objection22Patterns = [
+          '[OBJECTION_22_CHECKBOX]',
+          '[✓] Acknowledgment',
+          '[ ] Acknowledgment'
+        ]
+        for (const pattern of objection22Patterns) {
+          const patternIndex = afterPlaceholder.indexOf(pattern)
+          if (patternIndex !== -1 && patternIndex < paragraphEnd) {
+            paragraphEnd = patternIndex
+          }
+        }
+        
         // Check for section markers that indicate end of objections
         const sectionMarkers = [
           '9. SIGNATURES AND ATTESTATION',
@@ -989,7 +1003,13 @@ Email: [USER_EMAIL]`
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
 
-      // Convert attachments to base64
+      // Helper function to get file extension
+      const getFileExtension = (filename) => {
+        const lastDot = filename.lastIndexOf('.')
+        return lastDot !== -1 ? filename.substring(lastDot) : ''
+      }
+      
+      // Convert attachments to base64 with descriptive filenames
       const attachmentPromises = []
       const attachmentData = []
       
@@ -999,8 +1019,9 @@ Email: [USER_EMAIL]`
             const reader = new FileReader()
             reader.onloadend = () => {
               const base64String = reader.result.split(',')[1]
+              const extension = getFileExtension(attachments.registrationForms.name)
               attachmentData.push({
-                filename: attachments.registrationForms.name,
+                filename: `Registration_Forms${extension}`,
                 content: base64String,
                 type: attachments.registrationForms.type,
               })
@@ -1017,8 +1038,9 @@ Email: [USER_EMAIL]`
             const reader = new FileReader()
             reader.onloadend = () => {
               const base64String = reader.result.split(',')[1]
+              const extension = getFileExtension(attachments.titleDocuments.name)
               attachmentData.push({
-                filename: attachments.titleDocuments.name,
+                filename: `Annexure_B_Title_Documents${extension}`,
                 content: base64String,
                 type: attachments.titleDocuments.type,
               })
@@ -1035,8 +1057,9 @@ Email: [USER_EMAIL]`
             const reader = new FileReader()
             reader.onloadend = () => {
               const base64String = reader.result.split(',')[1]
+              const extension = getFileExtension(attachments.identityProof.name)
               attachmentData.push({
-                filename: attachments.identityProof.name,
+                filename: `Identity_Proof${extension}`,
                 content: base64String,
                 type: attachments.identityProof.type,
               })
