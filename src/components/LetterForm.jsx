@@ -40,8 +40,6 @@ Existing Waqf Registration No. (if any): [Registration No.]
 
 Property Description (survey no./address): [Property Description]
 
-Mobile Number: [Mobile Number]
-
 Pursuant to the Waqf (Amendment) Act, 2025 and the introduction of the "UMEED" portal / online registration system, I am now being required to upload complete details of this waqf and to re‑register / confirm registration within the statutory time‑limit.
 
 Through this letter, I submit the required documents only under protest, under legal duress, and without waiving any rights.
@@ -453,9 +451,8 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
   const generateFinalLetter = (isForEmail = false) => {
     let finalContent = letterTemplate
     
-    // Replace CURRENT_DATE first (replace all occurrences - both in "Dated:" and "Date:")
-    const currentDate = getCurrentDate()
-    finalContent = finalContent.replace(/\[CURRENT_DATE\]/g, currentDate)
+    // Replace CURRENT_DATE everywhere (appears in header and signature section)
+    finalContent = finalContent.replace(/\[CURRENT_DATE\]/g, getCurrentDate())
     
     // Replace I_CHECKBOX with checkbox symbol
     // Use text-based checkbox for better PDF compatibility
@@ -525,8 +522,8 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     const mobileNumberField = extractFields(letterTemplate).find(f => f.placeholder === 'Mobile Number')
     const mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
     
-    // Replace USER_PHONE with Mobile Number (replace all occurrences)
-    finalContent = finalContent.replace(/\[USER_PHONE\]/g, mobileNumber || '[Phone]')
+    // Replace USER_PHONE with Mobile Number
+    finalContent = finalContent.replace('[USER_PHONE]', mobileNumber || '[Phone]')
     
     // Replace USER_EMAIL with logged-in user's email
     finalContent = finalContent.replace('[USER_EMAIL]', user?.email || '[Email]')
