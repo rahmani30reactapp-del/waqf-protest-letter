@@ -910,13 +910,8 @@ Identity and Mutawalli appointment proof`
         return 'left'
       }
       
-      // Body paragraphs - justify (for substantial text content)
-      // Only justify paragraphs that are longer than 40 characters
-      if (trimmed.length > 40) {
-        return 'justify'
-      }
-      
-      // Default to left for short lines
+      // Body paragraphs - left align (matching email body format)
+      // All paragraphs use left alignment for consistency
       return 'left'
     }
     
@@ -949,35 +944,9 @@ Identity and Mutawalli appointment proof`
         yPosition = topMargin
       }
       
-      // For justified text, use a much more conservative width to prevent excessive stretching
-      // For other alignments, split first for better control
-      if (alignment === 'justify') {
-        // Aggressively reduce maxWidth for justified text to prevent word stretching
-        // Use 88% of maxWidth or 15mm reduction, whichever provides more space
-        const justifyMaxWidth = Math.max(maxWidth * 0.88, maxWidth - 15)
-        
-        // Pre-calculate how many lines this will take using the reduced width
-        const splitLines = doc.splitTextToSize(line, justifyMaxWidth)
-        const totalHeightNeeded = splitLines.length * lineHeight
-        
-        // Check if content fits on current page
-        if (yPosition + totalHeightNeeded > pageHeight - bottomMargin) {
-          if (yPosition > topMargin) {
-            doc.addPage()
-            yPosition = topMargin
-          }
-        }
-        
-        // Use the reduced width to ensure proper right margin and prevent stretching
-        const finalMaxWidth = Math.min(justifyMaxWidth, pageWidth - leftMargin - rightMargin - 2) // Extra 2mm buffer
-        doc.text(line, leftMargin, yPosition, {
-          maxWidth: finalMaxWidth,
-          align: 'justify',
-        })
-        
-        // Update yPosition based on calculated lines
-        yPosition += splitLines.length * lineHeight
-      } else {
+      // All text uses left alignment for consistency with email body
+      // Split text and render with left alignment
+      {
         // Handle long lines - split them with proper wrapping
         const splitLines = doc.splitTextToSize(line, maxWidth)
         
