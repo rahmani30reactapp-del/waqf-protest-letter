@@ -685,7 +685,7 @@ Identity and Mutawalli appointment proof`
       }
 
       // Generate PDF blob
-      const pdfBlob = generatePDFBlob()
+      const pdfBlob = await generatePDFBlob()
       
       // Convert PDF blob to base64
       const pdfBase64 = await new Promise((resolve) => {
@@ -824,199 +824,73 @@ Identity and Mutawalli appointment proof`
     }
   }
 
-  const generatePDFBlob = () => {
+  const generatePDFBlob = async () => {
     let letterContent = generateFinalLetter()
-    
-    // Replace checkbox symbols with PDF-compatible text
-    // Replace [✓] with [X] for checked checkbox
+
+    // Replace checkbox symbols with simpler text for PDF
     letterContent = letterContent.replace(/\[✓\]/g, '[X]')
-    // Replace Unicode checkbox symbols if they exist
     letterContent = letterContent.replace(/☑/g, '[X]')
     letterContent = letterContent.replace(/☐/g, '[ ]')
-    
-    // Create new PDF document
+
+    const escapeHtml = (str) =>
+      str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+
+    const escaped = escapeHtml(letterContent)
+
+    // Replace title with centered heading and convert paragraphs
+    let contentWithTitle = escaped.replace(/REGISTRATION UNDER PROTEST\s*/m, '<div style="text-align:center;font-weight:bold;font-size:14pt;margin-bottom:8px">REGISTRATION UNDER PROTEST</div>\n')
+    const paragraphs = contentWithTitle.split(/\n\s*\n+/)
+    const parts = paragraphs.map(p => {
+      const pTrim = p.trim()
+      if (!pTrim) return ''
+      const htmlParagraph = pTrim.replace(/\n/g, '<br/>')
+      return `<p style="margin:6px 0; text-align: justify; font-size:11pt; line-height:1.45;">${htmlParagraph}</p>`
+    })
+
+    const html = `<div style="font-family: Helvetica, Arial, sans-serif; color: #000;">${parts.join('')}</div>`
+
+    const container = document.createElement('div')
+    container.style.width = '100%'
+    container.style.boxSizing = 'border-box'
+    container.innerHTML = html
+
     const doc = new jsPDF()
-    
-    // Professional margins for A4 paper
-    // jsPDF uses points: A4 = 595.28 x 841.89 points (210mm x 297mm)
-    // 1mm = 2.83465 points
-    const pageWidth = doc.internal.pageSize.getWidth() // ~595 points for A4
-    const pageHeight = doc.internal.pageSize.getHeight() // ~842 points for A4
-    
-    // Proper margins for professional document
-    const leftMargin = 43 // 15mm in points
-    const rightMargin = 57 // 20mm in points
-    const topMargin = 57 // 20mm in points
-    const bottomMargin = 43 // 15mm in points
-    
-    // Calculate max text width - ensure text never exceeds right margin
-    // Use larger buffer to prevent any stretching
-    const maxWidth = pageWidth - leftMargin - rightMargin - 10 // 10 point buffer to prevent stretching
-    
-    // Font settings to match email body exactly
-    const fontSize = 10 // Reduced font size
-    const lineHeight = 4.5 // Adjusted line height for smaller font
-    const paragraphSpacing = 2 // Match email body paragraph spacing
-    
-    doc.setFontSize(fontSize)
-    doc.setFont('helvetica', 'normal')
-    
-    // Helper function to determine alignment for a line
-    const getLineAlignment = (line, lineIndex, allLines) => {
-      const trimmed = line.trim()
-      
-      // Title - center align
-      if (trimmed === 'REGISTRATION UNDER PROTEST') {
-        return 'center'
-      }
-      
-      // Labels and headers - left align
-      if (
-        trimmed.startsWith('To,') ||
-        trimmed.startsWith('The Chief Executive Officer') ||
-        trimmed.startsWith('Date:') ||
-        trimmed.startsWith('Subject:') ||
-        trimmed.startsWith('Respected Sir,') ||
-        trimmed.startsWith('Yours faithfully,') ||
-        trimmed.match(/^[0-9]+\.[0-9]+/) || // Numbered items like "1.1", "2.3"
-        trimmed.match(/^\([a-z]\)/) || // Lettered items like "(a)", "(b)"
-        trimmed.startsWith('•') || // Bullet points
-        trimmed.startsWith('Enclosures:') ||
-        trimmed.startsWith('Phone:') ||
-        trimmed.startsWith('Email:') ||
-        trimmed.match(/^[A-Z][a-z]+ [A-Z][a-z]+$/) && trimmed.length < 50 // Short name patterns
-      ) {
-        return 'left'
-      }
-      
-      // Body paragraphs - justify (both sides aligned)
-      return 'justify'
-    }
-    
-    // Split text into lines - preserve exact email body formatting
-    const lines = letterContent.split('\n')
-    let yPosition = topMargin
-    
-    lines.forEach((line, lineIndex) => {
-      // Handle empty lines - match email body spacing exactly
-      if (line.trim() === '') {
-        yPosition += paragraphSpacing
-        return
-      }
-      
-      // Determine alignment for this line
-      const alignment = getLineAlignment(line, lineIndex, lines)
-      
-      // Special handling for title - make it bold and larger
-      if (line.trim() === 'REGISTRATION UNDER PROTEST') {
-        doc.setFontSize(12) // Reduced title size proportionally
-        doc.setFont('helvetica', 'bold')
-      } else {
-        doc.setFontSize(fontSize)
-        doc.setFont('helvetica', 'normal')
-      }
-      
-      // Check if we need a new page before adding content
-      if (yPosition + lineHeight > pageHeight - bottomMargin) {
-        doc.addPage()
-        yPosition = topMargin
-      }
-      
-      // Render line exactly as it appears in email body
-      // Only wrap if absolutely necessary (line exceeds maxWidth)
-      // Use a very conservative width to prevent any stretching
-      let splitLines
-      const safeMaxWidth = maxWidth - 8 // Additional 8 point buffer to prevent stretching
-      const lineWidth = doc.getTextWidth(line)
-      if (lineWidth > safeMaxWidth) {
-        // Line is too long, must split it to fit within margins
-        // Use splitTextToSize with the safe width to prevent stretching
-        splitLines = doc.splitTextToSize(line, safeMaxWidth)
-      } else {
-        // Line fits - keep it exactly as in email body (no wrapping, no stretching)
-        splitLines = [line]
-      }
-      
-      // Check if all split lines fit on current page
-      const totalHeightNeeded = splitLines.length * lineHeight
-      if (yPosition + totalHeightNeeded > pageHeight - bottomMargin) {
-        // If content doesn't fit, start new page
-        if (yPosition > topMargin) {
-          doc.addPage()
-          yPosition = topMargin
-        }
-      }
-      
-      // Render each line exactly as it appears in email body
-      splitLines.forEach((textLine, index) => {
-        // Check page break before each line
-        if (yPosition + lineHeight > pageHeight - bottomMargin) {
-          doc.addPage()
-          yPosition = topMargin
-        }
-        
-        // Render based on alignment - ensure proper margins and no stretching
-        if (alignment === 'center') {
-          const textWidth = doc.getTextWidth(textLine)
-          const xPosition = (pageWidth - textWidth) / 2
-          doc.text(textLine, xPosition, yPosition)
-        } else if (alignment === 'right') {
-          // Right alignment - ensure text aligns properly from right margin
-          const textWidth = doc.getTextWidth(textLine)
-          const xPosition = pageWidth - rightMargin - textWidth
-          // Ensure it doesn't go beyond left margin
-          if (xPosition < leftMargin) {
-            // If text is too wide, render from left margin with maxWidth constraint
-            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'right' })
-          } else {
-            doc.text(textLine, xPosition, yPosition)
-          }
-        } else if (alignment === 'justify') {
-          // Justified alignment - both sides aligned
-          // Use safeMaxWidth to prevent excessive word stretching
-          // Only justify if line is not the last line of a paragraph (to avoid stretching)
-          const isLastLine = index === splitLines.length - 1
-          if (isLastLine && textLine.trim().length < 50) {
-            // Last line and short - use left align to avoid stretching
-            doc.text(textLine, leftMargin, yPosition)
-          } else {
-            // Justify the line with safeMaxWidth to prevent excessive stretching
-            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'justify' })
-          }
-        } else {
-          // Left alignment - render exactly as email body
-          // Ensure text doesn't exceed right boundary - no stretching
-          const textWidth = doc.getTextWidth(textLine)
-          if (textWidth > safeMaxWidth) {
-            // Text is too wide - this shouldn't happen but handle it safely
-            // Render with maxWidth constraint to prevent stretching
-            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'left' })
-          } else {
-            // Text fits within bounds, render normally at leftMargin
-            // This ensures proper left alignment and no stretching
-            doc.text(textLine, leftMargin, yPosition)
-          }
-        }
-        
-        yPosition += lineHeight
-      })
-      
-      // Reset font after title
-      if (line.trim() === 'REGISTRATION UNDER PROTEST') {
-        doc.setFontSize(fontSize)
-        doc.setFont('helvetica', 'normal')
+
+    const topMargin = 15
+    const leftMargin = 15
+
+    const blob = await new Promise((resolve, reject) => {
+      try {
+        doc.html(container, {
+          x: leftMargin,
+          y: topMargin,
+          html2canvas: { scale: 1, useCORS: true },
+          callback: (docInstance) => {
+            try {
+              const out = docInstance.output('blob')
+              resolve(out)
+            } catch (err) {
+              reject(err)
+            }
+          },
+        })
+      } catch (err) {
+        reject(err)
       }
     })
-    
-    // Generate PDF as blob
-    const pdfBlob = doc.output('blob')
-    return pdfBlob
+
+    return blob
   }
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     try {
       const letterContent = generateFinalLetter()
-      const pdfBlob = generatePDFBlob()
+      const pdfBlob = await generatePDFBlob()
       
       // Generate filename
       const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
@@ -1049,7 +923,7 @@ Identity and Mutawalli appointment proof`
       const subject = 'Submission of Registration Documents UNDER SOLEMN PROTEST'
       
       // First, auto-download the PDF
-      const pdfBlob = generatePDFBlob()
+      const pdfBlob = await generatePDFBlob()
       const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
       const dateStr = new Date().toISOString().split('T')[0]
       const pdfFilename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`

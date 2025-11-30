@@ -21,14 +21,23 @@ import './LetterForm.css'
 
     const escaped = escapeHtml(letterContent)
 
-    // Use <pre> with pre-wrap to preserve spacing and line breaks exactly as the form
-    const html = `
-      <div style="font-family: Helvetica, Arial, sans-serif; color: #000;">
-        <pre style="white-space: pre-wrap; font-size: 11pt; line-height: 1.45; margin: 0;">
-${escaped}
-        </pre>
-      </div>
-    `
+    // Build HTML by converting paragraphs and line breaks.
+    // This avoids preserving literal spaces between characters (which caused the spaced-letter issue)
+    // and allows CSS text-align/justify to match the on-screen form.
+    // Replace title line with a centered heading if present
+    let contentWithTitle = escaped.replace(/REGISTRATION UNDER PROTEST\s*/m, '<div style="text-align:center;font-weight:bold;font-size:14pt;margin-bottom:8px">REGISTRATION UNDER PROTEST</div>\n')
+
+    // Split into paragraphs on double newlines, preserve single newlines as <br/>
+    const paragraphs = contentWithTitle.split(/\n\s*\n+/)
+    const parts = paragraphs.map(p => {
+      const pTrim = p.trim()
+      if (!pTrim) return ''
+      // If paragraph starts with a bullet or numbered list marker, keep line breaks
+      const htmlParagraph = pTrim.replace(/\n/g, '<br/>')
+      return `<p style="margin:6px 0; text-align: justify; font-size:11pt; line-height:1.45;">${htmlParagraph}</p>`
+    })
+
+    const html = `<div style="font-family: Helvetica, Arial, sans-serif; color: #000;">${parts.join('')}</div>`
 
     // Create temporary container element
     const container = document.createElement('div')
