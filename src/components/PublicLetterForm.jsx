@@ -518,18 +518,25 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       }
     }
     
-    // Get Mutawalli name for signature
+    // Get Mutawalli name for signature and convert to BLOCK LETTERS (uppercase)
     const mutawalliNameField = extractFields(letterTemplate).find(f => f.placeholder === 'Name of Mutawalli')
     const mutawalliName = mutawalliNameField ? (fieldValues[mutawalliNameField.id] || '') : ''
+    const mutawalliNameBlock = mutawalliName.toUpperCase() || '[Name of Mutawalli]'
     
-    // Replace SIGNATURE_NAME with Mutawalli name
-    finalContent = finalContent.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
+    // Replace SIGNATURE_NAME with Mutawalli name in BLOCK LETTERS
+    finalContent = finalContent.replace('[SIGNATURE_NAME]', mutawalliNameBlock)
     
-    // Get Mobile Number for phone field
+    // Get Mobile Number for phone field and format with dashes
     const mobileNumberField = extractFields(letterTemplate).find(f => f.placeholder === 'Mobile Number')
-    const mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
+    let mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
     
-    // Replace USER_PHONE with Mobile Number
+    // Format mobile number with dashes (XXX-XXX-XXXX for 10 digits)
+    if (mobileNumber && /^\d{10}$/.test(mobileNumber.replace(/\D/g, ''))) {
+      const cleaned = mobileNumber.replace(/\D/g, '')
+      mobileNumber = `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`
+    }
+    
+    // Replace USER_PHONE with formatted Mobile Number
     finalContent = finalContent.replace('[USER_PHONE]', mobileNumber || '[Phone]')
     
     // Replace USER_EMAIL with sender email
@@ -554,6 +561,10 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       const signatureSectionPattern = /9\. SIGNATURES AND ATTESTATION[\s\S]*?(?=ANNEXURES)/g
       finalContent = finalContent.replace(signatureSectionPattern, '')
     }
+    
+    // Remove ANNEXURES section from both email and PDF
+    const annexuresPattern = /ANNEXURES \(AS APPLICABLE\)[\s\S]*?(?=`|$)/g
+    finalContent = finalContent.replace(annexuresPattern, '')
 
     return finalContent
   }
