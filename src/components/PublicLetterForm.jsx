@@ -2,95 +2,162 @@ import { useState, useEffect } from 'react'
 import jsPDF from 'jspdf'
 import './LetterForm.css'
 
-  const generatePDFBlob = async () => {
-    let letterContent = generateFinalLetter()
-
-    // Replace checkbox symbols with simpler text for PDF
-    letterContent = letterContent.replace(/\[✓\]/g, '[X]')
-    letterContent = letterContent.replace(/☑/g, '[X]')
-    letterContent = letterContent.replace(/☐/g, '[ ]')
-
-    // Create html content preserving line breaks and basic structure
-    const escapeHtml = (str) =>
-      str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
-
-    const escaped = escapeHtml(letterContent)
-
-    // Build HTML with paragraphs to preserve browser-like layout
-    // Split into paragraphs on blank lines, convert single newlines to <br>
-    const paragraphs = letterContent
-      .split(/\n\s*\n/) // split paragraphs on one or more blank lines
-      .map(p => p.trim())
-      .filter(p => p.length > 0)
-
-    // Helper to escape HTML and convert single newlines to <br>
-    const paragraphToHtml = (p) => {
-      const escapedP = escapeHtml(p)
-      const withBreaks = escapedP.replace(/\n/g, '<br/>')
-      return withBreaks
-    }
-
-    // Build HTML template with simple styles that match the on-screen letter
-    const htmlParts = []
-    htmlParts.push('<div style="font-family: Helvetica, Arial, sans-serif; color: #000; font-size:11pt; line-height:1.45;">')
-
-    paragraphs.forEach((p) => {
-      // If paragraph is the title line, center and bold it
-      if (p.trim() === 'REGISTRATION UNDER PROTEST') {
-        htmlParts.push('<h1 style="text-align:center; font-size:14pt; margin:0 0 10px; font-weight:700;">REGISTRATION UNDER PROTEST</h1>')
-      } else if (p.trim().startsWith('S u b j e c t') || p.trim().startsWith('Subject:')) {
-        // Keep Subject line slightly emphasized
-        htmlParts.push(`<p style="margin:0 0 8px; font-weight:600;">${paragraphToHtml(p)}</p>`)
-      } else {
-        htmlParts.push(`<p style="margin:0 0 8px; text-align:justify;">${paragraphToHtml(p)}</p>`)
-      }
-    })
-
-    htmlParts.push('</div>')
-
-    const html = htmlParts.join('\n')
-
-    // Create temporary container element
-    const container = document.createElement('div')
-    container.style.width = '100%'
-    container.style.boxSizing = 'border-box'
-    container.innerHTML = html
-
-    // Create new PDF document
-    const doc = new jsPDF()
-
-    // Margins in jsPDF units
-    const topMargin = 15
-    const leftMargin = 15
-
-    // Render HTML into the PDF using jsPDF's html method for accurate layout
-    const blob = await new Promise((resolve, reject) => {
-      try {
-        doc.html(container, {
-          x: leftMargin,
-          y: topMargin,
-          html2canvas: { scale: 1, useCORS: true },
-          callback: (docInstance) => {
-            try {
-              const out = docInstance.output('blob')
-              resolve(out)
-            } catch (err) {
-              reject(err)
-            }
-          },
-        })
-      } catch (err) {
-        reject(err)
-      }
-    })
-
-    return blob
+function PublicLetterForm() {
+  // Get current date formatted
+  const getCurrentDate = () => {
+    const now = new Date()
+    const day = now.getDate().toString().padStart(2, '0')
+    const month = (now.getMonth() + 1).toString().padStart(2, '0')
+    const year = now.getFullYear()
+    return `${day} / ${month} / ${year}`
   }
+
+  const letterTemplate = `REGISTRATION UNDER PROTEST
+
+To,
+
+ The Chief Executive Officer
+
+ [State Waqf Board]
+
+ 
+
+Date: [CURRENT_DATE]
+
+Subject: Submission of Waqf Registration / Detail‑Filing UNDER PROTEST and WITHOUT WAIVER OF RIGHTS (Issues Persist Even After Supreme Court Interim Order)
+
+Respected Sir,
+
+[I_CHECKBOX] I, [Name of Mutawalli], son/daughter of [Father's Name], residing at [Full Address], am the Mutawalli of the waqf known as "", 
+
+• Name/Description of Waqf: [Waqf Name]
+
+• Existing Waqf Registration No. (if any): [Registration No.]
+
+• Your Mobile Number: [Mobile Number]
+
+In compliance with the Unified Waqf Management, Empowerment, Efficiency and Development Act, 1995 as amended by the Waqf (Amendment) Act, 2025 ("Amended Act") and the introduction of the UMEED central portal, I am submitting / renewing the registration and uploading the details of the above waqf only because non‑compliance has been made punishable with fine and imprisonment, and not as a matter of free consent.
+
+Accordingly, this filing is expressly made UNDER PROTEST, on the following grounds (without prejudice to fuller grounds in any present or future court proceedings):
+
+Submission under statutory duress
+
+1.1 The Amended Act and UMEED portal together create a regime where:
+
+Section 3B requires uploading full waqf details on the central portal and database.
+
+Section 36(1A) insists on a written waqf deed for creation of waqf.
+
+Section 36(10) threatens a bar on suits and proceedings to enforce waqf rights if registration is not completed within six months.
+
+Sections 61 and 62 introduce or continue criminal liability, including imprisonment and heavy fines, for failures such as not uploading details, not submitting accounts or not complying with Board / Collector directions.
+
+1.2 If I do not comply, I face:
+
+Risk of imprisonment and substantial fines,
+
+Possible de‑registration or loss of waqf status, and
+
+A permanent bar on suits or other proceedings to enforce waqf rights under Section 36(10).
+
+1.3 I therefore state clearly that this submission is involuntary and under statutory duress. It must not be treated as acceptance of the constitutional validity, fairness or reasonableness of the Amended Act or the UMEED portal rules.
+
+No admission regarding title or "Government property"
+
+2.1 The above property is asserted to be valid waqf property under Muslim personal law and under the original Waqf Act, 1995.
+
+2.2 Nothing in this registration or in the data entered on UMEED should be read as:
+
+(a) accepting that the property is, or ever was, "Government land" or "Government property", or
+
+(b) consenting to any change in the revenue records or Waqf Board records adverse to the waqf, including any description, classification, area or boundaries.
+
+2.3 Any answers that I am compelled to give on the portal, especially regarding "Government land", must not be treated as binding admissions in any present or future title, encroachment or revenue dispute.
+
+No waiver of objections to new conditions (5‑year practice, deed requirement, bar on suits, Scheduled‑area bar, Section 104 removal)
+
+3.1 I do not accept any interpretation of the Amended Act or the UMEED rules which:
+
+prevents Muslims (including converts and tribals) from creating waqf on the same footing as other communities,
+
+abolishes oral waqf and waqf‑by‑user and invalidates ancient waqfs merely for lack of a formal "waqf deed",
+
+bars waqf from approaching courts / tribunals solely for want of registration or uploading within a fixed time,
+
+selectively disables tribal Muslims from using the institution of waqf in Scheduled / tribal areas, while allowing other religious and charitable forms to continue on the same land, or
+
+removes the long‑recognised right of non‑Muslims (such as Hindus and others) to create waqf by abolishing Section 104, excluding them from the waqf form purely on the ground of religion.
+
+3.2 All my rights and contentions are fully reserved to challenge these provisions as violative of Articles 14, 15, 19, 21, 25, 26, 29, 30 and 300A of the Constitution of India, as well as contrary to Muslim personal law.
+
+Subject to pending Supreme Court proceedings and interim order
+
+4.1 The constitutional validity of several provisions of the Waqf (Amendment) Act, 2025 – including but not limited to Sections 3(r), 3C, 3D, 3E, 36(1A), 36(7A), 36(10), 61, 62 and 104 – is sub judice before the Hon'ble Supreme Court of India in In Re: The Waqf Amendment Act, 2025 and connected writ petitions.
+
+4.2 By its interim judgment dated 15.09.2025, the Hon'ble Supreme Court:
+
+Has not finally upheld the constitutional validity of these provisions; it has only declined to stay some of them at the interim stage.
+
+Has stayed key parts of Section 3C, particularly automatic changes to revenue and Board records on the report of an executive officer.
+
+Has capped the number of non‑Muslim members on the Central Waqf Council and State Waqf Boards, recognising the serious concern about dilution of Muslim control.
+
+4.3 This registration is therefore submitted strictly subject to any interim or final orders passed by the Hon'ble Supreme Court, any jurisdictional High Court and any Waqf Tribunal / civil court. It shall not prejudice the waqf's rights if the impugned provisions are struck down, read down or modified.
+
+Privacy, data protection and profiling concerns
+
+5.1 The UMEED portal requires me to disclose my religion, sect, full personal profile and multiple identity / address proofs, and to upload geo‑tagged photographs and detailed land‑revenue records, without any clear statutory safeguards for privacy, data security, retention, deletion, breach‑notification or controlled inter‑agency access.
+
+5.2 I object to this as a violation of my right to privacy and informational self‑determination, and as a form of centralised digital profiling of only Muslim waqf properties and leadership, when no comparable national system exists for temples, churches, secular charities, public trusts, societies or other associations.
+
+5.3 I reserve my right to challenge the UMEED data‑collection and profiling architecture as violative of Articles 14, 15 and 21 and inconsistent with basic data‑protection principles.
+
+Unpaid Mutawalli and disproportionate burdens
+
+6.1 I state that I serve as Mutawalli purely as a religious and charitable duty, without salary or honorarium from the Waqf Board or the Government. In many cases, including graveyard waqf, the waqf has little or no income.
+
+6.2 I object that the same level of documentation, auditing, professional accounting and portal compliance is being demanded from zero‑income waqf as from large, income‑earning waqf, and that non‑compliance is criminalised. This is disproportionate, arbitrary and unjust, and in practice penalises volunteers for doing unpaid community service.
+
+6.3 I reserve my right to challenge these burdens as violations of Articles 14, 19(1)(g), 21, 25 and 26 of the Constitution.
+
+Request to record protest and protect status quo
+
+In light of the above, I respectfully request that the Board:
+
+(a) Register / record the waqf on its portal and in its books, clearly noting this letter as a formal protest and non‑waiver of rights.
+
+(b) Issue a written acknowledgment / receipt expressly referring to this protest letter.
+
+(c) Not treat this filing as consent to any future action that may de‑notify, re‑classify, alter area / boundaries, or otherwise diminish the waqf's rights without due process before a competent court or tribunal.
+
+(d) Maintain status quo regarding revenue records, Board records and field status of the waqf property, in line with the spirit of the Hon'ble Supreme Court's interim directions, until the constitutional challenges are finally decided.
+
+No waiver of rights
+
+This letter and filing are made without prejudice to all my legal, constitutional and personal‑law rights, and to the rights of the beneficiaries, worshippers and the wider community, including the right to initiate, join and support present or future litigation challenging the Amended Act, the UMEED portal and any adverse action taken under them.
+
+Additional Objections:
+
+[OBJECTION_1_CHECKBOX] I object that the UMEED and amended waqf regime abolish Section 104 and thereby strip non‑Muslims (such as Hindus and other communities) of their long‑recognised right to create waqf, which is a form of enjoying and disposing of property protected under Article 300A. By selectively taking away this lawful option only from non‑Muslims, purely on the ground of religion, the State not only violates their equality and property rights today but also sets a dangerous precedent that Parliament may, at its will and fancy, withdraw or disable recognised property rights and legal forms in future for any community it chooses.
+
+[OBJECTION_2_CHECKBOX] I object to taking away the rights of tribals (both Muslim and non‑Muslim) and creating a dangerous principle under which the State can selectively switch off religious and charitable property rights in tribal areas, a principle that could tomorrow be used to question or dismantle even centuries‑old temples, churches and other institutions standing on tribal land. Today this tool is being used first against tribal Muslims, by flatly barring them from using the Islamic institution of waqf on their own land while analogous religious and charitable uses remain open for others, thereby stripping them of their constitutional right to property under Article 300A and their rights to religion and equality under Articles 25, 26, 14 and 15, and serving as a warning that the same mechanism can later be turned against any community.
+
+[OBJECTION_3_CHECKBOX] I object that the UMEED portal forces me to disclose my religion, sect and detailed personal profile (education, employment, full address, etc.), which violates my right to privacy, informational self‑determination and freedom of conscience.
+
+[OBJECTION_4_CHECKBOX] I object to being compelled to upload multiple identity and address proofs (such as Aadhaar, bank passbook, voter ID, etc.) on a central government portal, without any clear legal necessity, purpose limitation or effective data‑protection safeguards.
+
+[OBJECTION_5_CHECKBOX] I object that the UMEED portal collects geo‑tagged photographs and detailed land‑revenue records for every waqf, creating a single, centralised map of Muslim religious and community sites that can be misused for surveillance, profiling or targeting.
+
+[OBJECTION_6_CHECKBOX] I object that the UMEED portal has no clear, publicly accessible privacy and data‑protection policy explaining data security, retention, deletion, breach‑notification, inter‑agency sharing and user rights, thereby exposing Mutawallis and waqf properties to serious risk of data breach and misuse.
+
+[OBJECTION_7_CHECKBOX] I object to the centralised digital profiling of only Muslim waqf properties, leaders and donors on the UMEED portal, when no comparable national system exists for Hindu temples, churches, secular charities, public trusts, societies or other associations, which is discriminatory and creates an unequal surveillance burden on one community.
+
+[OBJECTION_8_CHECKBOX] I object to being forced, through the UMEED portal, to answer whether the waqf property includes "Government land", because such compelled self‑reporting can later be used against the waqf in title or encroachment disputes, undermining basic fairness in adjudication.
+
+[OBJECTION_9_CHECKBOX] I object that the UMEED portal uses or enables automatic / algorithmic flagging and status changes (for example on encroachment, government land, incomplete audits), without clear reasons, an individualised hearing or any built‑in appeal mechanism, in violation of principles of natural justice and due process.
+
+[OBJECTION_10_CHECKBOX] I object that the UMEED portal forces re‑registration and uploading of complete details within an arbitrary, short deadline, which is unworkable for many rural, small and resource‑constrained waqfs and results in unreasonable and unequal treatment.
+
 [OBJECTION_11_CHECKBOX] I object that non‑compliance with UMEED procedures has been criminalised with fines and imprisonment (for example under Sections 3B, 36, 61 and 62), which places Mutawallis under statutory duress and converts technical or digital‑access difficulties into potential criminal offences.
 
 [OBJECTION_12_CHECKBOX] I object that, although I serve as Mutawalli purely as a religious and charitable duty and not as an employee of the Waqf Board or the Government, the amended law and the UMEED portal treat me as if I am a paid government functionary and impose heavy administrative and legal obligations on me without any remuneration or support.
@@ -646,7 +713,7 @@ Identity and Mutawalli appointment proof`
       }
 
       // Generate PDF blob
-      const pdfBlob = await generatePDFBlob()
+      const pdfBlob = generatePDFBlob()
       
       // Convert PDF blob to base64
       const pdfBase64 = await new Promise((resolve) => {
@@ -785,12 +852,132 @@ Identity and Mutawalli appointment proof`
     }
   }
 
-  
+  const generatePDFBlob = () => {
+    let letterContent = generateFinalLetter()
+    
+    // Replace checkbox symbols with PDF-compatible text
+    // Simpler paragraph-based rendering:
+    // Split content into paragraphs (double newlines) and render each paragraph
+    // left-aligned to better match the on-screen letter body. Title lines are
+    // treated specially (centered and bold).
+    const paragraphs = letterContent.split(/\n\s*\n/)
+    let yPosition = topMargin
 
-  const handleDownloadPDF = async () => {
+    paragraphs.forEach((para) => {
+      const trimmedPara = para.trim()
+      if (!trimmedPara) {
+        yPosition += paragraphSpacing
+        return
+      }
+
+      // Title handling
+      if (trimmedPara === 'REGISTRATION UNDER PROTEST') {
+        doc.setFontSize(14)
+        doc.setFont('helvetica', 'bold')
+        const splitTitle = doc.splitTextToSize(trimmedPara, maxWidth)
+        splitTitle.forEach((line) => {
+          if (yPosition + lineHeight > pageHeight - bottomMargin) {
+            doc.addPage()
+            yPosition = topMargin
+          }
+          const textWidth = doc.getTextWidth(line)
+          const x = (pageWidth - textWidth) / 2
+          doc.text(line, x, yPosition)
+          yPosition += lineHeight
+        })
+        // reset font
+        doc.setFontSize(fontSize)
+        doc.setFont('helvetica', 'normal')
+        yPosition += paragraphSpacing
+        return
+      }
+
+      // For other paragraphs, preserve internal single newlines as line breaks
+      // and render everything left-aligned with natural wrapping.
+      const paraWithSingleBreaks = para.split('\n').map(p => p.trim()).join('\n')
+      const lines = doc.splitTextToSize(paraWithSingleBreaks, maxWidth)
+
+      // Add lines to document with page-break checks
+      lines.forEach((line) => {
+        if (yPosition + lineHeight > pageHeight - bottomMargin) {
+          doc.addPage()
+          yPosition = topMargin
+        }
+        doc.text(line, leftMargin, yPosition)
+        yPosition += lineHeight
+      })
+
+      // Add paragraph spacing after each paragraph
+      yPosition += paragraphSpacing
+    })
+        // Check page break before each line
+        if (yPosition + lineHeight > pageHeight - bottomMargin) {
+          doc.addPage()
+          yPosition = topMargin
+        }
+        
+        // Render based on alignment - ensure proper margins and no stretching
+        if (alignment === 'center') {
+          const textWidth = doc.getTextWidth(textLine)
+          const xPosition = (pageWidth - textWidth) / 2
+          doc.text(textLine, xPosition, yPosition)
+        } else if (alignment === 'right') {
+          // Right alignment - ensure text aligns properly from right margin
+          const textWidth = doc.getTextWidth(textLine)
+          const xPosition = pageWidth - rightMargin - textWidth
+          // Ensure it doesn't go beyond left margin
+          if (xPosition < leftMargin) {
+            // If text is too wide, render from left margin with maxWidth constraint
+            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'right' })
+          } else {
+            doc.text(textLine, xPosition, yPosition)
+          }
+        } else if (alignment === 'justify') {
+          // Justified alignment - both sides aligned
+          // Use safeMaxWidth to prevent excessive word stretching
+          // Only justify if line is not the last line of a paragraph (to avoid stretching)
+          const isLastLine = index === splitLines.length - 1
+          if (isLastLine && textLine.trim().length < 50) {
+            // Last line and short - use left align to avoid stretching
+            doc.text(textLine, leftMargin, yPosition)
+          } else {
+            // Justify the line with safeMaxWidth to prevent excessive stretching
+            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'justify' })
+          }
+        } else {
+          // Left alignment - render exactly as email body
+          // Ensure text doesn't exceed right boundary - no stretching
+          const textWidth = doc.getTextWidth(textLine)
+          if (textWidth > safeMaxWidth) {
+            // Text is too wide - this shouldn't happen but handle it safely
+            // Render with maxWidth constraint to prevent stretching
+            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'left' })
+          } else {
+            // Text fits within bounds, render normally at leftMargin
+            // This ensures proper left alignment and no stretching
+            doc.text(textLine, leftMargin, yPosition)
+          }
+        }
+        
+        yPosition += lineHeight
+      })
+      
+      // Reset font after title
+      if (line.trim() === 'REGISTRATION UNDER PROTEST') {
+        doc.setFontSize(fontSize)
+        doc.setFont('helvetica', 'normal')
+      }
+    })
+    
+    // Generate PDF as blob
+    const pdfBlob = doc.output('blob')
+    return pdfBlob
+  }
+
+  const handleDownloadPDF = () => {
     try {
       const letterContent = generateFinalLetter()
-      const pdfBlob = await generatePDFBlob()
+      const pdfBlob = generatePDFBlob()
       
       // Generate filename
       const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
@@ -868,7 +1055,7 @@ Identity and Mutawalli appointment proof`
       const subject = 'Submission of Registration Documents UNDER SOLEMN PROTEST'
       
       // First, auto-download the PDF
-      const pdfBlob = await generatePDFBlob()
+      const pdfBlob = generatePDFBlob()
       const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
       const dateStr = new Date().toISOString().split('T')[0]
       const pdfFilename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
