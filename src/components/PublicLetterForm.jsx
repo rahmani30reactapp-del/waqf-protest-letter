@@ -866,15 +866,19 @@ Identity and Mutawalli appointment proof`
     const doc = new jsPDF()
     
     // Professional margins for A4 paper (210mm x 297mm)
-    // Standard professional letter margins
+    // jsPDF uses points as units (72 points = 1 inch, 1mm ≈ 2.83465 points)
+    // But for simplicity and accuracy, we'll use mm values directly as jsPDF handles conversion
     const topMargin = 30
     const bottomMargin = 25
     const leftMargin = 25
-    const rightMargin = 25 // Standard right margin matching left margin
+    const rightMargin = 25
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
-    // Calculate maxWidth with safety buffer to prevent text from touching edges
-    const maxWidth = pageWidth - (leftMargin + rightMargin) - 2 // 2mm safety buffer
+    // Calculate maxWidth ensuring text stays within margins
+    // Convert margins to points for calculation: 1mm = 2.83465 points
+    const leftMarginPoints = leftMargin * 2.83465
+    const rightMarginPoints = rightMargin * 2.83465
+    const maxWidth = pageWidth - leftMarginPoints - rightMarginPoints
     
     // Professional font settings
     const fontSize = 11
@@ -919,7 +923,7 @@ Identity and Mutawalli appointment proof`
     
     // Split text into lines
     const lines = letterContent.split('\n')
-    let yPosition = topMargin
+    let yPosition = topMargin * 2.83465 // Convert to points for yPosition
     
     lines.forEach((line, lineIndex) => {
       // Handle empty lines - add paragraph spacing
@@ -941,69 +945,50 @@ Identity and Mutawalli appointment proof`
       }
       
       // Check if we need a new page before adding content
-      if (yPosition + lineHeight > pageHeight - bottomMargin) {
+      const bottomMarginPoints = bottomMargin * 2.83465
+      if (yPosition + lineHeight > pageHeight - bottomMarginPoints) {
         doc.addPage()
-        yPosition = topMargin
+        yPosition = topMargin * 2.83465
       }
       
-      // All text uses left alignment for consistency with email body
-      // Split text and render with left alignment
-      {
-        // Handle long lines - split them with proper wrapping
-        // Use maxWidth to ensure text fits within margins
-        const splitLines = doc.splitTextToSize(line, maxWidth)
-        
-        // Check if all split lines fit on current page
-        const totalHeightNeeded = splitLines.length * lineHeight
-        if (yPosition + totalHeightNeeded > pageHeight - bottomMargin) {
-          // If content doesn't fit, start new page
-          if (yPosition > topMargin) {
-            doc.addPage()
-            yPosition = topMargin
-          }
+      // Split text to fit within maxWidth - this ensures proper wrapping
+      const splitLines = doc.splitTextToSize(line, maxWidth)
+      
+      // Check if all split lines fit on current page
+      const totalHeightNeeded = splitLines.length * lineHeight
+      if (yPosition + totalHeightNeeded > pageHeight - bottomMarginPoints) {
+        // If content doesn't fit, start new page
+        if (yPosition > topMargin * 2.83465) {
+          doc.addPage()
+          yPosition = topMargin * 2.83465
+        }
+      }
+      
+      // Render each line with proper alignment and margin constraints
+      splitLines.forEach((textLine, index) => {
+        // Check page break before each line
+        if (yPosition + lineHeight > pageHeight - bottomMarginPoints) {
+          doc.addPage()
+          yPosition = topMargin * 2.83465
         }
         
-        // Add text with proper wrapping, spacing, and alignment
-        splitLines.forEach((textLine, index) => {
-          // Check page break before each line
-          if (yPosition + lineHeight > pageHeight - bottomMargin) {
-            doc.addPage()
-            yPosition = topMargin
-          }
-          
-          // Calculate x position based on alignment
-          let xPosition = leftMargin
-          if (alignment === 'center') {
-            const textWidth = doc.getTextWidth(textLine)
-            xPosition = (pageWidth - textWidth) / 2
-            // For center alignment, render without maxWidth since text is already split
-            doc.text(textLine, xPosition, yPosition)
-          } else if (alignment === 'right') {
-            const textWidth = doc.getTextWidth(textLine)
-            xPosition = pageWidth - rightMargin - textWidth
-            // For right alignment, render without maxWidth since text is already split
-            doc.text(textLine, xPosition, yPosition)
-          } else {
-            // For left alignment, render at leftMargin
-            // Text is already split to fit within maxWidth, so just render it
-            // Ensure text doesn't exceed right boundary by checking width
-            const textWidth = doc.getTextWidth(textLine)
-            if (textWidth > maxWidth) {
-              // If somehow text is too wide, split it again
-              const reSplit = doc.splitTextToSize(textLine, maxWidth)
-              reSplit.forEach((subLine) => {
-                doc.text(subLine, leftMargin, yPosition)
-                yPosition += lineHeight
-              })
-              yPosition -= lineHeight // Adjust since we already added lineHeight in the forEach
-            } else {
-              doc.text(textLine, leftMargin, yPosition)
-            }
-          }
-          
-          yPosition += lineHeight
-        })
-      }
+        // Calculate x position based on alignment
+        if (alignment === 'center') {
+          const textWidth = doc.getTextWidth(textLine)
+          const xPosition = (pageWidth - textWidth) / 2
+          doc.text(textLine, xPosition, yPosition)
+        } else if (alignment === 'right') {
+          const textWidth = doc.getTextWidth(textLine)
+          const xPosition = pageWidth - rightMarginPoints - textWidth
+          doc.text(textLine, xPosition, yPosition)
+        } else {
+          // Left alignment - text is already split to maxWidth, render directly at leftMargin
+          // This prevents any stretching or additional wrapping
+          doc.text(textLine, leftMarginPoints, yPosition)
+        }
+        
+        yPosition += lineHeight
+      })
       
       // Reset font after title
       if (line.trim() === 'REGISTRATION UNDER PROTEST') {
