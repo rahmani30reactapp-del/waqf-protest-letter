@@ -977,7 +977,7 @@ Identity and Mutawalli appointment proof`
       ) {
         return 'left'
       }
-      if (trimmed.length > 40) return 'justify'
+      if (trimmed.length > 40) return 'left'
       return 'left'
     }
 
@@ -998,9 +998,7 @@ Identity and Mutawalli appointment proof`
       }
 
       const split = doc.splitTextToSize(paragraph, maxWidth)
-      if (alignment === 'justify' && split.length > 1) {
-        doc.text(split, leftMargin, y, { maxWidth: maxWidth, align: 'justify' })
-      } else if (alignment === 'center') {
+      if (alignment === 'center') {
         split.forEach((ln) => {
           const w = doc.getTextWidth(ln)
           const x = (pageWidth - w) / 2
