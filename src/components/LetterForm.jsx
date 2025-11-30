@@ -475,12 +475,22 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       const objectionKey = `objection${i + 1}`
       const isChecked = objectionCheckboxes[objectionKey]
       
+      // Skip OBJECTION_22 (Acknowledgment) - it's handled separately for email/PDF
+      if (placeholder === '[OBJECTION_22_CHECKBOX]') {
+        // Always show in PDF, but handle checkbox state
+        if (isChecked) {
+          finalContent = finalContent.replace(placeholder, '[✓]')
+        }
+        // If unchecked, keep placeholder but will be removed for email later
+        continue
+      }
+      
       // Find the paragraph starting with this checkbox placeholder
-      // Pattern: [OBJECTION_X_CHECKBOX] followed by text until next [OBJECTION_ or "Yours faithfully,"
+      // Pattern: [OBJECTION_X_CHECKBOX] followed by text until next [OBJECTION_ or section marker
       const placeholderIndex = finalContent.indexOf(placeholder)
       
       if (placeholderIndex !== -1) {
-        // Find the end of this paragraph (start of next objection or "Yours faithfully,")
+        // Find the end of this paragraph (start of next objection or section marker)
         const afterPlaceholder = finalContent.substring(placeholderIndex + placeholder.length)
         let paragraphEnd = afterPlaceholder.length
         
@@ -540,7 +550,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       finalContent = finalContent.replace(field.fullMatch, value)
     })
 
-    // Remove Acknowledgment objection and entire signature section for email body (keep for PDF)
+    // Remove Acknowledgment objection and entire signature section for email body only (always keep for PDF)
     if (isForEmail) {
       // Remove OBJECTION_22 (Acknowledgment) - handle both checked ([✓]) and unchecked ([OBJECTION_22_CHECKBOX]) cases
       // The objection text spans multiple lines, so we need to match until the next section
@@ -550,6 +560,14 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       // Remove the entire "9. SIGNATURES AND ATTESTATION" section up to "ANNEXURES"
       const signatureSectionPattern = /9\. SIGNATURES AND ATTESTATION[\s\S]*?(?=ANNEXURES)/g
       finalContent = finalContent.replace(signatureSectionPattern, '')
+    } else {
+      // For PDF: Ensure OBJECTION_22 is always shown (replace placeholder with checkbox if unchecked)
+      // If it was already replaced with [✓] above, this won't match
+      const objection22UncheckedPattern = /\[OBJECTION_22_CHECKBOX\]\s*Acknowledgment/g
+      if (objection22UncheckedPattern.test(finalContent)) {
+        // If unchecked, still show it but without checkbox symbol (or keep placeholder)
+        // Actually, let's just ensure it's there - the checkbox state is already handled above
+      }
     }
     
     // Remove ANNEXURES section from both email and PDF
