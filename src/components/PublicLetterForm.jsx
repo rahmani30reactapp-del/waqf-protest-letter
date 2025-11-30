@@ -712,8 +712,8 @@ Identity and Mutawalli appointment proof`
         return
       }
 
-      // Generate PDF blob
-      const pdfBlob = generatePDFBlob()
+      // Generate PDF blob (use HTML-based renderer)
+      const pdfBlob = await generatePDFBlob()
       
       // Convert PDF blob to base64
       const pdfBase64 = await new Promise((resolve) => {
@@ -967,162 +967,77 @@ Identity and Mutawalli appointment proof`
       
       // Check if all split lines fit on current page
       const totalHeightNeeded = splitLines.length * lineHeight
-      if (yPosition + totalHeightNeeded > pageHeight - bottomMargin) {
-        // If content doesn't fit, start new page
-        if (yPosition > topMargin) {
-          doc.addPage()
-          yPosition = topMargin
-        }
-      }
-      
-      // Render each line exactly as it appears in email body
-      splitLines.forEach((textLine, index) => {
-        // Check page break before each line
-        if (yPosition + lineHeight > pageHeight - bottomMargin) {
-          doc.addPage()
-          yPosition = topMargin
-        }
-        
-        // Render based on alignment - ensure proper margins and no stretching
-        if (alignment === 'center') {
-          const textWidth = doc.getTextWidth(textLine)
-          const xPosition = (pageWidth - textWidth) / 2
-          doc.text(textLine, xPosition, yPosition)
-        } else if (alignment === 'right') {
-          // Right alignment - ensure text aligns properly from right margin
-          const textWidth = doc.getTextWidth(textLine)
-          const xPosition = pageWidth - rightMargin - textWidth
-          // Ensure it doesn't go beyond left margin
-          if (xPosition < leftMargin) {
-            // If text is too wide, render from left margin with maxWidth constraint
-            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'right' })
-          } else {
-            doc.text(textLine, xPosition, yPosition)
-          }
-        } else if (alignment === 'justify') {
-          // Justified alignment - both sides aligned
-          // Use safeMaxWidth to prevent excessive word stretching
-          // Only justify if line is not the last line of a paragraph (to avoid stretching)
-          const isLastLine = index === splitLines.length - 1
-          if (isLastLine && textLine.trim().length < 50) {
-            // Last line and short - use left align to avoid stretching
-            doc.text(textLine, leftMargin, yPosition)
-          } else {
-            // Justify the line with safeMaxWidth to prevent excessive stretching
-            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'justify' })
-          }
-        } else {
-          // Left alignment - render exactly as email body
-          // Ensure text doesn't exceed right boundary - no stretching
-          const textWidth = doc.getTextWidth(textLine)
-          if (textWidth > safeMaxWidth) {
-            // Text is too wide - this shouldn't happen but handle it safely
-            // Render with maxWidth constraint to prevent stretching
-            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'left' })
-          } else {
-            // Text fits within bounds, render normally at leftMargin
-            // This ensures proper left alignment and no stretching
-            doc.text(textLine, leftMargin, yPosition)
-          }
-        }
-        
-        yPosition += lineHeight
-      })
-      
-      // Reset font after title
-      if (line.trim() === 'REGISTRATION UNDER PROTEST') {
-        doc.setFontSize(fontSize)
-        doc.setFont('helvetica', 'normal')
-      }
-    })
-    
-    // Generate PDF as blob
-    const pdfBlob = doc.output('blob')
-    return pdfBlob
-  }
+      // Use HTML rendering for better paragraph alignment and formatting
+      const generatePDFBlob = async () => {
+        const letterContent = generateFinalLetter()
 
-  const handleDownloadPDF = () => {
-    try {
-      const letterContent = generateFinalLetter()
-      const pdfBlob = generatePDFBlob()
-      
-      // Generate filename
-      const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
-      const dateStr = new Date().toISOString().split('T')[0]
-      const filename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
-      
-      // Create download link and trigger download
-      const url = URL.createObjectURL(pdfBlob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Error generating PDF:', error)
-      setSubmitStatus({
-        type: 'error',
-        message: `Failed to generate PDF: ${error.message}. Please try again.`,
-      })
-    }
-  }
+        // Convert plain text letter into simple HTML preserving paragraphs and line breaks
+        const paragraphs = letterContent.split(/\n\s*\n/) // split on blank lines
+        const paragraphHtml = paragraphs.map((p) => {
+          const inner = p.replace(/\n/g, '<br/>')
+          // Promote the title to an H1 if the paragraph starts with the exact title
+          if (p.trim().startsWith('REGISTRATION UNDER PROTEST')) {
+            return `<h1 class="letter-title">${inner}</h1>`
+          }
+          return `<p class="letter-paragraph">${inner}</p>`
+        }).join('')
 
-  const handleCopyBody = async () => {
-    try {
-      const letterContent = generateFinalLetter()
-      
-      // Try modern clipboard API first
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(letterContent)
-        setCopyBodySuccess(true)
-        setTimeout(() => {
-          setCopyBodySuccess(false)
-        }, 3000)
-      } else {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea')
-        textArea.value = letterContent
-        textArea.style.position = 'fixed'
-        textArea.style.left = '-999999px'
-        textArea.style.top = '-999999px'
-        document.body.appendChild(textArea)
-        textArea.focus()
-        textArea.select()
-        try {
-          document.execCommand('copy')
-          setCopyBodySuccess(true)
-          setTimeout(() => {
-            setCopyBodySuccess(false)
-          }, 3000)
-        } catch (err) {
-          console.error('Fallback copy failed:', err)
-          setSubmitStatus({
-            type: 'error',
-            message: 'Failed to copy email body. Please try selecting and copying manually.',
-          })
+        // Create an offscreen container with basic styles that mimic the on-screen letter
+        const container = document.createElement('div')
+        container.style.position = 'fixed'
+        container.style.left = '-10000px'
+        container.style.top = '0'
+        container.style.width = '800px'
+        container.style.padding = '36px'
+        container.style.boxSizing = 'border-box'
+        container.style.fontFamily = 'Helvetica, Arial, sans-serif'
+        container.style.fontSize = '11pt'
+        container.style.lineHeight = '1.45'
+        container.style.color = '#000'
+
+        container.innerHTML = `
+          <div class="letter-root">
+            ${paragraphHtml}
+          </div>
+          <style>
+            .letter-title { text-align: center; font-weight: 700; font-size: 14pt; margin: 0 0 12px 0; }
+            .letter-paragraph { text-align: justify; margin: 0 0 10px 0; }
+            .letter-root { width: 100%; }
+          </style>
+        `
+
+        document.body.appendChild(container)
+
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' })
+
+        // Wrap jsPDF html rendering in a promise
+        const blob = await new Promise((resolve, reject) => {
+          try {
+            doc.html(container, {
+              x: 36,
+              y: 36,
+              html2canvas: { scale: 1.5 },
+              callback: function () {
+                try {
+                  const out = doc.output('blob')
+                  resolve(out)
+                } catch (err) {
+                  reject(err)
+                }
+              }
+            })
+          } catch (err) {
+            reject(err)
+          }
+        })
+
+        // Clean up
+        if (container && container.parentNode) {
+          container.parentNode.removeChild(container)
         }
-        document.body.removeChild(textArea)
-      }
-    } catch (error) {
-      console.error('Failed to copy body:', error)
-      setSubmitStatus({
-        type: 'error',
-        message: 'Failed to copy email body. Please try selecting and copying manually.',
-      })
-    }
-  }
 
-  const handleCompose = async () => {
-    try {
-      const letterContent = generateFinalLetter()
-      const toEmail = process.env.REACT_APP_TO_EMAIL || ''
-      const ccEmail = process.env.REACT_APP_CC_EMAIL || ''
-      const subject = 'Submission of Registration Documents UNDER SOLEMN PROTEST'
-      
-      // First, auto-download the PDF
-      const pdfBlob = generatePDFBlob()
+        return blob
+      }
       const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
       const dateStr = new Date().toISOString().split('T')[0]
       const pdfFilename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
