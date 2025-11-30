@@ -924,12 +924,13 @@ Identity and Mutawalli appointment proof`
       
       // Render line exactly as it appears in email body
       // Only wrap if absolutely necessary (line exceeds maxWidth)
-      // Use a slightly smaller width to prevent any stretching
+      // Use a conservative width to prevent any stretching
       let splitLines
-      const safeMaxWidth = maxWidth - 2 // Additional 2 point buffer to prevent stretching
+      const safeMaxWidth = maxWidth - 5 // Additional 5 point buffer to prevent stretching
       const lineWidth = doc.getTextWidth(line)
       if (lineWidth > safeMaxWidth) {
         // Line is too long, must split it to fit within margins
+        // Use splitTextToSize with the safe width to prevent stretching
         splitLines = doc.splitTextToSize(line, safeMaxWidth)
       } else {
         // Line fits - keep it exactly as in email body (no wrapping, no stretching)
@@ -960,13 +961,25 @@ Identity and Mutawalli appointment proof`
           const xPosition = (pageWidth - textWidth) / 2
           doc.text(textLine, xPosition, yPosition)
         } else if (alignment === 'right') {
+          // Right alignment - ensure text doesn't exceed right margin
           const textWidth = doc.getTextWidth(textLine)
-          const xPosition = pageWidth - rightMargin - textWidth
+          // Calculate position from right margin, ensuring it doesn't exceed maxWidth
+          const maxRightX = pageWidth - rightMargin
+          const xPosition = Math.min(maxRightX - textWidth, leftMargin + maxWidth - textWidth)
           doc.text(textLine, xPosition, yPosition)
         } else {
           // Left alignment - render exactly as email body
           // Preserve original line structure - only wrap if absolutely necessary
-          doc.text(textLine, leftMargin, yPosition)
+          // Ensure text doesn't exceed right boundary
+          const textWidth = doc.getTextWidth(textLine)
+          if (textWidth > safeMaxWidth) {
+            // If somehow text is still too wide, render at leftMargin and let it wrap naturally
+            // But this shouldn't happen since we already split it
+            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'left' })
+          } else {
+            // Text fits within bounds, render normally
+            doc.text(textLine, leftMargin, yPosition)
+          }
         }
         
         yPosition += lineHeight
