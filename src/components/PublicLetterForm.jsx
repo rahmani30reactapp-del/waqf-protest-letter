@@ -951,7 +951,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         cc_email: process.env.REACT_APP_CC_EMAIL,
         from_name: mutawalliName,
         from_email: senderEmail, // Use sender email input
-        subject: 'Submission of Registration Documents UNDER SOLEMN PROTEST',
+        subject: 'Registration under Solemn Protest and Duress – Without Prejudice to All Legal, Constitutional, and Islamic Law Rights',
         message: letterContent,
         reply_to: senderEmail,
         // No access_token - will use SMTP only
@@ -1161,7 +1161,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       const letterContent = generateFinalLetter()
       const toEmail = process.env.REACT_APP_TO_EMAIL || ''
       const ccEmail = process.env.REACT_APP_CC_EMAIL || ''
-      const subject = 'Submission of Registration Documents UNDER SOLEMN PROTEST'
+      const subject = 'Registration under Solemn Protest and Duress – Without Prejudice to All Legal, Constitutional, and Islamic Law Rights'
       
       // First, auto-download the PDF
       const pdfBlob = await generatePDFBlob()
