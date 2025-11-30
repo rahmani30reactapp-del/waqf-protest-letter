@@ -852,10 +852,10 @@ Identity and Mutawalli appointment proof`
     // Calculate max text width - ensure text never exceeds right margin
     const maxWidth = pageWidth - leftMargin - rightMargin
     
-    // Professional font settings
+    // Professional font settings - matching email body appearance
     const fontSize = 11
-    const lineHeight = 6.5 // Slightly more spacing for readability
-    const paragraphSpacing = 4 // Extra space between paragraphs
+    const lineHeight = 5.5 // Tighter line height to match email body
+    const paragraphSpacing = 3 // Minimal spacing between paragraphs to match email
     
     doc.setFontSize(fontSize)
     doc.setFont('helvetica', 'normal')
@@ -888,17 +888,16 @@ Identity and Mutawalli appointment proof`
         return 'left'
       }
       
-      // Body paragraphs - left align (matching email body format)
-      // All paragraphs use left alignment for consistency
+      // Body paragraphs - left align (matching email body format exactly)
       return 'left'
     }
     
-    // Split text into lines
+    // Split text into lines - preserve exact email body formatting
     const lines = letterContent.split('\n')
     let yPosition = topMargin
     
     lines.forEach((line, lineIndex) => {
-      // Handle empty lines - add paragraph spacing
+      // Handle empty lines - minimal spacing to match email body
       if (line.trim() === '') {
         yPosition += paragraphSpacing
         return
@@ -922,8 +921,17 @@ Identity and Mutawalli appointment proof`
         yPosition = topMargin
       }
       
-      // Split text to fit within maxWidth - this ensures proper wrapping
-      const splitLines = doc.splitTextToSize(line, maxWidth)
+      // Split text to fit within maxWidth - preserve email body line breaks where possible
+      // Only wrap if line exceeds maxWidth, otherwise keep as-is to match email formatting
+      let splitLines
+      const lineWidth = doc.getTextWidth(line)
+      if (lineWidth > maxWidth) {
+        // Line is too long, split it
+        splitLines = doc.splitTextToSize(line, maxWidth)
+      } else {
+        // Line fits, keep it as-is to match email body formatting
+        splitLines = [line]
+      }
       
       // Check if all split lines fit on current page
       const totalHeightNeeded = splitLines.length * lineHeight
@@ -935,7 +943,7 @@ Identity and Mutawalli appointment proof`
         }
       }
       
-      // Render each line with proper alignment and margin constraints
+      // Render each line exactly as it appears in email body
       splitLines.forEach((textLine, index) => {
         // Check page break before each line
         if (yPosition + lineHeight > pageHeight - bottomMargin) {
@@ -953,8 +961,8 @@ Identity and Mutawalli appointment proof`
           const xPosition = pageWidth - rightMargin - textWidth
           doc.text(textLine, xPosition, yPosition)
         } else {
-          // Left alignment - render at leftMargin
-          // Text is already split to fit maxWidth, so it won't exceed right margin
+          // Left alignment - render exactly as email body
+          // Preserve original line structure - only wrap if necessary
           doc.text(textLine, leftMargin, yPosition)
         }
         
