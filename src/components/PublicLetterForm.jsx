@@ -713,7 +713,7 @@ Identity and Mutawalli appointment proof`
       }
 
       // Generate PDF blob
-      const pdfBlob = await generatePDFBlob()
+      const pdfBlob = generatePDFBlob()
       
       // Convert PDF blob to base64
       const pdfBase64 = await new Promise((resolve) => {
@@ -852,17 +852,19 @@ Identity and Mutawalli appointment proof`
     }
   }
 
-  const generatePDFBlob = async () => {
+  const generatePDFBlob = () => {
     let letterContent = generateFinalLetter()
-
+    
     // Replace checkbox symbols with PDF-compatible text
+    // Replace [✓] with [X] for checked checkbox
     letterContent = letterContent.replace(/\[✓\]/g, '[X]')
+    // Replace Unicode checkbox symbols if they exist
     letterContent = letterContent.replace(/☑/g, '[X]')
     letterContent = letterContent.replace(/☐/g, '[ ]')
-
+    
     // Create new PDF document
     const doc = new jsPDF()
-
+    
     // Professional margins - more space on all sides
     const topMargin = 30
     const bottomMargin = 25
@@ -871,96 +873,25 @@ Identity and Mutawalli appointment proof`
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
     const maxWidth = pageWidth - (leftMargin + rightMargin)
-
+    
     // Professional font settings
     const fontSize = 11
     const lineHeight = 6.5 // Slightly more spacing for readability
     const paragraphSpacing = 4 // Extra space between paragraphs
-
-    // Try to use jsPDF html renderer for a more faithful WYSIWYG output
-    try {
-      // Only use html renderer if available and html2canvas is present
-      const hasHtml = typeof doc.html === 'function'
-      const hasHtml2Canvas = (typeof html2canvas !== 'undefined') || (typeof window !== 'undefined' && typeof window.html2canvas !== 'undefined') || (typeof window !== 'undefined' && typeof window.html2canvas === 'function')
-      if (hasHtml && hasHtml2Canvas) {
-        // Create a temporary container with simple, print-friendly markup
-        const temp = document.createElement('div')
-        temp.style.boxSizing = 'border-box'
-        temp.style.width = `${Math.floor(maxWidth)}px`
-        temp.style.fontFamily = 'Helvetica, Arial, sans-serif'
-        temp.style.fontSize = `${fontSize}px`
-        temp.style.lineHeight = `${(lineHeight / fontSize).toFixed(2)}`
-        temp.style.color = '#000'
-        temp.style.padding = '0'
-        temp.style.margin = '0'
-
-        // Build HTML paragraphs from letter content
-        const paragraphs = letterContent.split(/\n\s*\n/)
-        paragraphs.forEach((p) => {
-          const paraText = p.replace(/\n/g, ' ').trim()
-          if (!paraText) {
-            const br = document.createElement('div')
-            br.style.height = `${paragraphSpacing}px`
-            temp.appendChild(br)
-            return
-          }
-
-          const pEl = document.createElement('p')
-          pEl.style.margin = '0 0 8px 0'
-          pEl.style.padding = '0'
-          pEl.style.textAlign = 'left'
-          // Center title explicitly
-          if (paraText === 'REGISTRATION UNDER PROTEST') {
-            pEl.style.textAlign = 'center'
-            pEl.style.fontWeight = '700'
-            pEl.style.fontSize = `${fontSize + 3}px`
-            pEl.style.marginBottom = '12px'
-          }
-
-          pEl.textContent = paraText
-          temp.appendChild(pEl)
-        })
-
-        // Make temporary element invisible but renderable
-        temp.style.position = 'fixed'
-        temp.style.left = '0'
-        temp.style.top = '0'
-        temp.style.opacity = '0'
-        temp.style.pointerEvents = 'none'
-        document.body.appendChild(temp)
-
-        const pdfBlob = await new Promise((resolve, reject) => {
-          doc.html(temp, {
-            x: leftMargin,
-            y: topMargin,
-            html2canvas: { scale: 1 },
-            callback: (doc) => {
-              try {
-                const out = doc.output('blob')
-                resolve(out)
-              } catch (err) {
-                reject(err)
-              }
-            },
-            windowWidth: temp.scrollWidth || document.documentElement.clientWidth,
-          })
-        })
-
-        // Clean up
-        document.body.removeChild(temp)
-        return pdfBlob
-      }
-    } catch (err) {
-      console.warn('html rendering failed or html2canvas missing, falling back to text renderer:', err)
-    }
-
-    // Fallback: simpler text-based renderer (keeps paragraph spacing and avoids single-line justification)
+    
     doc.setFontSize(fontSize)
     doc.setFont('helvetica', 'normal')
-
-    const getLineAlignment = (line) => {
+    
+    // Helper function to determine alignment for a line
+    const getLineAlignment = (line, lineIndex, allLines) => {
       const trimmed = line.trim()
-      if (trimmed === 'REGISTRATION UNDER PROTEST') return 'center'
+      
+      // Title - center align
+      if (trimmed === 'REGISTRATION UNDER PROTEST') {
+        return 'center'
+      }
+      
+      // Labels and headers - left align
       if (
         trimmed.startsWith('To,') ||
         trimmed.startsWith('The Chief Executive Officer') ||
@@ -968,74 +899,125 @@ Identity and Mutawalli appointment proof`
         trimmed.startsWith('Subject:') ||
         trimmed.startsWith('Respected Sir,') ||
         trimmed.startsWith('Yours faithfully,') ||
-        trimmed.match(/^[0-9]+\.[0-9]+/) ||
-        trimmed.match(/^\([a-z]\)/) ||
-        trimmed.startsWith('•') ||
+        trimmed.match(/^[0-9]+\.[0-9]+/) || // Numbered items like "1.1", "2.3"
+        trimmed.match(/^\([a-z]\)/) || // Lettered items like "(a)", "(b)"
+        trimmed.startsWith('•') || // Bullet points
         trimmed.startsWith('Enclosures:') ||
         trimmed.startsWith('Phone:') ||
-        trimmed.startsWith('Email:')
+        trimmed.startsWith('Email:') ||
+        trimmed.match(/^[A-Z][a-z]+ [A-Z][a-z]+$/) && trimmed.length < 50 // Short name patterns
       ) {
         return 'left'
       }
-      if (trimmed.length > 40) return 'left'
+      
+      // Body paragraphs - justify (for substantial text content)
+      // Only justify paragraphs that are longer than 40 characters
+      if (trimmed.length > 40) {
+        return 'justify'
+      }
+      
+      // Default to left for short lines
       return 'left'
     }
-
-    // Render paragraphs like before but using safer logic
-    const paragraphsFallback = letterContent.split(/\n\s*\n/)
-    let y = topMargin
-    paragraphsFallback.forEach((para) => {
-      const paragraph = para.replace(/\n/g, ' ').trim()
-      if (!paragraph) {
-        y += paragraphSpacing
+    
+    // Split text into lines
+    const lines = letterContent.split('\n')
+    let yPosition = topMargin
+    
+    lines.forEach((line, lineIndex) => {
+      // Handle empty lines - add paragraph spacing
+      if (line.trim() === '') {
+        yPosition += paragraphSpacing
         return
       }
-      const alignment = getLineAlignment(paragraph)
-      const isTitle = paragraph === 'REGISTRATION UNDER PROTEST'
-      if (isTitle) {
-        doc.setFontSize(fontSize + 3)
+      
+      // Determine alignment for this line
+      const alignment = getLineAlignment(line, lineIndex, lines)
+      
+      // Special handling for title - make it bold and larger
+      if (line.trim() === 'REGISTRATION UNDER PROTEST') {
+        doc.setFontSize(14)
         doc.setFont('helvetica', 'bold')
-      }
-
-      const split = doc.splitTextToSize(paragraph, maxWidth)
-      if (alignment === 'center') {
-        split.forEach((ln) => {
-          const w = doc.getTextWidth(ln)
-          const x = (pageWidth - w) / 2
-          doc.text(ln, x, y)
-          y += lineHeight
-        })
-        y += paragraphSpacing
-        if (isTitle) { doc.setFontSize(fontSize); doc.setFont('helvetica', 'normal') }
-        return
-      } else if (alignment === 'right') {
-        split.forEach((ln) => {
-          const w = doc.getTextWidth(ln)
-          const x = pageWidth - rightMargin - w
-          doc.text(ln, x, y)
-          y += lineHeight
-        })
       } else {
-        doc.text(split, leftMargin, y, { maxWidth: maxWidth, align: 'left' })
+        doc.setFontSize(fontSize)
+        doc.setFont('helvetica', 'normal')
       }
-
-      y += (split.length * lineHeight) + paragraphSpacing
-      if (isTitle) { doc.setFontSize(fontSize); doc.setFont('helvetica', 'normal') }
+      
+      // Check if we need a new page before adding content
+      if (yPosition + lineHeight > pageHeight - bottomMargin) {
+        doc.addPage()
+        yPosition = topMargin
+      }
+      
+      // Handle long lines - split them with proper wrapping
+      const splitLines = doc.splitTextToSize(line, maxWidth)
+      
+      // Check if all split lines fit on current page
+      const totalHeightNeeded = splitLines.length * lineHeight
+      if (yPosition + totalHeightNeeded > pageHeight - bottomMargin) {
+        // If content doesn't fit, start new page
+        if (yPosition > topMargin) {
+          doc.addPage()
+          yPosition = topMargin
+        }
+      }
+      
+      // Add text with proper wrapping, spacing, and alignment
+      splitLines.forEach((textLine, index) => {
+        // Check page break before each line
+        if (yPosition + lineHeight > pageHeight - bottomMargin) {
+          doc.addPage()
+          yPosition = topMargin
+        }
+        
+        // Calculate x position based on alignment
+        let xPosition = leftMargin
+        if (alignment === 'center') {
+          const textWidth = doc.getTextWidth(textLine)
+          xPosition = (pageWidth - textWidth) / 2
+        } else if (alignment === 'right') {
+          const textWidth = doc.getTextWidth(textLine)
+          xPosition = pageWidth - rightMargin - textWidth
+        }
+        
+        // Add the text line with appropriate alignment
+        // For justified text, apply justify to all lines of a paragraph
+        if (alignment === 'justify') {
+          doc.text(textLine, leftMargin, yPosition, {
+            maxWidth: maxWidth,
+            align: 'justify',
+          })
+        } else {
+          doc.text(textLine, xPosition, yPosition, {
+            maxWidth: maxWidth,
+            align: alignment,
+          })
+        }
+        
+        yPosition += lineHeight
+      })
+      
+      // Reset font after title
+      if (line.trim() === 'REGISTRATION UNDER PROTEST') {
+        doc.setFontSize(fontSize)
+        doc.setFont('helvetica', 'normal')
+      }
     })
-
-    const pdfBlobFallback = doc.output('blob')
-    return pdfBlobFallback
+    
+    // Generate PDF as blob
+    const pdfBlob = doc.output('blob')
+    return pdfBlob
   }
 
-  const handleDownloadPDF = async () => {
+  const handleDownloadPDF = () => {
     const letterContent = generateFinalLetter()
-    const pdfBlob = await generatePDFBlob()
-
+    const pdfBlob = generatePDFBlob()
+    
     // Generate filename
     const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
     const dateStr = new Date().toISOString().split('T')[0]
     const filename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
-
+    
     // Create download link and trigger download
     const url = URL.createObjectURL(pdfBlob)
     const link = document.createElement('a')
@@ -1100,7 +1082,7 @@ Identity and Mutawalli appointment proof`
       const subject = 'Submission of Registration Documents UNDER SOLEMN PROTEST'
       
       // First, auto-download the PDF
-      const pdfBlob = await generatePDFBlob()
+      const pdfBlob = generatePDFBlob()
       const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
       const dateStr = new Date().toISOString().split('T')[0]
       const pdfFilename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
