@@ -965,13 +965,14 @@ Identity and Mutawalli appointment proof`
         }
         
         // Pass the full line to jsPDF with justify alignment - it will handle wrapping and justification
-        const lines = doc.text(line, leftMargin, yPosition, {
+        // doc.text() returns the doc object, not an array, so we use splitLines.length for height calculation
+        doc.text(line, leftMargin, yPosition, {
           maxWidth: maxWidth,
           align: 'justify',
         })
         
-        // Update yPosition based on actual lines rendered
-        yPosition += lines.length * lineHeight
+        // Update yPosition based on calculated lines
+        yPosition += splitLines.length * lineHeight
       } else {
         // Handle long lines - split them with proper wrapping
         const splitLines = doc.splitTextToSize(line, maxWidth)
@@ -1027,23 +1028,31 @@ Identity and Mutawalli appointment proof`
   }
 
   const handleDownloadPDF = () => {
-    const letterContent = generateFinalLetter()
-    const pdfBlob = generatePDFBlob()
-    
-    // Generate filename
-    const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
-    const dateStr = new Date().toISOString().split('T')[0]
-    const filename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
-    
-    // Create download link and trigger download
-    const url = URL.createObjectURL(pdfBlob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+    try {
+      const letterContent = generateFinalLetter()
+      const pdfBlob = generatePDFBlob()
+      
+      // Generate filename
+      const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
+      const dateStr = new Date().toISOString().split('T')[0]
+      const filename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`
+      
+      // Create download link and trigger download
+      const url = URL.createObjectURL(pdfBlob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      setSubmitStatus({
+        type: 'error',
+        message: `Failed to generate PDF: ${error.message}. Please try again.`,
+      })
+    }
   }
 
   const handleCopyBody = async () => {
