@@ -889,17 +889,42 @@ Identity and Mutawalli appointment proof`
     doc.setFontSize(fontSize)
     doc.setFont('helvetica', 'normal')
     
-    // Render line by line to preserve exact email body formatting
-    // Split by single newlines to preserve the exact structure
+    // Process content paragraph by paragraph to match image formatting
+    // Group lines into paragraphs (separated by empty lines)
     const lines = letterContent.split('\n')
     let yPosition = topMargin
     const safeMaxWidth = maxWidth - 8 // Additional buffer to prevent stretching
+    
+    // Group lines into paragraphs
+    const paragraphs = []
+    let currentParagraph = []
+    
+    lines.forEach((line, index) => {
+      const trimmed = line.trim()
+      if (trimmed === '' && currentParagraph.length > 0) {
+        // Empty line - end current paragraph
+        paragraphs.push(currentParagraph.join('\n'))
+        currentParagraph = []
+      } else if (trimmed !== '') {
+        // Add line to current paragraph
+        currentParagraph.push(line)
+      } else if (trimmed === '' && currentParagraph.length === 0) {
+        // Multiple empty lines - add as empty paragraph
+        paragraphs.push('')
+      }
+    })
+    
+    // Add last paragraph if exists
+    if (currentParagraph.length > 0) {
+      paragraphs.push(currentParagraph.join('\n'))
+    }
 
-    lines.forEach((line, lineIndex) => {
-      const trimmedLine = line.trim()
+    // Render each paragraph
+    paragraphs.forEach((para, paraIndex) => {
+      const trimmedPara = para.trim()
       
-      // Handle empty lines
-      if (trimmedLine === '') {
+      // Handle empty paragraphs
+      if (!trimmedPara) {
         yPosition += paragraphSpacing
         return
       }
@@ -910,80 +935,95 @@ Identity and Mutawalli appointment proof`
         yPosition = topMargin
       }
 
-      // Title handling - center align
-      if (trimmedLine === 'REGISTRATION UNDER PROTEST') {
+      // Title handling - center align with extra spacing
+      if (trimmedPara === 'REGISTRATION UNDER PROTEST') {
         doc.setFontSize(12)
         doc.setFont('helvetica', 'bold')
-        const textWidth = doc.getTextWidth(trimmedLine)
+        const textWidth = doc.getTextWidth(trimmedPara)
         const x = (pageWidth - textWidth) / 2
-        doc.text(trimmedLine, x, yPosition)
+        doc.text(trimmedPara, x, yPosition)
         doc.setFontSize(fontSize)
         doc.setFont('helvetica', 'normal')
-        yPosition += lineHeight + paragraphSpacing
+        yPosition += lineHeight * 2 + paragraphSpacing * 2
         return
       }
 
-      // Determine if line needs wrapping
-      const lineWidth = doc.getTextWidth(trimmedLine)
-      let splitLines
+      // Process paragraph lines
+      const paraLines = trimmedPara.split('\n')
+      const isLastParagraph = paraIndex === paragraphs.length - 1
       
-      if (lineWidth > safeMaxWidth) {
-        // Line is too long, split it
-        splitLines = doc.splitTextToSize(trimmedLine, safeMaxWidth)
-      } else {
-        // Line fits, keep as-is
-        splitLines = [trimmedLine]
-      }
+      paraLines.forEach((line, lineIndex) => {
+        const trimmedLine = line.trim()
+        
+        if (!trimmedLine) {
+          return
+        }
 
-      // Render each split line
-      splitLines.forEach((textLine, index) => {
-        // Check page break
+        // Check if we need a new page
         if (yPosition + lineHeight > pageHeight - bottomMargin) {
           doc.addPage()
           yPosition = topMargin
         }
 
         // Determine alignment based on content
-        const isTitle = textLine.trim() === 'REGISTRATION UNDER PROTEST'
-        const isHeader = textLine.startsWith('To,') || 
-                        textLine.startsWith('The Chief Executive Officer') ||
-                        textLine.startsWith('Date:') ||
-                        textLine.startsWith('Subject:') ||
-                        textLine.startsWith('Respected Sir,') ||
-                        textLine.startsWith('Yours faithfully,') ||
-                        textLine.match(/^[0-9]+\.[0-9]+/) ||
-                        textLine.startsWith('•') ||
-                        textLine.startsWith('Enclosures:') ||
-                        textLine.startsWith('Phone:') ||
-                        textLine.startsWith('Email:') ||
-                        textLine.startsWith('Name:')
+        const isHeader = trimmedLine.startsWith('To,') || 
+                        trimmedLine.startsWith('The Chief Executive Officer') ||
+                        trimmedLine.startsWith('Date:') ||
+                        trimmedLine.startsWith('Subject:') ||
+                        trimmedLine.startsWith('Respected Sir,') ||
+                        trimmedLine.startsWith('Yours faithfully,') ||
+                        trimmedLine.match(/^[0-9]+\.[0-9]+/) ||
+                        trimmedLine.startsWith('•') ||
+                        trimmedLine.startsWith('Enclosures:') ||
+                        trimmedLine.startsWith('Phone:') ||
+                        trimmedLine.startsWith('Email:') ||
+                        trimmedLine.startsWith('Name:') ||
+                        (trimmedLine.match(/^[A-Z][a-z]+ [A-Z][a-z]+$/) && trimmedLine.length < 50)
 
-        if (isTitle) {
-          // Center align title
-          doc.setFontSize(12)
-          doc.setFont('helvetica', 'bold')
-          const textWidth = doc.getTextWidth(textLine)
-          const x = (pageWidth - textWidth) / 2
-          doc.text(textLine, x, yPosition)
-          doc.setFontSize(fontSize)
-          doc.setFont('helvetica', 'normal')
-        } else if (isHeader) {
-          // Left align headers
-          doc.text(textLine, leftMargin, yPosition)
+        // Determine if line needs wrapping
+        const lineWidth = doc.getTextWidth(trimmedLine)
+        let splitLines
+        
+        if (lineWidth > safeMaxWidth) {
+          splitLines = doc.splitTextToSize(trimmedLine, safeMaxWidth)
         } else {
-          // Justify body paragraphs
-          const isLastLine = index === splitLines.length - 1
-          if (isLastLine && textLine.trim().length < 50) {
-            // Short last line - left align to avoid stretching
+          splitLines = [trimmedLine]
+        }
+
+        // Render each split line
+        splitLines.forEach((textLine, splitIndex) => {
+          // Check page break
+          if (yPosition + lineHeight > pageHeight - bottomMargin) {
+            doc.addPage()
+            yPosition = topMargin
+          }
+
+          if (isHeader) {
+            // Left align headers and labels
             doc.text(textLine, leftMargin, yPosition)
           } else {
-            // Justify with safeMaxWidth
-            doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'justify' })
+            // Justify body paragraphs - both sides aligned
+            const isLastLine = splitIndex === splitLines.length - 1
+            const isLastParaLine = lineIndex === paraLines.length - 1
+            
+            // Justify unless it's a very short last line
+            if (isLastLine && isLastParaLine && textLine.trim().length < 40) {
+              // Very short last line - left align to avoid stretching
+              doc.text(textLine, leftMargin, yPosition)
+            } else {
+              // Justify with safeMaxWidth for proper both-side alignment
+              doc.text(textLine, leftMargin, yPosition, { maxWidth: safeMaxWidth, align: 'justify' })
+            }
           }
-        }
-        
-        yPosition += lineHeight
+          
+          yPosition += lineHeight
+        })
       })
+
+      // Add spacing after paragraph
+      if (!isLastParagraph) {
+        yPosition += paragraphSpacing
+      }
     })
     
     // Generate PDF as blob
