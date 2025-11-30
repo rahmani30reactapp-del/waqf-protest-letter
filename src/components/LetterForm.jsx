@@ -514,23 +514,13 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     // Get Mutawalli name for signature and convert to BLOCK LETTERS (uppercase)
     const mutawalliNameField = extractFields(letterTemplate).find(f => f.placeholder === 'Name of Mutawalli')
     const mutawalliName = mutawalliNameField ? (fieldValues[mutawalliNameField.id] || '') : ''
-    const mutawalliNameBlock = mutawalliName.toUpperCase() || '[Name of Mutawalli]'
+    const mutawalliNameBlock = mutawalliName ? mutawalliName.toUpperCase() : '[Name of Mutawalli]'
     
     // Replace SIGNATURE_NAME with Mutawalli name in BLOCK LETTERS
     finalContent = finalContent.replace('[SIGNATURE_NAME]', mutawalliNameBlock)
     
-    // Get Mobile Number for phone field and format with dashes
-    const mobileNumberField = extractFields(letterTemplate).find(f => f.placeholder === 'Mobile Number')
-    let mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
-    
-    // Format mobile number with dashes (XXX-XXX-XXXX for 10 digits)
-    if (mobileNumber && /^\d{10}$/.test(mobileNumber.replace(/\D/g, ''))) {
-      const cleaned = mobileNumber.replace(/\D/g, '')
-      mobileNumber = `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`
-    }
-    
-    // Replace USER_PHONE with formatted Mobile Number
-    finalContent = finalContent.replace('[USER_PHONE]', mobileNumber || '[Phone]')
+    // Replace USER_PHONE with blank line dashes (like other signature fields)
+    finalContent = finalContent.replace('[USER_PHONE]', '__________________')
     
     // Replace USER_EMAIL with logged-in user's email
     finalContent = finalContent.replace('[USER_EMAIL]', user?.email || '[Email]')
