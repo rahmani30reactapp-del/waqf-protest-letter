@@ -879,7 +879,10 @@ Identity and Mutawalli appointment proof`
 
     // Try to use jsPDF html renderer for a more faithful WYSIWYG output
     try {
-      if (typeof doc.html === 'function') {
+      // Only use html renderer if available and html2canvas is present
+      const hasHtml = typeof doc.html === 'function'
+      const hasHtml2Canvas = (typeof html2canvas !== 'undefined') || (typeof window !== 'undefined' && typeof window.html2canvas !== 'undefined') || (typeof window !== 'undefined' && typeof window.html2canvas === 'function')
+      if (hasHtml && hasHtml2Canvas) {
         // Create a temporary container with simple, print-friendly markup
         const temp = document.createElement('div')
         temp.style.boxSizing = 'border-box'
@@ -914,15 +917,16 @@ Identity and Mutawalli appointment proof`
             pEl.style.marginBottom = '12px'
           }
 
-          // Use textContent to avoid injecting HTML
           pEl.textContent = paraText
           temp.appendChild(pEl)
         })
 
-        // Append temporary node off-screen so images/fonts can load if necessary
+        // Make temporary element invisible but renderable
         temp.style.position = 'fixed'
-        temp.style.left = '-9999px'
-        temp.style.top = '-9999px'
+        temp.style.left = '0'
+        temp.style.top = '0'
+        temp.style.opacity = '0'
+        temp.style.pointerEvents = 'none'
         document.body.appendChild(temp)
 
         const pdfBlob = await new Promise((resolve, reject) => {
@@ -947,8 +951,7 @@ Identity and Mutawalli appointment proof`
         return pdfBlob
       }
     } catch (err) {
-      // Fall through to text-based renderer on any failure
-      console.warn('html rendering failed, falling back to text renderer:', err)
+      console.warn('html rendering failed or html2canvas missing, falling back to text renderer:', err)
     }
 
     // Fallback: simpler text-based renderer (keeps paragraph spacing and avoids single-line justification)
