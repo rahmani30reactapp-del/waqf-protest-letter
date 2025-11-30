@@ -1124,17 +1124,20 @@ Identity and Mutawalli appointment proof`
         document.body.removeChild(textArea)
       }
       
+      // Create instruction text for email body
+      const instructionText = `[INSTRUCTION: Please remove this instruction text and paste the copied letter content here. The letter content has been automatically copied to your clipboard. Press Ctrl+V (Windows/Linux) or Cmd+V (Mac) to paste it.]`
+      
       // Encode components for mailto link
       const encodeMailtoParam = (str) => encodeURIComponent(str)
       
       // Check if sender email is Gmail
       const isGmailUser = senderEmail?.includes('@gmail.com') || senderEmail?.includes('@googlemail.com')
       
-      // Build email URL with only To, CC, and Subject (no body)
-      // Body is copied to clipboard for user to paste
+      // Build email URL with To, CC, Subject, and instruction body
+      // Body contains instructions for user to remove and paste copied content
       
       if (isGmailUser) {
-        // Gmail compose URL format - only To, CC, Subject (no body)
+        // Gmail compose URL format - To, CC, Subject, and instruction body
         const gmailParams = new URLSearchParams()
         if (toEmail && toEmail.trim()) {
           gmailParams.append('to', toEmail.trim())
@@ -1143,7 +1146,7 @@ Identity and Mutawalli appointment proof`
           gmailParams.append('cc', ccEmail.trim())
         }
         gmailParams.append('su', subject)
-        // No body parameter - user will paste from clipboard
+        gmailParams.append('body', instructionText)
         
         const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&${gmailParams.toString()}`
         
@@ -1164,7 +1167,7 @@ Identity and Mutawalli appointment proof`
           params.push(`cc=${encodeMailtoParam(ccEmail.trim())}`)
         }
         params.push(`subject=${encodeMailtoParam(subject)}`)
-        // No body parameter - user will paste from clipboard
+        params.push(`body=${encodeMailtoParam(instructionText)}`)
         
         if (params.length > 0) {
           mailtoLink += '?' + params.join('&')
@@ -1356,12 +1359,11 @@ Identity and Mutawalli appointment proof`
               <span className="copy-success-text">
                 {copyBodySuccess ? (
                   <>
-                    <strong>Email body copied to clipboard!</strong> You can now paste it (Ctrl+V / Cmd+V) into your email client.
+                    <strong>Email body copied to clipboard!</strong>
                   </>
                 ) : (
                   <>
-                    <strong>Email body copied to clipboard!</strong> PDF downloaded and email composer opened with To, CC, and Subject pre-filled. 
-                    <strong> Press Ctrl+V (Cmd+V on Mac) to paste the body</strong> in the email composer, then attach the files.
+                    <strong>Email body copied to clipboard!</strong> PDF downloaded and email composer opened with To, CC, and Subject pre-filled.
                   </>
                 )}
               </span>
