@@ -2,6 +2,196 @@ import { useState, useEffect } from 'react'
 import jsPDF from 'jspdf'
 import './LetterForm.css'
 
+function PublicLetterForm() {
+  // Get current date formatted
+  const getCurrentDate = () => {
+    const now = new Date()
+    const day = now.getDate().toString().padStart(2, '0')
+    const month = (now.getMonth() + 1).toString().padStart(2, '0')
+    const year = now.getFullYear()
+    return `${day} / ${month} / ${year}`
+  }
+
+  const letterTemplate = `REGISTRATION UNDER PROTEST
+
+To,
+
+ The Chief Executive Officer
+
+ [State Waqf Board]
+
+ 
+
+Date: [CURRENT_DATE]
+
+Subject: Submission of Waqf Registration / Detail‑Filing UNDER PROTEST and WITHOUT WAIVER OF RIGHTS (Issues Persist Even After Supreme Court Interim Order)
+
+Respected Sir,
+
+[I_CHECKBOX] I, [Name of Mutawalli], son/daughter of [Father's Name], residing at [Full Address], am the Mutawalli of the waqf known as "", 
+
+• Name/Description of Waqf: [Waqf Name]
+
+• Existing Waqf Registration No. (if any): [Registration No.]
+
+• Your Mobile Number: [Mobile Number]
+
+In compliance with the Unified Waqf Management, Empowerment, Efficiency and Development Act, 1995 as amended by the Waqf (Amendment) Act, 2025 ("Amended Act") and the introduction of the UMEED central portal, I am submitting / renewing the registration and uploading the details of the above waqf only because non‑compliance has been made punishable with fine and imprisonment, and not as a matter of free consent.
+
+Accordingly, this filing is expressly made UNDER PROTEST, on the following grounds (without prejudice to fuller grounds in any present or future court proceedings):
+
+Submission under statutory duress
+
+1.1 The Amended Act and UMEED portal together create a regime where:
+
+Section 3B requires uploading full waqf details on the central portal and database.
+
+Section 36(1A) insists on a written waqf deed for creation of waqf.
+
+Section 36(10) threatens a bar on suits and proceedings to enforce waqf rights if registration is not completed within six months.
+
+Sections 61 and 62 introduce or continue criminal liability, including imprisonment and heavy fines, for failures such as not uploading details, not submitting accounts or not complying with Board / Collector directions.
+
+1.2 If I do not comply, I face:
+
+Risk of imprisonment and substantial fines,
+
+Possible de‑registration or loss of waqf status, and
+
+A permanent bar on suits or other proceedings to enforce waqf rights under Section 36(10).
+
+1.3 I therefore state clearly that this submission is involuntary and under statutory duress. It must not be treated as acceptance of the constitutional validity, fairness or reasonableness of the Amended Act or the UMEED portal rules.
+
+No admission regarding title or "Government property"
+
+2.1 The above property is asserted to be valid waqf property under Muslim personal law and under the original Waqf Act, 1995.
+
+2.2 Nothing in this registration or in the data entered on UMEED should be read as:
+
+(a) accepting that the property is, or ever was, "Government land" or "Government property", or
+
+(b) consenting to any change in the revenue records or Waqf Board records adverse to the waqf, including any description, classification, area or boundaries.
+
+2.3 Any answers that I am compelled to give on the portal, especially regarding "Government land", must not be treated as binding admissions in any present or future title, encroachment or revenue dispute.
+
+No waiver of objections to new conditions (5‑year practice, deed requirement, bar on suits, Scheduled‑area bar, Section 104 removal)
+
+3.1 I do not accept any interpretation of the Amended Act or the UMEED rules which:
+
+prevents Muslims (including converts and tribals) from creating waqf on the same footing as other communities,
+
+abolishes oral waqf and waqf‑by‑user and invalidates ancient waqfs merely for lack of a formal "waqf deed",
+
+bars waqf from approaching courts / tribunals solely for want of registration or uploading within a fixed time,
+
+selectively disables tribal Muslims from using the institution of waqf in Scheduled / tribal areas, while allowing other religious and charitable forms to continue on the same land, or
+
+removes the long‑recognised right of non‑Muslims (such as Hindus and others) to create waqf by abolishing Section 104, excluding them from the waqf form purely on the ground of religion.
+
+3.2 All my rights and contentions are fully reserved to challenge these provisions as violative of Articles 14, 15, 19, 21, 25, 26, 29, 30 and 300A of the Constitution of India, as well as contrary to Muslim personal law.
+
+Subject to pending Supreme Court proceedings and interim order
+
+4.1 The constitutional validity of several provisions of the Waqf (Amendment) Act, 2025 – including but not limited to Sections 3(r), 3C, 3D, 3E, 36(1A), 36(7A), 36(10), 61, 62 and 104 – is sub judice before the Hon'ble Supreme Court of India in In Re: The Waqf Amendment Act, 2025 and connected writ petitions.
+
+4.2 By its interim judgment dated 15.09.2025, the Hon'ble Supreme Court:
+
+Has not finally upheld the constitutional validity of these provisions; it has only declined to stay some of them at the interim stage.
+
+Has stayed key parts of Section 3C, particularly automatic changes to revenue and Board records on the report of an executive officer.
+
+Has capped the number of non‑Muslim members on the Central Waqf Council and State Waqf Boards, recognising the serious concern about dilution of Muslim control.
+
+4.3 This registration is therefore submitted strictly subject to any interim or final orders passed by the Hon'ble Supreme Court, any jurisdictional High Court and any Waqf Tribunal / civil court. It shall not prejudice the waqf's rights if the impugned provisions are struck down, read down or modified.
+
+Privacy, data protection and profiling concerns
+
+5.1 The UMEED portal requires me to disclose my religion, sect, full personal profile and multiple identity / address proofs, and to upload geo‑tagged photographs and detailed land‑revenue records, without any clear statutory safeguards for privacy, data security, retention, deletion, breach‑notification or controlled inter‑agency access.
+
+5.2 I object to this as a violation of my right to privacy and informational self‑determination, and as a form of centralised digital profiling of only Muslim waqf properties and leadership, when no comparable national system exists for temples, churches, secular charities, public trusts, societies or other associations.
+
+5.3 I reserve my right to challenge the UMEED data‑collection and profiling architecture as violative of Articles 14, 15 and 21 and inconsistent with basic data‑protection principles.
+
+Unpaid Mutawalli and disproportionate burdens
+
+6.1 I state that I serve as Mutawalli purely as a religious and charitable duty, without salary or honorarium from the Waqf Board or the Government. In many cases, including graveyard waqf, the waqf has little or no income.
+
+6.2 I object that the same level of documentation, auditing, professional accounting and portal compliance is being demanded from zero‑income waqf as from large, income‑earning waqf, and that non‑compliance is criminalised. This is disproportionate, arbitrary and unjust, and in practice penalises volunteers for doing unpaid community service.
+
+6.3 I reserve my right to challenge these burdens as violations of Articles 14, 19(1)(g), 21, 25 and 26 of the Constitution.
+
+Request to record protest and protect status quo
+
+In light of the above, I respectfully request that the Board:
+
+(a) Register / record the waqf on its portal and in its books, clearly noting this letter as a formal protest and non‑waiver of rights.
+
+(b) Issue a written acknowledgment / receipt expressly referring to this protest letter.
+
+(c) Not treat this filing as consent to any future action that may de‑notify, re‑classify, alter area / boundaries, or otherwise diminish the waqf's rights without due process before a competent court or tribunal.
+
+(d) Maintain status quo regarding revenue records, Board records and field status of the waqf property, in line with the spirit of the Hon'ble Supreme Court's interim directions, until the constitutional challenges are finally decided.
+
+No waiver of rights
+
+This letter and filing are made without prejudice to all my legal, constitutional and personal‑law rights, and to the rights of the beneficiaries, worshippers and the wider community, including the right to initiate, join and support present or future litigation challenging the Amended Act, the UMEED portal and any adverse action taken under them.
+
+Additional Objections:
+
+[OBJECTION_1_CHECKBOX] I object that the UMEED and amended waqf regime abolish Section 104 and thereby strip non‑Muslims (such as Hindus and other communities) of their long‑recognised right to create waqf, which is a form of enjoying and disposing of property protected under Article 300A. By selectively taking away this lawful option only from non‑Muslims, purely on the ground of religion, the State not only violates their equality and property rights today but also sets a dangerous precedent that Parliament may, at its will and fancy, withdraw or disable recognised property rights and legal forms in future for any community it chooses.
+
+[OBJECTION_2_CHECKBOX] I object to taking away the rights of tribals (both Muslim and non‑Muslim) and creating a dangerous principle under which the State can selectively switch off religious and charitable property rights in tribal areas, a principle that could tomorrow be used to question or dismantle even centuries‑old temples, churches and other institutions standing on tribal land. Today this tool is being used first against tribal Muslims, by flatly barring them from using the Islamic institution of waqf on their own land while analogous religious and charitable uses remain open for others, thereby stripping them of their constitutional right to property under Article 300A and their rights to religion and equality under Articles 25, 26, 14 and 15, and serving as a warning that the same mechanism can later be turned against any community.
+
+[OBJECTION_3_CHECKBOX] I object that the UMEED portal forces me to disclose my religion, sect and detailed personal profile (education, employment, full address, etc.), which violates my right to privacy, informational self‑determination and freedom of conscience.
+
+[OBJECTION_4_CHECKBOX] I object to being compelled to upload multiple identity and address proofs (such as Aadhaar, bank passbook, voter ID, etc.) on a central government portal, without any clear legal necessity, purpose limitation or effective data‑protection safeguards.
+
+[OBJECTION_5_CHECKBOX] I object that the UMEED portal collects geo‑tagged photographs and detailed land‑revenue records for every waqf, creating a single, centralised map of Muslim religious and community sites that can be misused for surveillance, profiling or targeting.
+
+[OBJECTION_6_CHECKBOX] I object that the UMEED portal lacks a clear, publicly accessible privacy and data‑protection policy, and that there is no effective mechanism for data subjects to access, correct, delete or restrict the use of their personal data.
+
+[OBJECTION_7_CHECKBOX] I object to the centralised digital profiling of only Muslim waqf properties, leaders and donors on the UMEED portal, which is discriminatory and violates Articles 14 and 15, when no comparable national database exists for temples, churches, secular charities or other religious and charitable institutions.
+
+[OBJECTION_8_CHECKBOX] I object to being forced to answer whether waqf property includes "Government land" through the UMEED portal, which is designed to extract admissions that can be used against the waqf in title disputes, revenue proceedings and encroachment cases, without any legal basis or due process.
+
+[OBJECTION_9_CHECKBOX] I object that the UMEED portal and amended law together create a system where failure to complete complex online and paperwork formalities within fixed deadlines can result in criminal prosecution, imprisonment and fines, even for unpaid Mutawallis managing zero‑income or low‑income waqf, which is disproportionate and violates Articles 14, 19(1)(g) and 21.
+
+[OBJECTION_10_CHECKBOX] I object that the amended law and UMEED portal together abolish oral waqf and waqf‑by‑user, which have been recognised in Islamic law and under the original Waqf Act, 1995, and that this change retroactively invalidates or threatens ancient and customary endowments that have existed for generations without formal written deeds.
+
+[OBJECTION_11_CHECKBOX] I object that non‑compliance with UMEED procedures has been criminalised with fines and imprisonment (for example under Sections 3B, 36, 61 and 62), which places Mutawallis under statutory duress and converts technical or digital‑access difficulties into potential criminal offences.
+
+[OBJECTION_12_CHECKBOX] I object that, although I serve as Mutawalli purely as a religious and charitable duty and not as an employee of the Waqf Board or the Government, the amended law and the UMEED portal treat me as if I am a paid government functionary and impose heavy administrative and legal obligations on me without any remuneration or support.
+
+[OBJECTION_13_CHECKBOX] I object that I am being threatened with fines and imprisonment for non‑completion of complex online and paperwork formalities, even though I am an unpaid Mutawalli and my waqf (especially a graveyard) generates little or no income, which makes such criminal liability arbitrary and unjust.
+
+[OBJECTION_14_CHECKBOX] I object that the same level of documentation, audit and portal compliance is being demanded from a zero‑income graveyard waqf as from large commercial waqf estates, which is disproportionate and ignores the financial and practical realities of small, purely religious waqf.
+
+[OBJECTION_15_CHECKBOX] I object that I am being effectively penalised for looking after a graveyard and performing voluntary charitable service for my community, instead of being supported or facilitated in this work, which discourages people from serving as Mutawallis and undermines our religious and community institutions.
+
+[OBJECTION_16_CHECKBOX] I object to the inclusion and potential dominance of non‑Muslim members in the Central Waqf Council and State Waqf Boards, which undermines the Muslim community's right to manage its own religious endowments and dilutes the Islamic character of waqf administration.
+
+[OBJECTION_17_CHECKBOX] I object to the rule that no waqf can be created without a written deed, which effectively abolishes oral waqf and waqf‑by‑user recognised in Islamic law and under the earlier waqf framework, and unjustly harms ancient and customary endowments.
+
+[OBJECTION_18_CHECKBOX] I object to the new "five‑year practising Muslim" condition for creating waqf (waqif), which unfairly discriminates against new Muslims, converts and tribals and treats Muslim endowments differently from other religious and charitable trusts.
+
+[OBJECTION_19_CHECKBOX] I object to any provision that bars suits or legal proceedings for enforcement of waqf rights solely because registration or uploading under UMEED was not completed within a fixed time, as this unjustly closes the doors of courts and tribunals to waqf and its beneficiaries.
+
+[OBJECTION_20_CHECKBOX] I state that I am submitting this registration only under protest and under statutory duress, and that nothing in this filing should be treated as waiver, consent or acceptance of the Waqf (Amendment) Act, 2025, the UMEED portal rules, or any provision that violates my constitutional, statutory or personal‑law rights, or the rights of any other community.
+
+Yours faithfully,
+
+ Name: [SIGNATURE_NAME]
+
+Phone: [USER_PHONE] / Email: [USER_EMAIL]
+
+Enclosures:
+
+Waqf registration / detail forms
+
+Title / revenue documents (copies)
+
+Identity and Mutawalli appointment proof`
+
   const generatePDFBlob = async () => {
     let letterContent = generateFinalLetter()
 
@@ -75,39 +265,6 @@ import './LetterForm.css'
 
     return blob
   }
-[OBJECTION_11_CHECKBOX] I object that non‑compliance with UMEED procedures has been criminalised with fines and imprisonment (for example under Sections 3B, 36, 61 and 62), which places Mutawallis under statutory duress and converts technical or digital‑access difficulties into potential criminal offences.
-
-[OBJECTION_12_CHECKBOX] I object that, although I serve as Mutawalli purely as a religious and charitable duty and not as an employee of the Waqf Board or the Government, the amended law and the UMEED portal treat me as if I am a paid government functionary and impose heavy administrative and legal obligations on me without any remuneration or support.
-
-[OBJECTION_13_CHECKBOX] I object that I am being threatened with fines and imprisonment for non‑completion of complex online and paperwork formalities, even though I am an unpaid Mutawalli and my waqf (especially a graveyard) generates little or no income, which makes such criminal liability arbitrary and unjust.
-
-[OBJECTION_14_CHECKBOX] I object that the same level of documentation, audit and portal compliance is being demanded from a zero‑income graveyard waqf as from large commercial waqf estates, which is disproportionate and ignores the financial and practical realities of small, purely religious waqf.
-
-[OBJECTION_15_CHECKBOX] I object that I am being effectively penalised for looking after a graveyard and performing voluntary charitable service for my community, instead of being supported or facilitated in this work, which discourages people from serving as Mutawallis and undermines our religious and community institutions.
-
-[OBJECTION_16_CHECKBOX] I object to the inclusion and potential dominance of non‑Muslim members in the Central Waqf Council and State Waqf Boards, which undermines the Muslim community's right to manage its own religious endowments and dilutes the Islamic character of waqf administration.
-
-[OBJECTION_17_CHECKBOX] I object to the rule that no waqf can be created without a written deed, which effectively abolishes oral waqf and waqf‑by‑user recognised in Islamic law and under the earlier waqf framework, and unjustly harms ancient and customary endowments.
-
-[OBJECTION_18_CHECKBOX] I object to the new "five‑year practising Muslim" condition for creating waqf (waqif), which unfairly discriminates against new Muslims, converts and tribals and treats Muslim endowments differently from other religious and charitable trusts.
-
-[OBJECTION_19_CHECKBOX] I object to any provision that bars suits or legal proceedings for enforcement of waqf rights solely because registration or uploading under UMEED was not completed within a fixed time, as this unjustly closes the doors of courts and tribunals to waqf and its beneficiaries.
-
-[OBJECTION_20_CHECKBOX] I state that I am submitting this registration only under protest and under statutory duress, and that nothing in this filing should be treated as waiver, consent or acceptance of the Waqf (Amendment) Act, 2025, the UMEED portal rules, or any provision that violates my constitutional, statutory or personal‑law rights, or the rights of any other community.
-
-Yours faithfully,
-
- Name: [SIGNATURE_NAME]
-
-Phone: [USER_PHONE] / Email: [USER_EMAIL]
-
-Enclosures:
-
-Waqf registration / detail forms
-
-Title / revenue documents (copies)
-
-Identity and Mutawalli appointment proof`
 
   const [fieldValues, setFieldValues] = useState({})
   const [senderEmail, setSenderEmail] = useState('') // Email input for public form
