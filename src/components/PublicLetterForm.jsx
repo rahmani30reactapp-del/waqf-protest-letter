@@ -471,9 +471,7 @@ Email: [USER_EMAIL]`
       const objectionKey = `objection${i + 1}`
       const isChecked = objectionCheckboxes[objectionKey]
       
-      // Skip OBJECTION_22 (Acknowledgment) - it's handled separately for email/PDF
-      // For PDF: Always show regardless of checkbox state
-      // For Email: Always remove
+      // Handle OBJECTION_22 (Acknowledgment) separately - always show in PDF, always remove from email
       if (placeholder === '[OBJECTION_22_CHECKBOX]') {
         if (isForEmail) {
           // For email: Remove the entire OBJECTION_22 paragraph
@@ -496,14 +494,16 @@ Email: [USER_EMAIL]`
             finalContent = finalContent.replace(fullParagraph, '')
           }
         } else {
-          // For PDF: Always show, handle checkbox state
+          // For PDF: ALWAYS show the paragraph regardless of checkbox state
+          // Replace placeholder with checkbox symbol based on state
           if (isChecked) {
             finalContent = finalContent.replace(placeholder, '[✓]')
           } else {
-            // If unchecked, replace with empty checkbox so text still appears in PDF
+            // If unchecked, replace with empty checkbox - paragraph still appears
             finalContent = finalContent.replace(placeholder, '[ ]')
           }
         }
+        // Skip normal processing - we've handled it above
         continue
       }
       
@@ -1038,6 +1038,7 @@ Email: [USER_EMAIL]`
     let txt = letterText || ''
     txt = txt
       .replace(/\[✓\]|\[x\]|\[X\]/gi, '☑')
+      .replace(/\[ \]/g, '☐') // Empty checkbox [ ] -> ☐
       .replace(/✓/g, '☑')
       .replace(/☑/g, '☑')
       .replace(/☐/g, '☐')
