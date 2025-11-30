@@ -314,7 +314,19 @@ Name of Mutawalli (BLOCK LETTERS): [SIGNATURE_NAME]
 
 Mobile No.: [USER_PHONE]
 
-Email: [USER_EMAIL]`
+Email: [USER_EMAIL]
+
+ANNEXURES (AS APPLICABLE)
+
+Annexure A: Copy of existing waqf deed / oral dedication proof / earlier registration order
+
+Annexure B: Certified copies of title documents / revenue records
+
+Annexure C: List of beneficiaries / use of waqf (mosque, madrasa, graveyard, dargah, etc.)
+
+Annexure D: Copies of pending court/Tribunal cases concerning this waqf
+
+Annexure E: Any correspondence, survey reports, inspection notes or orders from the Waqf Board / Collector / designated officer`
 
   const [fieldValues, setFieldValues] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -567,14 +579,10 @@ Email: [USER_EMAIL]`
 
     // Remove entire signature section for email body only (always keep for PDF)
     if (isForEmail) {
-      // Remove the entire "9. SIGNATURES AND ATTESTATION" section up to end of template
-      const signatureSectionPattern = /9\. SIGNATURES AND ATTESTATION[\s\S]*$/g
+      // Remove the entire "9. SIGNATURES AND ATTESTATION" section up to "ANNEXURES"
+      const signatureSectionPattern = /9\. SIGNATURES AND ATTESTATION[\s\S]*?(?=ANNEXURES)/g
       finalContent = finalContent.replace(signatureSectionPattern, '')
     }
-    
-    // Remove ANNEXURES section from both email and PDF
-    const annexuresPattern = /ANNEXURES \(AS APPLICABLE\)[\s\S]*?(?=`|$)/g
-    finalContent = finalContent.replace(annexuresPattern, '')
 
     return finalContent
   }
