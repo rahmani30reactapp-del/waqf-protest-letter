@@ -314,19 +314,7 @@ Name of Mutawalli (BLOCK LETTERS): [SIGNATURE_NAME]
 
 Mobile No.: [USER_PHONE]
 
-Email: [USER_EMAIL]
-
-ANNEXURES (AS APPLICABLE)
-
-Annexure A: Copy of existing waqf deed / oral dedication proof / earlier registration order
-
-Annexure B: Certified copies of title documents / revenue records
-
-Annexure C: List of beneficiaries / use of waqf (mosque, madrasa, graveyard, dargah, etc.)
-
-Annexure D: Copies of pending court/Tribunal cases concerning this waqf
-
-Annexure E: Any correspondence, survey reports, inspection notes or orders from the Waqf Board / Collector / designated officer`
+Email: [USER_EMAIL]`
 
   const [fieldValues, setFieldValues] = useState({})
   const [senderEmail, setSenderEmail] = useState('') // Email input for public form

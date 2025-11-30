@@ -314,19 +314,7 @@ Name of Mutawalli (BLOCK LETTERS): [SIGNATURE_NAME]
 
 Mobile No.: [USER_PHONE]
 
-Email: [USER_EMAIL]
-
-ANNEXURES (AS APPLICABLE)
-
-Annexure A: Copy of existing waqf deed / oral dedication proof / earlier registration order
-
-Annexure B: Certified copies of title documents / revenue records
-
-Annexure C: List of beneficiaries / use of waqf (mosque, madrasa, graveyard, dargah, etc.)
-
-Annexure D: Copies of pending court/Tribunal cases concerning this waqf
-
-Annexure E: Any correspondence, survey reports, inspection notes or orders from the Waqf Board / Collector / designated officer`
+Email: [USER_EMAIL]`
 
   const [fieldValues, setFieldValues] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -363,6 +351,10 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     registrationForms: null,
     titleDocuments: null,
     identityProof: null,
+    waqfDeed: null, // Annexure A
+    beneficiariesList: null, // Annexure C
+    courtCases: null, // Annexure D
+    correspondence: null, // Annexure E
   })
 
   // Initialize field values with saved data from localStorage
@@ -948,6 +940,78 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         )
       }
       
+      if (attachments.waqfDeed) {
+        attachmentPromises.push(
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              const base64String = reader.result.split(',')[1]
+              attachmentData.push({
+                filename: attachments.waqfDeed.name,
+                content: base64String,
+                type: attachments.waqfDeed.type,
+              })
+              resolve()
+            }
+            reader.readAsDataURL(attachments.waqfDeed)
+          })
+        )
+      }
+      
+      if (attachments.beneficiariesList) {
+        attachmentPromises.push(
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              const base64String = reader.result.split(',')[1]
+              attachmentData.push({
+                filename: attachments.beneficiariesList.name,
+                content: base64String,
+                type: attachments.beneficiariesList.type,
+              })
+              resolve()
+            }
+            reader.readAsDataURL(attachments.beneficiariesList)
+          })
+        )
+      }
+      
+      if (attachments.courtCases) {
+        attachmentPromises.push(
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              const base64String = reader.result.split(',')[1]
+              attachmentData.push({
+                filename: attachments.courtCases.name,
+                content: base64String,
+                type: attachments.courtCases.type,
+              })
+              resolve()
+            }
+            reader.readAsDataURL(attachments.courtCases)
+          })
+        )
+      }
+      
+      if (attachments.correspondence) {
+        attachmentPromises.push(
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              const base64String = reader.result.split(',')[1]
+              attachmentData.push({
+                filename: attachments.correspondence.name,
+                content: base64String,
+                type: attachments.correspondence.type,
+              })
+              resolve()
+            }
+            reader.readAsDataURL(attachments.correspondence)
+          })
+        )
+      }
+      
       // Wait for all attachments to be converted
       await Promise.all(attachmentPromises)
 
@@ -1362,6 +1426,70 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                 onChange={(e) => setAttachments(prev => ({ ...prev, identityProof: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+            <div className="attachment-item">
+              <label htmlFor="waqf-deed" className="attachment-label">
+                <span className="attachment-icon">📜</span>
+                <span className="attachment-text">Annexure A: Waqf deed / oral dedication proof / earlier registration order</span>
+                {attachments.waqfDeed && (
+                  <span className="attachment-name">{attachments.waqfDeed.name}</span>
+                )}
+              </label>
+              <input
+                id="waqf-deed"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, waqfDeed: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+            <div className="attachment-item">
+              <label htmlFor="beneficiaries-list" className="attachment-label">
+                <span className="attachment-icon">👥</span>
+                <span className="attachment-text">Annexure C: List of beneficiaries / use of waqf</span>
+                {attachments.beneficiariesList && (
+                  <span className="attachment-name">{attachments.beneficiariesList.name}</span>
+                )}
+              </label>
+              <input
+                id="beneficiaries-list"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, beneficiariesList: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+            <div className="attachment-item">
+              <label htmlFor="court-cases" className="attachment-label">
+                <span className="attachment-icon">⚖️</span>
+                <span className="attachment-text">Annexure D: Copies of pending court/Tribunal cases</span>
+                {attachments.courtCases && (
+                  <span className="attachment-name">{attachments.courtCases.name}</span>
+                )}
+              </label>
+              <input
+                id="court-cases"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, courtCases: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+            <div className="attachment-item">
+              <label htmlFor="correspondence" className="attachment-label">
+                <span className="attachment-icon">📧</span>
+                <span className="attachment-text">Annexure E: Correspondence, survey reports, inspection notes</span>
+                {attachments.correspondence && (
+                  <span className="attachment-name">{attachments.correspondence.name}</span>
+                )}
+              </label>
+              <input
+                id="correspondence"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, correspondence: e.target.files[0] || null }))}
                 className="attachment-input"
               />
             </div>
