@@ -25,7 +25,7 @@ To,
  [State Waqf Board] State Waqf Board
 
 Subject: Submission of Registration Documents UNDER SOLEMN PROTEST – Complete Reservation of All Legal, Constitutional, Islamic and Property Rights (No Waiver / No Acquiescence)
-
+ 
 Dated: [CURRENT_DATE]
 
 Respected Sir,
@@ -492,8 +492,10 @@ Email: [USER_EMAIL]`
           // For PDF: Always show, handle checkbox state
           if (isChecked) {
             finalContent = finalContent.replace(placeholder, '[✓]')
+          } else {
+            // If unchecked, replace with empty checkbox so text still appears in PDF
+            finalContent = finalContent.replace(placeholder, '[ ]')
           }
-          // If unchecked, keep placeholder - it will show in PDF
         }
         continue
       }
