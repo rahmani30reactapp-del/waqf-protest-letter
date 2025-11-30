@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
-import jsPDF from 'jspdf'
+import pdfMake from 'pdfmake/build/pdfmake'
+import pdfFonts from 'pdfmake/build/vfs_fonts'
 import './LetterForm.css'
+
+// Initialize pdfMake with fonts
+pdfMake.vfs = pdfFonts.pdfMake.vfs
 
 function PublicLetterForm() {
   // Get current date formatted
@@ -713,7 +717,7 @@ Identity and Mutawalli appointment proof`
       }
 
       // Generate PDF blob
-      const pdfBlob = generatePDFBlob()
+      const pdfBlob = await generatePDFBlob()
       
       // Convert PDF blob to base64
       const pdfBase64 = await new Promise((resolve) => {
@@ -852,156 +856,97 @@ Identity and Mutawalli appointment proof`
     }
   }
 
-  const generatePDFBlob = () => {
+  const generatePDFBlob = async () => {
+    const letterText = generateFinalLetter()
 
-    // STEP 1: Prepare text
-    let letterContent = generateFinalLetter();
-  
-    // Replace checkbox symbols for PDF compatibility
-    letterContent = letterContent
-      .replace(/\[✓\]/g, "[X]")
-      .replace(/✓/g, "[X]")
-      .replace(/☑/g, "[X]")
-      .replace(/☐/g, "[ ]");
-  
-    // STEP 2: Initialize PDF
-    const doc = new jsPDF();
-  
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-  
-    const leftMargin = 43;       // 15 mm
-    const rightMargin = 57;      // 20 mm
-    const topMargin = 57;        // 20 mm
-    const bottomMargin = 43;     // 15 mm
-  
-    const maxWidth = pageWidth - leftMargin - rightMargin - 10;
-    const safeMaxWidth = maxWidth - 8;
-  
-    const fontSize = 10;
-    const lineHeight = 4.7;
-    const paragraphSpacing = 2;
-  
-    doc.setFontSize(fontSize);
-    doc.setFont("helvetica", "normal");
-  
-    let y = topMargin;
-  
-    // STEP 3: Build paragraph list
-    const paragraphs = [];
-    let temp = [];
-  
-    letterContent.split("\n").forEach((line) => {
-      if (line.trim() === "") {
-        if (temp.length > 0) {
-          paragraphs.push(temp.join("\n"));
-          temp = [];
-        } else {
-          paragraphs.push("");
+    // Normalize checkboxes & common symbols
+    let txt = letterText || ''
+    txt = txt
+      .replace(/\[✓\]|\[x\]|\[X\]/gi, '☑')
+      .replace(/✓/g, '☑')
+      .replace(/☑/g, '☑')
+      .replace(/☐/g, '☐')
+
+    // Split into paragraphs (double newlines) while preserving single-line breaks inside paragraphs
+    const rawParas = txt.split(/\n{2,}/g).map(p => p.replace(/\r/g, '').trim())
+
+    const content = []
+
+    rawParas.forEach((p) => {
+      if (!p) {
+        // blank paragraph -> small spacer
+        content.push({ text: '\n', margin: [0, 2, 0, 2] })
+        return
+      }
+
+      // Title exact match -> center, bold, larger
+      if (p.trim() === 'REGISTRATION UNDER PROTEST') {
+        content.push({ text: 'REGISTRATION UNDER PROTEST', style: 'title', margin: [0, 0, 0, 8] })
+        return
+      }
+
+      // If paragraph is lines that look like checklist or many lines starting with checkbox or '-' or '•', create a list
+      const lines = p.split('\n').map(l => l.trim()).filter(Boolean)
+      const allAreListLike = lines.length > 1 && lines.every(l => /^(\s*[-•\u2022]|\s*☑|\s*☐|\s*\[.\])/.test(l))
+
+      if (allAreListLike) {
+        // convert each line to an item, removing checkbox token from start and prefixing with symbol if needed
+        const items = lines.map(l => {
+          // keep checkbox symbol in item text so it's visible
+          return l.replace(/^\s*[-•\u2022]\s*/, '• ').replace(/^\s*\[.\]\s*/, (m) => m + ' ')
+        })
+        content.push({ ul: items, margin: [0, 2, 0, 6], style: 'body' })
+        return
+      }
+
+      // If first line of paragraph is a known header -> render as label (bold left)
+      const firstLine = lines[0] || ''
+      const headerMatch = /^(To,|The Chief Executive Officer|Date:|Subject:|Respected Sir,|Yours faithfully,|Enclosures:|Phone:|Email:|Name:)/i
+
+      if (headerMatch.test(firstLine) && lines.length === 1) {
+        content.push({ text: firstLine, style: 'label', margin: [0, 2, 0, 6] })
+        return
+      }
+
+      // Otherwise it's body text. Keep internal single newlines as soft breaks by joining with '\n'
+      const bodyText = lines.join('\n')
+      content.push({ text: bodyText, style: 'body', margin: [0, 2, 0, 8] })
+    })
+
+    // Build docDefinition
+    const docDefinition = {
+      pageSize: 'A4',
+      pageMargins: [40, 40, 40, 40], // left, top, right, bottom (in pdfMake units)
+      content,
+      styles: {
+        title: { fontSize: 12, bold: true, alignment: 'center', margin: [0, 8, 0, 8], characterSpacing: 0.2 },
+        label: { fontSize: 10, bold: true, alignment: 'left' },
+        body: { fontSize: 10, alignment: 'justify', lineHeight: 1.15 }
+      },
+      defaultStyle: {
+        font: 'Roboto'
+      },
+      footer: function(currentPage, pageCount) {
+        return {
+          columns: [
+            { text: '', width: '*' },
+            { text: `${currentPage} / ${pageCount}`, alignment: 'center', width: 'auto', margin: [0, 6, 0, 0] },
+            { text: '', width: '*' }
+          ]
         }
-      } else {
-        temp.push(line);
       }
-    });
+    }
+
+    // Export to blob
+    return new Promise((resolve) => {
+      pdfMake.createPdf(docDefinition).getBlob((blob) => resolve(blob))
+    })
+  }
   
-    if (temp.length > 0) paragraphs.push(temp.join("\n"));
-  
-    // Helper: Create new page if needed
-    const ensurePage = () => {
-      if (y + lineHeight > pageHeight - bottomMargin) {
-        doc.addPage();
-        y = topMargin;
-      }
-    };
-  
-    // STEP 4: Render paragraphs
-    paragraphs.forEach((para, pIndex) => {
-      const trimmed = para.trim();
-      const lastPara = pIndex === paragraphs.length - 1;
-  
-      // Blank paragraph → add small spacing
-      if (!trimmed) {
-        y += paragraphSpacing;
-        return;
-      }
-  
-      ensurePage();
-  
-      // TITLE (Centered)
-      if (trimmed === "REGISTRATION UNDER PROTEST") {
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-  
-        const w = doc.getTextWidth(trimmed);
-        doc.text(trimmed, (pageWidth - w) / 2, y);
-  
-        doc.setFontSize(fontSize);
-        doc.setFont("helvetica", "normal");
-  
-        y += lineHeight * 2 + paragraphSpacing * 2;
-        return;
-      }
-  
-      // STEP 5: Process lines in the paragraph
-      const paraLines = trimmed.split("\n");
-  
-      paraLines.forEach((line, li) => {
-        const text = line.trim();
-        if (!text) return;
-  
-        ensurePage();
-  
-        // Header / Labels (Always Left Aligned)
-        const isHeader =
-          text.startsWith("To,") ||
-          text.startsWith("The Chief Executive Officer") ||
-          text.startsWith("Date:") ||
-          text.startsWith("Subject:") ||
-          text.startsWith("Respected Sir,") ||
-          text.startsWith("Yours faithfully,") ||
-          /^[0-9]+\.[0-9]+/.test(text) ||
-          text.startsWith("•") ||
-          text.startsWith("Enclosures:") ||
-          text.startsWith("Phone:") ||
-          text.startsWith("Email:") ||
-          text.startsWith("Name:");
-  
-        // Split long lines
-        const split = doc.splitTextToSize(text, safeMaxWidth);
-  
-        split.forEach((s, si) => {
-          ensurePage();
-  
-          if (isHeader) {
-            doc.text(s, leftMargin, y);
-          } else {
-            const lastLine = si === split.length - 1;
-            const lastParaLine = li === paraLines.length - 1;
-  
-            if (lastLine && lastParaLine && s.length < 40) {
-              doc.text(s, leftMargin, y); // prevent stretch
-            } else {
-              doc.text(s, leftMargin, y, {
-                maxWidth: safeMaxWidth,
-                align: "justify",
-              });
-            }
-          }
-  
-          y += lineHeight;
-        });
-      });
-  
-      if (!lastPara) y += paragraphSpacing;
-    });
-  
-    return doc.output("blob");
-  };
-  
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     try {
       const letterContent = generateFinalLetter()
-      const pdfBlob = generatePDFBlob()
+      const pdfBlob = await generatePDFBlob()
       
       // Generate filename
       const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
@@ -1079,7 +1024,7 @@ Identity and Mutawalli appointment proof`
       const subject = 'Submission of Registration Documents UNDER SOLEMN PROTEST'
       
       // First, auto-download the PDF
-      const pdfBlob = generatePDFBlob()
+      const pdfBlob = await generatePDFBlob()
       const mutawalliName = extractMutawalliName(letterContent).replace(/\s+/g, '_')
       const dateStr = new Date().toISOString().split('T')[0]
       const pdfFilename = `Waqf_Protest_Letter_${mutawalliName}_${dateStr}.pdf`

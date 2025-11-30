@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
-import jsPDF from 'jspdf'
+import pdfMake from 'pdfmake/build/pdfmake'
+import pdfFonts from 'pdfmake/build/vfs_fonts'
 import './LetterForm.css'
+
+// Initialize pdfMake with fonts
+pdfMake.vfs = pdfFonts.pdfMake.vfs
 
 function LetterForm({ user, credential }) {
   // Get current date formatted
@@ -825,66 +829,90 @@ Identity and Mutawalli appointment proof`
   }
 
   const generatePDFBlob = async () => {
-    let letterContent = generateFinalLetter()
+    const letterText = generateFinalLetter()
 
-    // Replace checkbox symbols with simpler text for PDF
-    letterContent = letterContent.replace(/\[✓\]/g, '[X]')
-    letterContent = letterContent.replace(/☑/g, '[X]')
-    letterContent = letterContent.replace(/☐/g, '[ ]')
+    // Normalize checkboxes & common symbols
+    let txt = letterText || ''
+    txt = txt
+      .replace(/\[✓\]|\[x\]|\[X\]/gi, '☑')
+      .replace(/✓/g, '☑')
+      .replace(/☑/g, '☑')
+      .replace(/☐/g, '☐')
 
-    const escapeHtml = (str) =>
-      str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
+    // Split into paragraphs (double newlines) while preserving single-line breaks inside paragraphs
+    const rawParas = txt.split(/\n{2,}/g).map(p => p.replace(/\r/g, '').trim())
 
-    const escaped = escapeHtml(letterContent)
+    const content = []
 
-    // Replace title with centered heading and convert paragraphs
-    let contentWithTitle = escaped.replace(/REGISTRATION UNDER PROTEST\s*/m, '<div style="text-align:center;font-weight:bold;font-size:14pt;margin-bottom:8px">REGISTRATION UNDER PROTEST</div>\n')
-    const paragraphs = contentWithTitle.split(/\n\s*\n+/)
-    const parts = paragraphs.map(p => {
-      const pTrim = p.trim()
-      if (!pTrim) return ''
-      const htmlParagraph = pTrim.replace(/\n/g, '<br/>')
-      return `<p style="margin:6px 0; text-align: justify; font-size:11pt; line-height:1.45;">${htmlParagraph}</p>`
-    })
-
-    const html = `<div style="font-family: Helvetica, Arial, sans-serif; color: #000;">${parts.join('')}</div>`
-
-    const container = document.createElement('div')
-    container.style.width = '100%'
-    container.style.boxSizing = 'border-box'
-    container.innerHTML = html
-
-    const doc = new jsPDF()
-
-    const topMargin = 15
-    const leftMargin = 15
-
-    const blob = await new Promise((resolve, reject) => {
-      try {
-        doc.html(container, {
-          x: leftMargin,
-          y: topMargin,
-          html2canvas: { scale: 1, useCORS: true },
-          callback: (docInstance) => {
-            try {
-              const out = docInstance.output('blob')
-              resolve(out)
-            } catch (err) {
-              reject(err)
-            }
-          },
-        })
-      } catch (err) {
-        reject(err)
+    rawParas.forEach((p) => {
+      if (!p) {
+        // blank paragraph -> small spacer
+        content.push({ text: '\n', margin: [0, 2, 0, 2] })
+        return
       }
+
+      // Title exact match -> center, bold, larger
+      if (p.trim() === 'REGISTRATION UNDER PROTEST') {
+        content.push({ text: 'REGISTRATION UNDER PROTEST', style: 'title', margin: [0, 0, 0, 8] })
+        return
+      }
+
+      // If paragraph is lines that look like checklist or many lines starting with checkbox or '-' or '•', create a list
+      const lines = p.split('\n').map(l => l.trim()).filter(Boolean)
+      const allAreListLike = lines.length > 1 && lines.every(l => /^(\s*[-•\u2022]|\s*☑|\s*☐|\s*\[.\])/.test(l))
+
+      if (allAreListLike) {
+        // convert each line to an item, removing checkbox token from start and prefixing with symbol if needed
+        const items = lines.map(l => {
+          // keep checkbox symbol in item text so it's visible
+          return l.replace(/^\s*[-•\u2022]\s*/, '• ').replace(/^\s*\[.\]\s*/, (m) => m + ' ')
+        })
+        content.push({ ul: items, margin: [0, 2, 0, 6], style: 'body' })
+        return
+      }
+
+      // If first line of paragraph is a known header -> render as label (bold left)
+      const firstLine = lines[0] || ''
+      const headerMatch = /^(To,|The Chief Executive Officer|Date:|Subject:|Respected Sir,|Yours faithfully,|Enclosures:|Phone:|Email:|Name:)/i
+
+      if (headerMatch.test(firstLine) && lines.length === 1) {
+        content.push({ text: firstLine, style: 'label', margin: [0, 2, 0, 6] })
+        return
+      }
+
+      // Otherwise it's body text. Keep internal single newlines as soft breaks by joining with '\n'
+      const bodyText = lines.join('\n')
+      content.push({ text: bodyText, style: 'body', margin: [0, 2, 0, 8] })
     })
 
-    return blob
+    // Build docDefinition
+    const docDefinition = {
+      pageSize: 'A4',
+      pageMargins: [40, 40, 40, 40], // left, top, right, bottom (in pdfMake units)
+      content,
+      styles: {
+        title: { fontSize: 12, bold: true, alignment: 'center', margin: [0, 8, 0, 8], characterSpacing: 0.2 },
+        label: { fontSize: 10, bold: true, alignment: 'left' },
+        body: { fontSize: 10, alignment: 'justify', lineHeight: 1.15 }
+      },
+      defaultStyle: {
+        font: 'Roboto'
+      },
+      footer: function(currentPage, pageCount) {
+        return {
+          columns: [
+            { text: '', width: '*' },
+            { text: `${currentPage} / ${pageCount}`, alignment: 'center', width: 'auto', margin: [0, 6, 0, 0] },
+            { text: '', width: '*' }
+          ]
+        }
+      }
+    }
+
+    // Export to blob
+    return new Promise((resolve) => {
+      pdfMake.createPdf(docDefinition).getBlob((blob) => resolve(blob))
+    })
   }
 
   const handleDownloadPDF = async () => {
