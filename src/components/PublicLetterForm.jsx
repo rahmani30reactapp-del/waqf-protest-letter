@@ -324,6 +324,20 @@ Email: [USER_EMAIL]`
   const [showPreview, setShowPreview] = useState(false) // Preview modal state
   const [copySuccess, setCopySuccess] = useState(false) // Copy to clipboard success state
   const [copyBodySuccess, setCopyBodySuccess] = useState(false) // Copy body button success state
+  const [stateDropdownOpen, setStateDropdownOpen] = useState(false) // State dropdown open state
+  const [stateSearchQuery, setStateSearchQuery] = useState('') // State search query
+
+  // List of Indian States and Union Territories
+  const indianStates = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+    'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+    'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+    'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+    'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
+    'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
+  ]
   // Objection checkboxes - all default to true
   const [objectionCheckboxes, setObjectionCheckboxes] = useState({
     objection1: true,
@@ -394,6 +408,22 @@ Email: [USER_EMAIL]`
     
     localStorage.setItem('waqfLetterDataPublic', JSON.stringify(dataToSave))
   }, [fieldValues, senderEmail])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (stateDropdownOpen && !event.target.closest('.state-dropdown-container')) {
+        setStateDropdownOpen(false)
+      }
+    }
+
+    if (stateDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [stateDropdownOpen])
 
   const extractFields = (template) => {
     const fields = []
@@ -706,9 +736,6 @@ Email: [USER_EMAIL]`
       if (field.placeholder.toLowerCase().includes('name') && !field.placeholder.toLowerCase().includes('waqf')) {
         fieldType = 'name'
         fieldHint = shouldShowTooltip ? 'Enter full name (e.g., Ahmed Ali Khan)' : ''
-      } else if (field.placeholder.toLowerCase().includes('state waqf board')) {
-        fieldType = 'text'
-        fieldHint = shouldShowTooltip ? 'State of Waqf Board, Example: Bihar' : ''
       } else if ((field.placeholder.toLowerCase().includes('mobile') || field.placeholder.toLowerCase().includes('phone')) && shouldShowTooltip) {
         fieldType = 'phone'
         fieldHint = 'Enter 10-digit mobile number (e.g., 9876543210)'
@@ -726,35 +753,113 @@ Email: [USER_EMAIL]`
         fieldHint = 'Enter property/waqf name'
       }
       
-      parts.push(
-        <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
-          <input
-            key={field.id}
-            type={fieldType === 'email' ? 'email' : fieldType === 'phone' ? 'tel' : 'text'}
-            className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
-            placeholder={field.placeholder}
-            value={fieldValue}
-            onChange={(e) => handleFieldChange(field.id, e.target.value)}
-            maxLength={isShortField ? 2 : undefined}
-            autoCapitalize="words"
-            autoComplete="off"
-            spellCheck="false"
-            data-field-type={fieldType}
-            title={shouldShowTooltip ? (fieldHint || field.placeholder) : ''}
-            aria-label={field.placeholder}
-          />
-          {isEmpty && (
-            <span className="field-indicator" aria-hidden="true">
-              <span className="field-indicator-icon">✎</span>
-            </span>
-          )}
-          {!isEmpty && (
-            <span className="field-indicator filled" aria-hidden="true">
-              <span className="field-indicator-icon">✓</span>
-            </span>
-          )}
-        </span>
-      )
+      // Special handling for State Waqf Board - render as searchable dropdown
+      if (field.placeholder.toLowerCase().includes('state waqf board')) {
+        const filteredStates = indianStates.filter(state =>
+          state.toLowerCase().includes(stateSearchQuery.toLowerCase())
+        )
+        const isStateFieldEmpty = !fieldValue.trim()
+        
+        parts.push(
+          <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper state-dropdown-wrapper" data-field-type="state">
+            <div className="state-dropdown-container">
+              <input
+                key={field.id}
+                type="text"
+                className={`inline-field state-input ${isStateFieldEmpty ? 'field-empty' : 'field-filled'}`}
+                placeholder={field.placeholder}
+                value={fieldValue}
+                onChange={(e) => {
+                  handleFieldChange(field.id, e.target.value)
+                  setStateSearchQuery(e.target.value)
+                  setStateDropdownOpen(true)
+                }}
+                onFocus={() => {
+                  setStateDropdownOpen(true)
+                  setStateSearchQuery(fieldValue)
+                }}
+                onBlur={(e) => {
+                  // Delay closing to allow click on dropdown item
+                  setTimeout(() => {
+                    setStateDropdownOpen(false)
+                  }, 200)
+                }}
+                autoCapitalize="words"
+                autoComplete="off"
+                spellCheck="false"
+                data-field-type="state"
+                data-field-id={field.id}
+                title="Select or type to search Indian state"
+                aria-label={field.placeholder}
+              />
+              {isStateFieldEmpty && (
+                <span className="field-indicator" aria-hidden="true">
+                  <span className="field-indicator-icon">✎</span>
+                </span>
+              )}
+              {!isStateFieldEmpty && (
+                <span className="field-indicator filled" aria-hidden="true">
+                  <span className="field-indicator-icon">✓</span>
+                </span>
+              )}
+              {stateDropdownOpen && (
+                <div className="state-dropdown-list">
+                  {filteredStates.length > 0 ? (
+                    filteredStates.map((state, idx) => (
+                      <div
+                        key={idx}
+                        className="state-dropdown-item"
+                        onClick={() => {
+                          handleFieldChange(field.id, state)
+                          setStateSearchQuery('')
+                          setStateDropdownOpen(false)
+                        }}
+                        onMouseDown={(e) => e.preventDefault()} // Prevent blur
+                      >
+                        {state}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="state-dropdown-item no-results">
+                      No states found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </span>
+        )
+      } else {
+        parts.push(
+          <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
+            <input
+              key={field.id}
+              type={fieldType === 'email' ? 'email' : fieldType === 'phone' ? 'tel' : 'text'}
+              className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
+              placeholder={field.placeholder}
+              value={fieldValue}
+              onChange={(e) => handleFieldChange(field.id, e.target.value)}
+              maxLength={isShortField ? 2 : undefined}
+              autoCapitalize="words"
+              autoComplete="off"
+              spellCheck="false"
+              data-field-type={fieldType}
+              title={shouldShowTooltip ? (fieldHint || field.placeholder) : ''}
+              aria-label={field.placeholder}
+            />
+            {isEmpty && (
+              <span className="field-indicator" aria-hidden="true">
+                <span className="field-indicator-icon">✎</span>
+              </span>
+            )}
+            {!isEmpty && (
+              <span className="field-indicator filled" aria-hidden="true">
+                <span className="field-indicator-icon">✓</span>
+              </span>
+            )}
+          </span>
+        )
+      }
 
       lastIndex = field.index + field.fullMatch.length
     })
