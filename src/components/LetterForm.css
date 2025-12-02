@@ -985,24 +985,24 @@ input[type="file"] {
 
 /* Email Recipients Display */
 .email-recipients-display {
-  margin-top: 20px;
-  padding: 20px;
+  margin-top: 12px;
+  padding: 12px 16px;
   background: #f8f9fa;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid #e0e0e0;
 }
 
 .recipients-title {
-  margin: 0 0 16px 0;
-  font-size: 16px;
+  margin: 0 0 10px 0;
+  font-size: 14px;
   font-weight: 600;
   color: #333;
-  border-bottom: 2px solid #7c3aed;
-  padding-bottom: 8px;
+  border-bottom: 1px solid #7c3aed;
+  padding-bottom: 6px;
 }
 
 .recipients-section {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .recipients-section:last-child {
@@ -1010,8 +1010,12 @@ input[type="file"] {
 }
 
 .recipients-label {
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: top;
+  min-width: 80px;
 }
 
 .to-label strong {
@@ -1027,18 +1031,21 @@ input[type="file"] {
 }
 
 .recipients-emails {
-  display: flex;
+  display: inline-block;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
+  vertical-align: top;
 }
 
 .email-badge {
   display: inline-block;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
   font-weight: 500;
   word-break: break-all;
+  margin-right: 4px;
+  margin-bottom: 4px;
 }
 
 .to-badge {
