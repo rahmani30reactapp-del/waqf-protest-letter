@@ -450,9 +450,16 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     toEmails = [...new Set(toEmails)]
     ccEmails = [...new Set(ccEmails)]
     
+    // Get BCC emails
+    const bccEmails = process.env.REACT_APP_BCC_EMAIL
+    const bccEmailList = bccEmails ? bccEmails.split(',').map(email => email.trim()).filter(email => email) : []
+    
     return {
       to: toEmails.join(','),
-      cc: ccEmails.join(',')
+      cc: ccEmails.join(','),
+      toList: toEmails,
+      ccList: ccEmails,
+      bccList: bccEmailList
     }
   }
   // Objection checkboxes - all default to true
@@ -1886,17 +1893,48 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
               <span className="btn-text">Preview & Edit</span>
             </button>
           </div>
-          <p className="action-hint">
-            Your letter will be sent to: <strong>Central authorities</strong>
+          <div className="email-recipients-display">
+            <h4 className="recipients-title">Email Recipients (For Transparency)</h4>
             {(() => {
-              const stateBoardField = extractFields(letterTemplate).find(f => f.placeholder === 'State Waqf Board')
-              const selectedState = stateBoardField ? (fieldValues[stateBoardField.id] || '').trim() : ''
-              if (selectedState && stateEmails[selectedState]) {
-                return <span> + <strong>{selectedState} State authorities</strong></span>
-              }
-              return null
+              const recipients = getEmailRecipients()
+              return (
+                <>
+                  <div className="recipients-section">
+                    <div className="recipients-label to-label">
+                      <strong>TO ({recipients.toList.length}):</strong>
+                    </div>
+                    <div className="recipients-emails">
+                      {recipients.toList.map((email, idx) => (
+                        <span key={idx} className="email-badge to-badge">{email}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="recipients-section">
+                    <div className="recipients-label cc-label">
+                      <strong>CC ({recipients.ccList.length}):</strong>
+                    </div>
+                    <div className="recipients-emails">
+                      {recipients.ccList.map((email, idx) => (
+                        <span key={idx} className="email-badge cc-badge">{email}</span>
+                      ))}
+                    </div>
+                  </div>
+                  {recipients.bccList.length > 0 && (
+                    <div className="recipients-section">
+                      <div className="recipients-label bcc-label">
+                        <strong>BCC ({recipients.bccList.length} - Random Selection):</strong>
+                      </div>
+                      <div className="recipients-emails">
+                        {recipients.bccList.map((email, idx) => (
+                          <span key={idx} className="email-badge bcc-badge">{email}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )
             })()}
-          </p>
+          </div>
         </div>
       </form>
 

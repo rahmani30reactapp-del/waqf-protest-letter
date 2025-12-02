@@ -983,6 +983,82 @@ input[type="file"] {
   font-weight: 600;
 }
 
+/* Email Recipients Display */
+.email-recipients-display {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.recipients-title {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #7c3aed;
+  padding-bottom: 8px;
+}
+
+.recipients-section {
+  margin-bottom: 16px;
+}
+
+.recipients-section:last-child {
+  margin-bottom: 0;
+}
+
+.recipients-label {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.to-label strong {
+  color: #059669;
+}
+
+.cc-label strong {
+  color: #2563eb;
+}
+
+.bcc-label strong {
+  color: #dc2626;
+}
+
+.recipients-emails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.email-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.to-badge {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.cc-badge {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.bcc-badge {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
 /* Status Messages */
 .submit-status {
   padding: 16px 20px;
