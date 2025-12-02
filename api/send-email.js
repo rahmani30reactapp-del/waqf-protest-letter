@@ -20,6 +20,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  // Helper function to encode email subject with special characters
+  const encodeSubject = (subject) => {
+    // Check if subject contains non-ASCII characters
+    const hasNonASCII = /[^\x00-\x7F]/.test(subject)
+    if (!hasNonASCII) return subject
+    
+    // Encode using RFC 2047 format for UTF-8
+    // Format: =?charset?encoding?encoded-text?=
+    const encoded = Buffer.from(subject, 'utf8').toString('base64')
+    return `=?UTF-8?B?${encoded}?=`
+  }
+
   const {
     to_email,
     cc_email,
@@ -34,6 +46,9 @@ export default async function handler(req, res) {
     pdf_filename, // PDF filename
     attachments, // Array of additional attachments [{filename, content, type}]
   } = req.body
+
+  // Encode subject to handle special characters properly
+  const encodedSubject = encodeSubject(subject)
 
   // Validate required fields
   if (!to_email || !subject || !message) {
@@ -57,7 +72,7 @@ export default async function handler(req, res) {
         if (bcc_email) {
           emailLines.push(`Bcc: ${bcc_email}`)
         }
-        emailLines.push(`Subject: ${subject}`)
+        emailLines.push(`Subject: ${encodedSubject}`)
         if (reply_to) {
           emailLines.push(`Reply-To: ${reply_to}`)
         }
@@ -196,7 +211,7 @@ export default async function handler(req, res) {
           bcc: bcc_email ? bcc_email.split(',').map(email => email.trim()) : undefined,
           from: from_email || process.env.FROM_EMAIL,
           replyTo: reply_to || from_email,
-          subject: subject,
+          subject: encodedSubject,
           text: message,
           html: `<pre style="font-family: monospace; white-space: pre-wrap; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</pre>`,
         }
@@ -295,9 +310,8 @@ export default async function handler(req, res) {
           to: to_email,
           cc: cc_email || undefined,
           bcc: bcc_email || undefined,
-          bcc: bcc_email || undefined,
           replyTo: reply_to || from_email,
-          subject: subject,
+          subject: subject, // SendGrid API handles UTF-8 natively
           text: message,
           html: `<pre style="font-family: monospace; white-space: pre-wrap; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</pre>`,
         }
