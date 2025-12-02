@@ -211,6 +211,36 @@ input[type="file"] {
   border-color: #059669;
 }
 
+/* Error State - Empty Required Field */
+.inline-field.field-error {
+  border-color: #ef4444 !important;
+  background: #fef2f2 !important;
+  border-style: solid !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+  animation: pulse-error 0.5s ease-in-out;
+}
+
+.inline-field.field-error:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+}
+
+@keyframes pulse-error {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.3);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  }
+}
+
 /* Focus State */
 .inline-field:focus {
   border-color: #4f46e5;

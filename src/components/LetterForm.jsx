@@ -451,6 +451,41 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     }))
   }
 
+  // Function to scroll to and highlight the first empty field
+  const scrollToFirstEmptyField = (missingFields) => {
+    if (missingFields.length === 0) return
+
+    const firstMissingField = missingFields[0]
+    const fieldElement = document.querySelector(`input[data-field-id="${firstMissingField.id}"]`)
+    
+    if (fieldElement) {
+      // Remove previous error highlights
+      document.querySelectorAll('.inline-field.field-error').forEach(el => {
+        el.classList.remove('field-error')
+      })
+      
+      // Add error class to the empty field
+      fieldElement.classList.add('field-error')
+      
+      // Scroll to the field smoothly
+      fieldElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center',
+        inline: 'nearest'
+      })
+      
+      // Focus on the field after a short delay to ensure scroll completes
+      setTimeout(() => {
+        fieldElement.focus()
+        // Pulse animation
+        fieldElement.style.animation = 'pulse-error 0.5s ease-in-out'
+        setTimeout(() => {
+          fieldElement.style.animation = ''
+        }, 500)
+      }, 300)
+    }
+  }
+
   const generateFinalLetter = (isForEmail = false) => {
     let finalContent = letterTemplate
     
@@ -722,12 +757,17 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
             placeholder={field.placeholder}
             value={fieldValue}
-            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+            onChange={(e) => {
+              handleFieldChange(field.id, e.target.value)
+              // Remove error class when user starts typing
+              e.target.classList.remove('field-error')
+            }}
             maxLength={isShortField ? 2 : undefined}
             autoCapitalize="words"
             autoComplete="off"
             spellCheck="false"
             data-field-type={fieldType}
+            data-field-id={field.id}
             title={shouldShowTooltip ? (fieldHint || field.placeholder) : ''}
             aria-label={field.placeholder}
           />
@@ -952,9 +992,12 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       })
 
       if (missingFields.length > 0) {
+        // Scroll to and highlight the first empty field
+        scrollToFirstEmptyField(missingFields)
+        
         setSubmitStatus({
           type: 'error',
-          message: `Please fill in all fields. ${missingFields.length} field(s) remaining.`,
+          message: `Please fill in all fields. ${missingFields.length} field(s) remaining. The first empty field has been highlighted.`,
         })
         setIsSubmitting(false)
         return
@@ -1235,6 +1278,24 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
 
   const handleDownloadPDF = async () => {
     try {
+      // Validate required fields before generating PDF
+      const fields = extractFields(letterTemplate)
+      const missingFields = fields.filter(field => {
+        const value = fieldValues[field.id]
+        return !value || value.trim() === ''
+      })
+
+      if (missingFields.length > 0) {
+        // Scroll to and highlight the first empty field
+        scrollToFirstEmptyField(missingFields)
+        
+        setSubmitStatus({
+          type: 'error',
+          message: `Please fill in all fields before downloading. ${missingFields.length} field(s) remaining. The first empty field has been highlighted.`,
+        })
+        return
+      }
+
       const letterContent = generateFinalLetter()
       const pdfBlob = await generatePDFBlob()
       
@@ -1546,7 +1607,6 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
               type="button"
               onClick={handleDownloadPDF}
               className="download-btn"
-              disabled={filledFields < totalFields}
             >
               <span className="btn-icon">📄</span>
               <span className="btn-text">Download PDF</span>
@@ -1554,11 +1614,28 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             <button
               type="button"
               onClick={() => {
+                // Validate fields before opening preview
+                const fields = extractFields(letterTemplate)
+                const missingFields = fields.filter(field => {
+                  const value = fieldValues[field.id]
+                  return !value || value.trim() === ''
+                })
+
+                if (missingFields.length > 0) {
+                  // Scroll to and highlight the first empty field
+                  scrollToFirstEmptyField(missingFields)
+                  
+                  setSubmitStatus({
+                    type: 'error',
+                    message: `Please fill in all fields before previewing. ${missingFields.length} field(s) remaining. The first empty field has been highlighted.`,
+                  })
+                  return
+                }
+
                 setEditablePreviewContent(generateFinalLetter())
                 setShowPreview(true)
               }}
               className="preview-btn"
-              disabled={filledFields < totalFields}
             >
               <span className="btn-icon">✏️</span>
               <span className="btn-text">Preview & Edit</span>
