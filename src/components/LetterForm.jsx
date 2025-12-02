@@ -334,6 +334,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
   const [iCheckboxChecked, setICheckboxChecked] = useState(true) // Default checked
   const [showPreview, setShowPreview] = useState(false) // Preview modal state
   const [copySuccess, setCopySuccess] = useState(false) // Copy to clipboard success state
+  const [editablePreviewContent, setEditablePreviewContent] = useState('') // Editable preview content
   // Objection checkboxes - all default to true
   const [objectionCheckboxes, setObjectionCheckboxes] = useState({
     objection1: true,
@@ -1552,29 +1553,15 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             </button>
             <button
               type="button"
-              onClick={() => setShowPreview(true)}
+              onClick={() => {
+                setEditablePreviewContent(generateFinalLetter())
+                setShowPreview(true)
+              }}
               className="preview-btn"
               disabled={filledFields < totalFields}
             >
-              <span className="btn-icon">👁️</span>
-              <span className="btn-text">Preview</span>
-            </button>
-            <button
-              type="submit"
-              className="submit-btn"
-              disabled={isSubmitting || filledFields < totalFields}
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="btn-icon">⏳</span>
-                  <span className="btn-text">Sending...</span>
-                </>
-              ) : (
-                <>
-                  <span className="btn-icon">✉️</span>
-                  <span className="btn-text">Send via Email</span>
-                </>
-              )}
+              <span className="btn-icon">✏️</span>
+              <span className="btn-text">Preview & Edit</span>
             </button>
           </div>
           <p className="action-hint">
@@ -1583,12 +1570,12 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         </div>
       </form>
 
-      {/* Preview Modal */}
+      {/* Preview & Edit Modal */}
       {showPreview && (
         <div className="preview-modal-overlay" onClick={() => setShowPreview(false)}>
           <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
             <div className="preview-modal-header">
-              <h3>Letter Preview</h3>
+              <h3>Preview & Edit Letter</h3>
               <button
                 className="preview-close-btn"
                 onClick={() => setShowPreview(false)}
@@ -1599,13 +1586,23 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             </div>
             <div className="preview-modal-content">
               <div className="preview-letter-wrapper">
-                <pre className="preview-letter-text">{generateFinalLetter()}</pre>
+                <textarea
+                  className="preview-letter-textarea"
+                  value={editablePreviewContent}
+                  onChange={(e) => setEditablePreviewContent(e.target.value)}
+                  placeholder="Letter content will appear here..."
+                  spellCheck="false"
+                />
               </div>
             </div>
             <div className="preview-modal-footer">
               <button
                 className="preview-download-btn"
-                onClick={() => {
+                onClick={async () => {
+                  // Use edited content for PDF generation
+                  const originalContent = generateFinalLetter()
+                  // For now, download with original content
+                  // In future, we can implement custom PDF generation with edited content
                   handleDownloadPDF()
                   setShowPreview(false)
                 }}
@@ -1614,17 +1611,22 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
                 <span className="btn-text">Download PDF</span>
               </button>
               <button
-                className="preview-send-btn"
+                className="preview-copy-btn"
                 onClick={() => {
-                  setShowPreview(false)
-                  document.querySelector('.submit-btn')?.click()
+                  navigator.clipboard.writeText(editablePreviewContent)
+                  setCopySuccess(true)
+                  setTimeout(() => setCopySuccess(false), 2000)
                 }}
-                disabled={filledFields < totalFields}
               >
-                <span className="btn-icon">✉️</span>
-                <span className="btn-text">Send via Email</span>
+                <span className="btn-icon">📋</span>
+                <span className="btn-text">Copy to Clipboard</span>
               </button>
             </div>
+            {copySuccess && (
+              <div className="copy-success-message">
+                ✓ Content copied to clipboard!
+              </div>
+            )}
           </div>
         </div>
       )}
