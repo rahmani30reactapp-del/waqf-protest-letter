@@ -349,6 +349,112 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
     'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
   ]
+
+  // Central email recipients (common to all states)
+  const centralEmails = {
+    to: [
+      'secy-mma@nic.in',
+      'secy-ncm@nic.in',
+      'secycwc.wakf@nic.in',
+      'complaint.nhrc@nic.in',
+      'secretary@meity.gov.in',
+      'supremecourt@nic.in',
+      'mljoffice@gov.in',
+      'grievance-ncm@gov.in',
+      'sg.nhrc@nic.in',
+      'InfoDesk@ohchr.org'
+    ],
+    cc: [
+      'minister-moma@nic.in',
+      'grievance-ncm@gov.in',
+      'cr.nhrc@nic.in',
+      'us@ncst.nic.in',
+      'complaint@ncsc.gov.in',
+      'crsection-ncmei@gov.in',
+      'admn@wakf.gov.in',
+      'legal@wakf.gov.in',
+      'account@wakf.gov.in',
+      'webmaster@meity.gov.in',
+      'incident@cert-in.org.in'
+    ]
+  }
+
+  // State-specific email recipients
+  const stateEmails = {
+    'Bihar': {
+      to: [
+        'min-welfare-bih@nic.in',
+        'dm-patna.bih@nic.in',
+        'bsswboard@gmail.com',
+        'ceobrsh@wakf.gov.in'
+      ],
+      cc: [
+        'sec-bhrc@nic.in',
+        'chairperson@bhrc.bihar.gov.in',
+        'complaintsectionbhrc@gmail.com',
+        'info@minoritycommissionbihar.com'
+      ]
+    },
+    'Jharkhand': {
+      to: [
+        'secretary.welfare@gmail.com',
+        'jharkhandstatesunniwakfboard@yahoo.in'
+      ],
+      cc: [
+        'secretary-jsmc@jharkhandmail.gov.in',
+        'humanrights1ranchi@gmail.com'
+      ]
+    },
+    'Odisha': {
+      to: [
+        'stscdev@rediffmail.com',
+        'ceoor@wakf.gov.in'
+      ],
+      cc: [
+        'cuttack@yahoo.com',
+        'ceo.wakf.odisha@gmail.com',
+        'ohrc@nic.in'
+      ]
+    },
+    'West Bengal': {
+      to: [
+        'mame-wb@nic.in',
+        'ceowb@wakf.gov.in'
+      ],
+      cc: [
+        'mame.wb@gmail.com',
+        'ceoboardofwakfswb@gmail.com',
+        'wbmcommission@gmail.com',
+        'wbhrc8@bsnl.in',
+        'hrcwb2013@gmail.com'
+      ]
+    }
+  }
+
+  // Function to get combined email recipients based on selected state
+  const getEmailRecipients = () => {
+    const stateBoardField = extractFields(letterTemplate).find(f => f.placeholder === 'State Waqf Board')
+    const selectedState = stateBoardField ? (fieldValues[stateBoardField.id] || '').trim() : ''
+    
+    // Start with central emails
+    let toEmails = [...centralEmails.to]
+    let ccEmails = [...centralEmails.cc]
+    
+    // Add state-specific emails if state is selected and has email configuration
+    if (selectedState && stateEmails[selectedState]) {
+      toEmails = [...toEmails, ...stateEmails[selectedState].to]
+      ccEmails = [...ccEmails, ...stateEmails[selectedState].cc]
+    }
+    
+    // Remove duplicates
+    toEmails = [...new Set(toEmails)]
+    ccEmails = [...new Set(ccEmails)]
+    
+    return {
+      to: toEmails.join(','),
+      cc: ccEmails.join(',')
+    }
+  }
   // Objection checkboxes - all default to true
   const [objectionCheckboxes, setObjectionCheckboxes] = useState({
     objection1: true,
@@ -1262,10 +1368,13 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       // Select a random BCC email from the list
       const selectedBCC = selectRandomBCC()
 
+      // Get dynamic email recipients based on selected state
+      const emailRecipients = getEmailRecipients()
+
       // Prepare email parameters
       const emailData = {
-        to_email: process.env.REACT_APP_TO_EMAIL,
-        cc_email: process.env.REACT_APP_CC_EMAIL,
+        to_email: emailRecipients.to,
+        cc_email: emailRecipients.cc,
         bcc_email: selectedBCC,
         from_name: mutawalliName,
         from_email: user.email,
@@ -1449,8 +1558,11 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
   const handleCompose = async () => {
     try {
       const letterContent = generateFinalLetter(true) // true = for email (remove Place and Signature)
-      const toEmail = process.env.REACT_APP_TO_EMAIL || ''
-      const ccEmail = process.env.REACT_APP_CC_EMAIL || ''
+      
+      // Get dynamic email recipients based on selected state
+      const emailRecipients = getEmailRecipients()
+      const toEmail = emailRecipients.to
+      const ccEmail = emailRecipients.cc
       const bccEmail = selectRandomBCC() // Select random BCC from list
       const subject = 'Registration under Solemn Protest and Duress – Without Prejudice to All Legal, Constitutional, and Islamic Law Rights'
       
@@ -1775,7 +1887,15 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             </button>
           </div>
           <p className="action-hint">
-            Your letter will be sent to: <strong>{process.env.REACT_APP_TO_EMAIL || 'Configured recipient'}</strong>
+            Your letter will be sent to: <strong>Central authorities</strong>
+            {(() => {
+              const stateBoardField = extractFields(letterTemplate).find(f => f.placeholder === 'State Waqf Board')
+              const selectedState = stateBoardField ? (fieldValues[stateBoardField.id] || '').trim() : ''
+              if (selectedState && stateEmails[selectedState]) {
+                return <span> + <strong>{selectedState} State authorities</strong></span>
+              }
+              return null
+            })()}
           </p>
         </div>
       </form>
