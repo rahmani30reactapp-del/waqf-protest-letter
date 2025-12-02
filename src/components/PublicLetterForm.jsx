@@ -1816,33 +1816,7 @@ Email: [USER_EMAIL]`
               <span className="btn-icon">👁️</span>
               <span className="btn-text">Preview</span>
             </button>
-            <button
-              type="button"
-              onClick={handleCompose}
-              className="compose-btn"
-              disabled={filledFields < totalFields}
-            >
-              {copySuccess ? (
-                <>
-                  <span className="btn-icon">✓</span>
-                  <span className="btn-text">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <span className="btn-icon">✉️</span>
-                  <span className="btn-text">Compose</span>
-                </>
-              )}
-            </button>
           </div>
-          {copySuccess && (
-            <div className="copy-success-message">
-              <span className="copy-success-icon">✓</span>
-              <span className="copy-success-text">
-                    <strong>Email body copied to clipboard!</strong> PDF downloaded and email composer opened with To, CC, and Subject pre-filled.
-              </span>
-            </div>
-          )}
           <div className="email-recipients-display">
             <h4 className="recipients-title">Email Recipients</h4>
             {(() => {
@@ -1886,7 +1860,7 @@ Email: [USER_EMAIL]`
             })()}
           </div>
           <p className="action-hint">
-            Use the <strong>Compose</strong> button to open your email client with pre-filled content, or <strong>Download PDF</strong> to save the letter.
+            Use the <strong>Preview</strong> button to review your letter, then use <strong>Compose</strong> or <strong>Download PDF</strong> from the preview window.
           </p>
         </div>
       </form>
@@ -1929,8 +1903,8 @@ Email: [USER_EMAIL]`
                 }}
                 disabled={filledFields < totalFields}
               >
-                <span className="btn-icon">📋</span>
-                <span className="btn-text">Compose Email</span>
+                <span className="btn-icon">✉️</span>
+                <span className="btn-text">Compose</span>
               </button>
             </div>
           </div>
