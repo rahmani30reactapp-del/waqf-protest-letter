@@ -42,6 +42,8 @@ Property Description (survey no./address): [Property Description]
 
 Pursuant to the Waqf (Amendment) Act, 2025 and the introduction of the "UMEED" portal / online registration system, I am now being required to upload complete details of this waqf and to re‑register / confirm registration within the statutory time‑limit.
 
+[UMEED_PORTAL_PARAGRAPH]
+
 Through this letter, I submit the required documents only under protest, under legal duress, and without waiving any rights.
 
 1. INVOLUNTARY & COERCED COMPLIANCE – STRUCTURE OF DURESS
@@ -614,17 +616,15 @@ Email: [USER_EMAIL]`
     // Use text-based checkbox for better PDF compatibility
     const checkboxSymbol = iCheckboxChecked ? '[✓]' : '[ ]'
     finalContent = finalContent.replace('[I_CHECKBOX]', checkboxSymbol)
-
+    
     // Handle UMEED portal paragraph - only add if checkbox is checked
+    const umeedPortalParagraph = `IMPORTANT: I record that the UMEED portal was repeatedly non-functional when I attempted to upload the required documents. The failure to submit is entirely due to the State's technical failure, not any fault on my part. I am reporting this issue to support-umeed@gov.in so that there is clear evidence that I tried to comply but was prevented from doing so. No adverse inference, penalty or bar under Section 36(10), 61 or 62 can arise from a portal malfunction. This compliance is therefore under duress and without prejudice to all my rights.
+
+`
     if (umeedPortalCheckbox) {
-      const umeedPortalParagraph = `\n\nIMPORTANT: I record that the UMEED portal was repeatedly non-functional when I attempted to upload the required documents. The failure to submit is entirely due to the State's technical failure, not any fault on my part. I am reporting this issue to support-umeed@gov.in so that there is clear evidence that I tried to comply but was prevented from doing so. No adverse inference, penalty or bar under Section 36(10), 61 or 62 can arise from a portal malfunction. This compliance is therefore under duress and without prejudice to all my rights.\n\n`
-      // Insert after "Pursuant to the Waqf (Amendment) Act, 2025..." paragraph
-      const insertAfter = 'Pursuant to the Waqf (Amendment) Act, 2025 and the introduction of the "UMEED" portal / online registration system, I am now being required to upload complete details of this waqf and to re‑register / confirm registration within the statutory time‑limit.'
-      const insertIndex = finalContent.indexOf(insertAfter)
-      if (insertIndex !== -1) {
-        const insertPosition = insertIndex + insertAfter.length
-        finalContent = finalContent.substring(0, insertPosition) + umeedPortalParagraph + finalContent.substring(insertPosition)
-      }
+      finalContent = finalContent.replace('[UMEED_PORTAL_PARAGRAPH]', umeedPortalParagraph)
+    } else {
+      finalContent = finalContent.replace('[UMEED_PORTAL_PARAGRAPH]', '')
     }
     
     // Handle OBJECTION_22 (Acknowledgment) SEPARATELY - always show in PDF, always remove from email
@@ -956,35 +956,35 @@ Email: [USER_EMAIL]`
           </span>
         )
       } else {
-        parts.push(
-          <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
-            <input
-              key={field.id}
-              type={fieldType === 'email' ? 'email' : fieldType === 'phone' ? 'tel' : 'text'}
-              className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
-              placeholder={field.placeholder}
-              value={fieldValue}
-              onChange={(e) => handleFieldChange(field.id, e.target.value)}
-              maxLength={isShortField ? 2 : undefined}
-              autoCapitalize="words"
-              autoComplete="off"
-              spellCheck="false"
-              data-field-type={fieldType}
-              title={shouldShowTooltip ? (fieldHint || field.placeholder) : ''}
-              aria-label={field.placeholder}
-            />
-            {isEmpty && (
-              <span className="field-indicator" aria-hidden="true">
-                <span className="field-indicator-icon">✎</span>
-              </span>
-            )}
-            {!isEmpty && (
-              <span className="field-indicator filled" aria-hidden="true">
-                <span className="field-indicator-icon">✓</span>
-              </span>
-            )}
-          </span>
-        )
+      parts.push(
+        <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
+          <input
+            key={field.id}
+            type={fieldType === 'email' ? 'email' : fieldType === 'phone' ? 'tel' : 'text'}
+            className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
+            placeholder={field.placeholder}
+            value={fieldValue}
+            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+            maxLength={isShortField ? 2 : undefined}
+            autoCapitalize="words"
+            autoComplete="off"
+            spellCheck="false"
+            data-field-type={fieldType}
+            title={shouldShowTooltip ? (fieldHint || field.placeholder) : ''}
+            aria-label={field.placeholder}
+          />
+          {isEmpty && (
+            <span className="field-indicator" aria-hidden="true">
+              <span className="field-indicator-icon">✎</span>
+            </span>
+          )}
+          {!isEmpty && (
+            <span className="field-indicator filled" aria-hidden="true">
+              <span className="field-indicator-icon">✓</span>
+            </span>
+          )}
+        </span>
+      )
       }
 
       lastIndex = field.index + field.fullMatch.length
@@ -1823,7 +1823,7 @@ Email: [USER_EMAIL]`
             <div className="copy-success-message">
               <span className="copy-success-icon">✓</span>
               <span className="copy-success-text">
-                <strong>Email body copied to clipboard!</strong> PDF downloaded and email composer opened with To, CC, and Subject pre-filled.
+                    <strong>Email body copied to clipboard!</strong> PDF downloaded and email composer opened with To, CC, and Subject pre-filled.
               </span>
             </div>
           )}
