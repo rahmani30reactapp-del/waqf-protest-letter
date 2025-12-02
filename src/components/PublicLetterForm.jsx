@@ -1801,7 +1801,7 @@ Email: [USER_EMAIL]`
             </div>
           )}
           <div className="email-recipients-display">
-            <h4 className="recipients-title">Email Recipients (For Transparency)</h4>
+            <h4 className="recipients-title">Email Recipients</h4>
             {(() => {
               const recipients = getEmailRecipients()
               return (
