@@ -42,6 +42,8 @@ Property Description (survey no./address): [Property Description]
 
 Pursuant to the Waqf (Amendment) Act, 2025 and the introduction of the "UMEED" portal / online registration system, I am now being required to upload complete details of this waqf and to re‑register / confirm registration within the statutory time‑limit.
 
+[UMEED_PORTAL_PARAGRAPH]
+
 Through this letter, I submit the required documents only under protest, under legal duress, and without waiving any rights.
 
 1. INVOLUNTARY & COERCED COMPLIANCE – STRUCTURE OF DURESS
@@ -487,6 +489,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     objection21: true,
     objection22: true,
   })
+  const [umeedPortalCheckbox, setUmeedPortalCheckbox] = useState(false)
   const [attachments, setAttachments] = useState({
     waqfDeed: null, // Annexure A
     titleDocuments: null, // Annexure B
@@ -655,6 +658,16 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     // Use text-based checkbox for better PDF compatibility
     const checkboxSymbol = iCheckboxChecked ? '[✓]' : '[ ]'
     finalContent = finalContent.replace('[I_CHECKBOX]', checkboxSymbol)
+
+    // Handle UMEED portal paragraph - only add if checkbox is checked
+    const umeedPortalParagraph = `IMPORTANT: I record that the UMEED portal was repeatedly non-functional when I attempted to upload the required documents. The failure to submit is entirely due to the State's technical failure, not any fault on my part. I am reporting this issue to support-umeed@gov.in so that there is clear evidence that I tried to comply but was prevented from doing so. No adverse inference, penalty or bar under Section 36(10), 61 or 62 can arise from a portal malfunction. This compliance is therefore under duress and without prejudice to all my rights.
+
+`
+    if (umeedPortalCheckbox) {
+      finalContent = finalContent.replace('[UMEED_PORTAL_PARAGRAPH]', umeedPortalParagraph)
+    } else {
+      finalContent = finalContent.replace('[UMEED_PORTAL_PARAGRAPH]', '')
+    }
     
     // Handle OBJECTION_22 (Acknowledgment) SEPARATELY - always show in PDF, always remove from email
     // This must be handled BEFORE processing other objections
@@ -1719,6 +1732,20 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             <li>You can download as PDF or send directly via email</li>
           </ul>
         </div>
+      </div>
+
+      <div className="umeed-portal-checkbox-section">
+        <label className="umeed-checkbox-label">
+          <input
+            type="checkbox"
+            checked={umeedPortalCheckbox}
+            onChange={(e) => setUmeedPortalCheckbox(e.target.checked)}
+            className="umeed-checkbox-input"
+          />
+          <span className="umeed-checkbox-text">
+            Check this box if you were unable to complete UMEED portal registration due to portal errors or non-availability; this protest note will be added as evidence of your attempt to comply, though it carries no guarantee and is provided strictly on a best-effort basis
+          </span>
+        </label>
       </div>
 
       <form onSubmit={handleSubmit} className="letter-form">
