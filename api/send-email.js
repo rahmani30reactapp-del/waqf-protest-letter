@@ -23,6 +23,7 @@ export default async function handler(req, res) {
   const {
     to_email,
     cc_email,
+    bcc_email,
     from_name,
     from_email,
     subject,
@@ -52,6 +53,9 @@ export default async function handler(req, res) {
         emailLines.push(`To: ${to_email}`)
         if (cc_email) {
           emailLines.push(`Cc: ${cc_email}`)
+        }
+        if (bcc_email) {
+          emailLines.push(`Bcc: ${bcc_email}`)
         }
         emailLines.push(`Subject: ${subject}`)
         if (reply_to) {
@@ -189,6 +193,7 @@ export default async function handler(req, res) {
         const msg = {
           to: to_email,
           cc: cc_email ? cc_email.split(',').map(email => email.trim()) : undefined,
+          bcc: bcc_email ? bcc_email.split(',').map(email => email.trim()) : undefined,
           from: from_email || process.env.FROM_EMAIL,
           replyTo: reply_to || from_email,
           subject: subject,
@@ -289,6 +294,8 @@ export default async function handler(req, res) {
           from: `"${from_name}" <${from_email || cleanUser}>`,
           to: to_email,
           cc: cc_email || undefined,
+          bcc: bcc_email || undefined,
+          bcc: bcc_email || undefined,
           replyTo: reply_to || from_email,
           subject: subject,
           text: message,

@@ -486,6 +486,22 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     }
   }
 
+  // Helper function to select a random BCC email from multiple addresses
+  const selectRandomBCC = () => {
+    const bccEmails = process.env.REACT_APP_BCC_EMAIL
+    if (!bccEmails) return ''
+    
+    // Split by comma and trim each email
+    const emailList = bccEmails.split(',').map(email => email.trim()).filter(email => email)
+    
+    if (emailList.length === 0) return ''
+    if (emailList.length === 1) return emailList[0]
+    
+    // Randomly select one email from the list
+    const randomIndex = Math.floor(Math.random() * emailList.length)
+    return emailList[randomIndex]
+  }
+
   const generateFinalLetter = (isForEmail = false) => {
     let finalContent = letterTemplate
     
@@ -1137,10 +1153,14 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       // Wait for all attachments to be converted
       await Promise.all(attachmentPromises)
 
+      // Select a random BCC email from the list
+      const selectedBCC = selectRandomBCC()
+
       // Prepare email parameters
       const emailData = {
         to_email: process.env.REACT_APP_TO_EMAIL,
         cc_email: process.env.REACT_APP_CC_EMAIL,
+        bcc_email: selectedBCC,
         from_name: mutawalliName,
         from_email: user.email,
         subject: 'Registration under Solemn Protest and Duress – Without Prejudice to All Legal, Constitutional, and Islamic Law Rights',
@@ -1325,6 +1345,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       const letterContent = generateFinalLetter(true) // true = for email (remove Place and Signature)
       const toEmail = process.env.REACT_APP_TO_EMAIL || ''
       const ccEmail = process.env.REACT_APP_CC_EMAIL || ''
+      const bccEmail = selectRandomBCC() // Select random BCC from list
       const subject = 'Registration under Solemn Protest and Duress – Without Prejudice to All Legal, Constitutional, and Islamic Law Rights'
       
       // First, auto-download the PDF
@@ -1378,13 +1399,16 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       // Body is already copied to clipboard for user to paste
       
       if (isGmailUser) {
-        // Gmail compose URL format - only To, CC, Subject (no body)
+        // Gmail compose URL format - only To, CC, BCC, Subject (no body)
         const gmailParams = new URLSearchParams()
         if (toEmail && toEmail.trim()) {
           gmailParams.append('to', toEmail.trim())
         }
         if (ccEmail && ccEmail.trim()) {
           gmailParams.append('cc', ccEmail.trim())
+        }
+        if (bccEmail && bccEmail.trim()) {
+          gmailParams.append('bcc', bccEmail.trim())
         }
         gmailParams.append('su', subject)
         // No body parameter - user will paste from clipboard
@@ -1394,7 +1418,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         // Open Gmail compose
         window.open(gmailUrl, '_blank')
       } else {
-        // Build mailto link with only To, CC, Subject (no body)
+        // Build mailto link with only To, CC, BCC, Subject (no body)
         let mailtoLink = 'mailto:'
         
         if (toEmail && toEmail.trim()) {
@@ -1406,6 +1430,9 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         const params = []
         if (ccEmail && ccEmail.trim()) {
           params.push(`cc=${encodeMailtoParam(ccEmail.trim())}`)
+        }
+        if (bccEmail && bccEmail.trim()) {
+          params.push(`bcc=${encodeMailtoParam(bccEmail.trim())}`)
         }
         params.push(`subject=${encodeMailtoParam(subject)}`)
         // No body parameter - user will paste from clipboard

@@ -444,6 +444,22 @@ Email: [USER_EMAIL]`
     }))
   }
 
+  // Helper function to select a random BCC email from multiple addresses
+  const selectRandomBCC = () => {
+    const bccEmails = process.env.REACT_APP_BCC_EMAIL
+    if (!bccEmails) return ''
+    
+    // Split by comma and trim each email
+    const emailList = bccEmails.split(',').map(email => email.trim()).filter(email => email)
+    
+    if (emailList.length === 0) return ''
+    if (emailList.length === 1) return emailList[0]
+    
+    // Randomly select one email from the list
+    const randomIndex = Math.floor(Math.random() * emailList.length)
+    return emailList[randomIndex]
+  }
+
   const generateFinalLetter = (isForEmail = false) => {
     let finalContent = letterTemplate
     
@@ -1073,10 +1089,14 @@ Email: [USER_EMAIL]`
       // Wait for all attachments to be converted
       await Promise.all(attachmentPromises)
 
+      // Select a random BCC email from the list
+      const selectedBCC = selectRandomBCC()
+
       // Prepare email parameters (without OAuth token - uses SMTP only)
       const emailData = {
         to_email: process.env.REACT_APP_TO_EMAIL,
         cc_email: process.env.REACT_APP_CC_EMAIL,
+        bcc_email: selectedBCC,
         from_name: mutawalliName,
         from_email: senderEmail, // Use sender email input
         subject: 'Registration under Solemn Protest and Duress – Without Prejudice to All Legal, Constitutional, and Islamic Law Rights',
@@ -1288,6 +1308,7 @@ Email: [USER_EMAIL]`
       const letterContent = generateFinalLetter(true) // true = for email (remove Place and Signature)
       const toEmail = process.env.REACT_APP_TO_EMAIL || ''
       const ccEmail = process.env.REACT_APP_CC_EMAIL || ''
+      const bccEmail = selectRandomBCC() // Select random BCC from list
       const subject = 'Registration under Solemn Protest and Duress – Without Prejudice to All Legal, Constitutional, and Islamic Law Rights'
       
       // First, auto-download the PDF
@@ -1344,13 +1365,16 @@ Email: [USER_EMAIL]`
       // Body contains instructions for user to remove and paste copied content
       
       if (isGmailUser) {
-        // Gmail compose URL format - To, CC, Subject, and instruction body
+        // Gmail compose URL format - To, CC, BCC, Subject, and instruction body
         const gmailParams = new URLSearchParams()
         if (toEmail && toEmail.trim()) {
           gmailParams.append('to', toEmail.trim())
         }
         if (ccEmail && ccEmail.trim()) {
           gmailParams.append('cc', ccEmail.trim())
+        }
+        if (bccEmail && bccEmail.trim()) {
+          gmailParams.append('bcc', bccEmail.trim())
         }
         gmailParams.append('su', subject)
         gmailParams.append('body', instructionText)
@@ -1372,6 +1396,9 @@ Email: [USER_EMAIL]`
         const params = []
         if (ccEmail && ccEmail.trim()) {
           params.push(`cc=${encodeMailtoParam(ccEmail.trim())}`)
+        }
+        if (bccEmail && bccEmail.trim()) {
+          params.push(`bcc=${encodeMailtoParam(bccEmail.trim())}`)
         }
         params.push(`subject=${encodeMailtoParam(subject)}`)
         params.push(`body=${encodeMailtoParam(instructionText)}`)
