@@ -572,6 +572,10 @@ Email: [USER_EMAIL]`
       if (match[1].startsWith('OBJECTION_') && match[1].endsWith('_CHECKBOX')) {
         continue
       }
+      // Skip UMEED_PORTAL_PARAGRAPH as it's handled conditionally based on checkbox
+      if (match[1] === 'UMEED_PORTAL_PARAGRAPH') {
+        continue
+      }
       fields.push({
         id: `field_${id++}`,
         placeholder: match[1],
@@ -801,6 +805,18 @@ Email: [USER_EMAIL]`
         textBefore = textBefore.replace('[USER_PHONE]', mobileNumber || '[Phone]')
         // Replace USER_EMAIL with sender email
         textBefore = textBefore.replace('[USER_EMAIL]', senderEmail || '[Email]')
+        
+        // Handle UMEED_PORTAL_PARAGRAPH - show paragraph if checked, remove if unchecked
+        if (textBefore.includes('[UMEED_PORTAL_PARAGRAPH]')) {
+          if (umeedPortalCheckbox) {
+            const umeedPortalParagraph = `IMPORTANT: I record that the UMEED portal was repeatedly non-functional when I attempted to upload the required documents. The failure to submit is entirely due to the State's technical failure, not any fault on my part. I am reporting this issue to support-umeed@gov.in so that there is clear evidence that I tried to comply but was prevented from doing so. No adverse inference, penalty or bar under Section 36(10), 61 or 62 can arise from a portal malfunction. This compliance is therefore under duress and without prejudice to all my rights.
+
+`
+            textBefore = textBefore.replace('[UMEED_PORTAL_PARAGRAPH]', umeedPortalParagraph)
+          } else {
+            textBefore = textBefore.replace('[UMEED_PORTAL_PARAGRAPH]', '')
+          }
+        }
         
         // Handle I_CHECKBOX replacement with checkbox element
         if (textBefore.includes('[I_CHECKBOX]')) {
