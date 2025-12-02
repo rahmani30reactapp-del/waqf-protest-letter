@@ -1524,25 +1524,6 @@ Email: [USER_EMAIL]`
             </button>
             <button
               type="button"
-              onClick={handleCopyBody}
-              className="copy-body-btn"
-              disabled={filledFields < totalFields}
-              title="Copy email body to clipboard"
-            >
-              {copyBodySuccess ? (
-                <>
-                  <span className="btn-icon">✓</span>
-                  <span className="btn-text">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <span className="btn-icon">📋</span>
-                  <span className="btn-text">Copy Body</span>
-                </>
-              )}
-            </button>
-            <button
-              type="button"
               onClick={handleCompose}
               className="compose-btn"
               disabled={filledFields < totalFields}
@@ -1560,19 +1541,11 @@ Email: [USER_EMAIL]`
               )}
             </button>
           </div>
-          {(copySuccess || copyBodySuccess) && (
+          {copySuccess && (
             <div className="copy-success-message">
               <span className="copy-success-icon">✓</span>
               <span className="copy-success-text">
-                {copyBodySuccess ? (
-                  <>
-                    <strong>Email body copied to clipboard!</strong>
-                  </>
-                ) : (
-                  <>
-                    <strong>Email body copied to clipboard!</strong> PDF downloaded and email composer opened with To, CC, and Subject pre-filled.
-                  </>
-                )}
+                <strong>Email body copied to clipboard!</strong> PDF downloaded and email composer opened with To, CC, and Subject pre-filled.
               </span>
             </div>
           )}

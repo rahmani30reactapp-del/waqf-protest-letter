@@ -1611,22 +1611,32 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
                 <span className="btn-text">Download PDF</span>
               </button>
               <button
-                className="preview-copy-btn"
-                onClick={() => {
-                  navigator.clipboard.writeText(editablePreviewContent)
-                  setCopySuccess(true)
-                  setTimeout(() => setCopySuccess(false), 2000)
+                className="preview-send-btn"
+                onClick={async (e) => {
+                  e.preventDefault()
+                  setShowPreview(false)
+                  // Trigger the form submit
+                  const form = document.querySelector('.letter-form')
+                  if (form) {
+                    const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
+                    form.dispatchEvent(submitEvent)
+                  }
                 }}
+                disabled={isSubmitting || filledFields < totalFields}
               >
-                <span className="btn-icon">📋</span>
-                <span className="btn-text">Copy to Clipboard</span>
+                {isSubmitting ? (
+                  <>
+                    <span className="btn-icon">⏳</span>
+                    <span className="btn-text">Sending...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="btn-icon">✉️</span>
+                    <span className="btn-text">Send via Email</span>
+                  </>
+                )}
               </button>
             </div>
-            {copySuccess && (
-              <div className="copy-success-message">
-                ✓ Content copied to clipboard!
-              </div>
-            )}
           </div>
         </div>
       )}
