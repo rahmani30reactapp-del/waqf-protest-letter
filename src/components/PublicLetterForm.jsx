@@ -20,9 +20,7 @@ function PublicLetterForm() {
 
 
 To,
-
 The Chief Executive Officer
-
 [State Waqf Board] State Waqf Board
 
 
