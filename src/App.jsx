@@ -188,7 +188,7 @@ function App() {
                 className="back-btn"
                 style={{ marginRight: '10px' }}
               >
-                ← Change Mode
+                ← Home
               </button>
               {user && (
                 <div className="user-info">
@@ -226,7 +226,7 @@ function App() {
             onClick={() => setMode(null)} 
             className="back-btn"
           >
-            ← Change Mode
+            ← Home
           </button>
         </header>
         <PublicLetterForm />
