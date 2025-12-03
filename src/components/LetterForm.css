@@ -142,25 +142,27 @@ input[type="file"] {
 .letter-content-wrapper {
   width: 100%;
   min-height: 600px;
-  padding: 16px 20px;
+  padding: 20px 24px;
   border: 2px solid #e5e7eb;
   border-radius: 10px;
   font-size: 13px;
   font-family: 'Georgia', 'Times New Roman', serif;
-  line-height: 1.4;
+  line-height: 1.5;
   color: #1a1a1a;
   background: #ffffff;
   transition: all 0.3s ease;
   white-space: pre-wrap;
   word-wrap: break-word;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  letter-spacing: 0.01em;
 }
 
 .letter-text {
   display: inline;
-  line-height: 1.4;
+  line-height: 1.5;
   margin: 0;
   padding: 0;
+  letter-spacing: 0.01em;
 }
 
 /* Field Wrapper */
@@ -661,7 +663,8 @@ input[type="file"] {
   padding: 0;
   font-family: 'Georgia', 'Times New Roman', serif;
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
   color: #1a1a1a;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -670,9 +673,10 @@ input[type="file"] {
 .preview-letter-textarea {
   font-family: 'Georgia', 'Times New Roman', serif;
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.5;
   color: #1a1a1a;
   width: 100%;
+  letter-spacing: 0.01em;
   min-height: 500px;
   padding: 16px;
   border: 2px solid #e0e7ff;
