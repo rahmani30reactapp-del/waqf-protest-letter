@@ -26,11 +26,11 @@
 .info-card {
   background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
   border: 1px solid #e0e7ff;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 30px;
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
   display: flex;
-  gap: 16px;
+  gap: 14px;
   align-items: flex-start;
 }
 
@@ -71,7 +71,7 @@
 .letter-form {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 18px;
 }
 
 /* Improve form inputs for mobile */
@@ -141,13 +141,13 @@ input[type="file"] {
 
 .letter-content-wrapper {
   width: 100%;
-  min-height: 650px;
-  padding: 20px;
+  min-height: 600px;
+  padding: 16px 20px;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 13px;
   font-family: 'Georgia', 'Times New Roman', serif;
-  line-height: 1.6; /* Reduced from 1.9 for compact layout */
+  line-height: 1.4;
   color: #1a1a1a;
   background: #ffffff;
   transition: all 0.3s ease;
@@ -158,6 +158,9 @@ input[type="file"] {
 
 .letter-text {
   display: inline;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0;
 }
 
 /* Field Wrapper */
@@ -453,7 +456,7 @@ input[type="file"] {
 .objection-paragraph {
   display: flex;
   align-items: flex-start;
-  margin: 12px 0;
+  margin: 8px 0;
   padding: 8px 0;
   gap: 8px;
 }
@@ -499,8 +502,8 @@ input[type="file"] {
 
 /* Attachments Section */
 .attachments-section {
-  margin-top: 30px;
-  padding: 20px;
+  margin-top: 18px;
+  padding: 16px 18px;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
@@ -645,7 +648,7 @@ input[type="file"] {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 24px;
+  padding: 18px 20px;
   font-family: 'Georgia', 'Times New Roman', serif;
   font-size: 13px;
   line-height: 1.6;
@@ -658,7 +661,7 @@ input[type="file"] {
   padding: 0;
   font-family: 'Georgia', 'Times New Roman', serif;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.4;
   color: #1a1a1a;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -667,7 +670,7 @@ input[type="file"] {
 .preview-letter-textarea {
   font-family: 'Georgia', 'Times New Roman', serif;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.4;
   color: #1a1a1a;
   width: 100%;
   min-height: 500px;
@@ -1109,9 +1112,9 @@ input[type="file"] {
 
 /* UMEED Portal Checkbox Section */
 .umeed-portal-checkbox-section {
-  margin-top: 16px;
-  margin-bottom: 16px;
-  padding: 16px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  padding: 14px 16px;
   background: #fff3cd;
   border-radius: 6px;
   border: 1px solid #ffc107;
@@ -1239,10 +1242,10 @@ input[type="file"] {
   }
 
   .letter-content-wrapper {
-    min-height: 500px;
-    font-size: 14px;
-    padding: 16px;
-    line-height: 1.8;
+    min-height: 450px;
+    font-size: 13px;
+    padding: 14px 16px;
+    line-height: 1.4;
   }
 
   .inline-field {
@@ -1363,7 +1366,7 @@ input[type="file"] {
 
   .preview-letter-text {
     font-size: 12px;
-    line-height: 1.6;
+    line-height: 1.4;
   }
 
   .preview-modal-footer {
@@ -1429,9 +1432,10 @@ input[type="file"] {
   }
 
   .letter-content-wrapper {
-    min-height: 400px;
-    font-size: 13px;
-    padding: 14px;
+    min-height: 380px;
+    font-size: 12px;
+    padding: 12px 14px;
+    line-height: 1.35;
   }
 
   .inline-field {
