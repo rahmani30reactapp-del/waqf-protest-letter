@@ -1112,38 +1112,110 @@ input[type="file"] {
 
 /* UMEED Portal Checkbox Section */
 .umeed-portal-checkbox-section {
-  margin-top: 12px;
-  margin-bottom: 12px;
-  padding: 14px 16px;
-  background: #fff3cd;
-  border-radius: 6px;
-  border: 1px solid #ffc107;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+  border-radius: 10px;
+  border: 2px solid #ffc107;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3), 0 2px 4px rgba(255, 193, 7, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.umeed-portal-checkbox-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ffc107, #ff9800, #ffc107);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.umeed-portal-checkbox-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 193, 7, 0.4), 0 4px 8px rgba(255, 193, 7, 0.3);
+  border-color: #ff9800;
 }
 
 .umeed-checkbox-label {
   display: flex;
   align-items: flex-start;
   cursor: pointer;
-  gap: 12px;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
 }
+
+.umeed-warning-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  margin-right: 6px;
+  animation: pulse-warning 2s infinite;
+  display: inline-block;
+}
+
+@keyframes pulse-warning {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.15);
+    opacity: 0.9;
+  }
+}
+
 
 .umeed-checkbox-input {
   margin-top: 4px;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
   flex-shrink: 0;
+  accent-color: #ff9800;
+  border: 2px solid #ffc107;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  order: 0;
+}
+
+.umeed-checkbox-input:hover {
+  border-color: #ff9800;
+  transform: scale(1.1);
+}
+
+.umeed-checkbox-input:checked {
+  background-color: #ff9800;
+  border-color: #ff9800;
 }
 
 .umeed-checkbox-text {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.6;
   color: #856404;
-  font-weight: 500;
+  font-weight: 600;
+  flex: 1;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+  order: 2;
 }
 
 .umeed-checkbox-label:hover .umeed-checkbox-text {
   color: #664d03;
+}
+
+.umeed-checkbox-label:has(.umeed-checkbox-input:checked) .umeed-checkbox-text {
+  color: #b45309;
+  font-weight: 700;
 }
 
 /* Status Messages */

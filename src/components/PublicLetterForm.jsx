@@ -1724,6 +1724,7 @@ Email: [USER_EMAIL]`
             onChange={(e) => setUmeedPortalCheckbox(e.target.checked)}
             className="umeed-checkbox-input"
           />
+          <span className="umeed-warning-icon">⚠️</span>
           <span className="umeed-checkbox-text">
             Check this box if you were unable to complete UMEED portal registration due to portal errors or non-availability; this protest note will be added as evidence of your attempt to comply, though it carries no guarantee and is provided strictly on a best-effort basis
           </span>
