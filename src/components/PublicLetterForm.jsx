@@ -315,7 +315,7 @@ Signature of Mutawalli: ___________________________
 
 Name of Mutawalli (BLOCK LETTERS): [SIGNATURE_NAME]
 
-Mobile No.: [USER_PHONE]
+Mobile No.: [Mobile Number]
 
 Email: [USER_EMAIL]`
 
@@ -561,10 +561,7 @@ Email: [USER_EMAIL]`
       if (match[1] === 'USER_EMAIL') {
         continue
       }
-      // Skip USER_PHONE as it's auto-filled from Mobile Number field
-      if (match[1] === 'USER_PHONE') {
-        continue
-      }
+      // Mobile Number field is now a regular field, not skipped
       // Skip I_CHECKBOX as it's handled separately
       if (match[1] === 'I_CHECKBOX') {
         continue

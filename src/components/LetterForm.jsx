@@ -315,7 +315,7 @@ Signature of Mutawalli: ___________________________
 
 Name of Mutawalli (BLOCK LETTERS): [SIGNATURE_NAME]
 
-Mobile No.: [USER_PHONE]
+Mobile No.: [Mobile Number]
 
 Email: [USER_EMAIL]
 
@@ -568,10 +568,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       if (match[1] === 'USER_EMAIL') {
         continue
       }
-      // Skip USER_PHONE as it's auto-filled from Mobile Number field
-      if (match[1] === 'USER_PHONE') {
-        continue
-      }
+      // Mobile Number field is now a regular field, not skipped
       // Skip I_CHECKBOX as it's handled separately
       if (match[1] === 'I_CHECKBOX') {
         continue
@@ -793,11 +790,6 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     // Replace SIGNATURE_NAME with Mutawalli name in BLOCK LETTERS
     finalContent = finalContent.replace('[SIGNATURE_NAME]', mutawalliNameBlock)
     
-    // Replace USER_PHONE with Mobile Number from form field
-    const mobileNumberField = extractFields(letterTemplate).find(f => f.placeholder === 'Mobile Number')
-    const mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
-    finalContent = finalContent.replace('[USER_PHONE]', mobileNumber || '__________________')
-    
     // Replace USER_EMAIL with logged-in user's email
     finalContent = finalContent.replace('[USER_EMAIL]', user?.email || '[Email]')
     
@@ -843,8 +835,6 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         textBefore = textBefore.replace('[CURRENT_DATE]', getCurrentDate())
         // Replace SIGNATURE_NAME with Mutawalli name
         textBefore = textBefore.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
-        // Replace USER_PHONE with Mobile Number
-        textBefore = textBefore.replace('[USER_PHONE]', mobileNumber || '[Phone]')
         // Replace USER_EMAIL with logged-in user's email
         textBefore = textBefore.replace('[USER_EMAIL]', user?.email || '[Email]')
         
