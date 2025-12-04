@@ -832,12 +832,35 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         
         annexureOrder.forEach(letter => {
           if (!uploadedAnnexures.includes(letter)) {
-            // Escape special regex characters in the annexure text
+            // Use exact text matching with regex that handles various newline scenarios
             const annexureText = annexureTexts[letter]
-            const escapedText = annexureText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-            // Match the annexure line and any blank lines after it (one or more newlines)
-            const linePattern = new RegExp(`${escapedText}\\n+`, 'g')
+            // Escape special regex characters (including forward slashes and parentheses)
+            const escapedText = annexureText.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&')
+            // Match the annexure line followed by any whitespace and one or more newlines
+            // Use a more comprehensive pattern that matches the entire line
+            // Pattern: exact text + optional whitespace + one or more newlines (handles \n, \r\n, etc.)
+            const linePattern = new RegExp(`${escapedText}[\\s]*[\\r\\n]+`, 'g')
+            // Replace all occurrences
             finalContent = finalContent.replace(linePattern, '')
+            // Also try a simpler approach - just remove if the text exists
+            if (finalContent.includes(annexureText)) {
+              // Find the index and remove the line
+              const index = finalContent.indexOf(annexureText)
+              if (index !== -1) {
+                // Find the end of the line (next newline or end of string)
+                let endIndex = finalContent.indexOf('\n', index)
+                if (endIndex === -1) {
+                  endIndex = finalContent.length
+                } else {
+                  // Include the newline and any following newlines/whitespace
+                  while (endIndex < finalContent.length && 
+                         (finalContent[endIndex] === '\n' || finalContent[endIndex] === '\r' || finalContent[endIndex] === ' ')) {
+                    endIndex++
+                  }
+                }
+                finalContent = finalContent.substring(0, index) + finalContent.substring(endIndex)
+              }
+            }
           }
         })
       }
