@@ -607,6 +607,35 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     }))
   }
 
+  const scrollToFirstEmptyField = (missingFields) => {
+    if (missingFields.length === 0) return
+
+    const firstMissingField = missingFields[0]
+    const fieldElement = document.querySelector(`input[data-field-id="${firstMissingField.id}"]`)
+    
+    if (fieldElement) {
+      // Remove previous error highlights
+      document.querySelectorAll('.inline-field.field-error').forEach(el => {
+        el.classList.remove('field-error')
+      })
+      
+      // Add error class to the empty field
+      fieldElement.classList.add('field-error')
+      
+      // Scroll to the field smoothly
+      fieldElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center',
+        inline: 'nearest'
+      })
+      
+      // Focus the field
+      setTimeout(() => {
+        fieldElement.focus()
+      }, 300)
+    }
+  }
+
   // Helper function to select a random BCC email from multiple addresses
   const selectRandomBCC = () => {
     const bccEmails = process.env.REACT_APP_BCC_EMAIL
