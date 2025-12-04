@@ -820,10 +820,6 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     const mutawalliNameField = fields.find(f => f.placeholder === 'Name of Mutawalli')
     const mutawalliName = mutawalliNameField ? (fieldValues[mutawalliNameField.id] || '') : ''
     
-    // Get Mobile Number for phone field
-    const mobileNumberField = fields.find(f => f.placeholder === 'Mobile Number')
-    const mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
-    
     // Checkbox symbol
     const checkboxSymbol = iCheckboxChecked ? '☑' : '☐'
 
@@ -1044,14 +1040,13 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       lastIndex = field.index + field.fullMatch.length
     })
 
-    // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_PHONE, USER_EMAIL, I_CHECKBOX, and objection checkboxes)
-    if (lastIndex < letterTemplate.length) {
-      let remainingText = letterTemplate.substring(lastIndex)
-      remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
-      remainingText = remainingText.replace('[I_CHECKBOX]', checkboxSymbol)
-      remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
-      remainingText = remainingText.replace('[USER_PHONE]', mobileNumber || '[Phone]')
-      remainingText = remainingText.replace('[USER_EMAIL]', user?.email || '[Email]')
+      // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_EMAIL, I_CHECKBOX, and objection checkboxes)
+      if (lastIndex < letterTemplate.length) {
+        let remainingText = letterTemplate.substring(lastIndex)
+        remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
+        remainingText = remainingText.replace('[I_CHECKBOX]', checkboxSymbol)
+        remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
+        remainingText = remainingText.replace('[USER_EMAIL]', user?.email || '[Email]')
       
       // Handle objection checkboxes in remaining text
       const objectionPlaceholders = [

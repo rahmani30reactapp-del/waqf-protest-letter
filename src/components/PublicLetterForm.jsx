@@ -747,11 +747,6 @@ Email: [USER_EMAIL]`
     // Replace SIGNATURE_NAME with Mutawalli name in BLOCK LETTERS
     finalContent = finalContent.replace('[SIGNATURE_NAME]', mutawalliNameBlock)
     
-    // Replace USER_PHONE with Mobile Number from form field
-    const mobileNumberField = extractFields(letterTemplate).find(f => f.placeholder === 'Mobile Number')
-    const mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
-    finalContent = finalContent.replace('[USER_PHONE]', mobileNumber || '__________________')
-    
     // Replace USER_EMAIL with sender email
     finalContent = finalContent.replace('[USER_EMAIL]', senderEmail || '[Email]')
     
@@ -786,23 +781,17 @@ Email: [USER_EMAIL]`
     const mutawalliNameField = fields.find(f => f.placeholder === 'Name of Mutawalli')
     const mutawalliName = mutawalliNameField ? (fieldValues[mutawalliNameField.id] || '') : ''
     
-    // Get Mobile Number for phone field
-    const mobileNumberField = fields.find(f => f.placeholder === 'Mobile Number')
-    const mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
-    
     // Checkbox symbol
     const checkboxSymbol = iCheckboxChecked ? '☑' : '☐'
 
     fields.forEach((field, idx) => {
-      // Add text before this field (including CURRENT_DATE, SIGNATURE_NAME, USER_PHONE, USER_EMAIL, and I_CHECKBOX replacement)
+      // Add text before this field (including CURRENT_DATE, SIGNATURE_NAME, USER_EMAIL, and I_CHECKBOX replacement)
       if (field.index > lastIndex) {
         let textBefore = letterTemplate.substring(lastIndex, field.index)
         // Replace CURRENT_DATE in text with actual date
         textBefore = textBefore.replace('[CURRENT_DATE]', getCurrentDate())
         // Replace SIGNATURE_NAME with Mutawalli name
         textBefore = textBefore.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
-        // Replace USER_PHONE with Mobile Number
-        textBefore = textBefore.replace('[USER_PHONE]', mobileNumber || '[Phone]')
         // Replace USER_EMAIL with sender email
         textBefore = textBefore.replace('[USER_EMAIL]', senderEmail || '[Email]')
         
@@ -1006,13 +995,12 @@ Email: [USER_EMAIL]`
       lastIndex = field.index + field.fullMatch.length
     })
 
-    // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_PHONE, USER_EMAIL, I_CHECKBOX, and objection checkboxes)
+    // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_EMAIL, I_CHECKBOX, and objection checkboxes)
     if (lastIndex < letterTemplate.length) {
       let remainingText = letterTemplate.substring(lastIndex)
       remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
       remainingText = remainingText.replace('[I_CHECKBOX]', checkboxSymbol)
       remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
-      remainingText = remainingText.replace('[USER_PHONE]', mobileNumber || '[Phone]')
       remainingText = remainingText.replace('[USER_EMAIL]', senderEmail || '[Email]')
       
       // Handle objection checkboxes in remaining text
