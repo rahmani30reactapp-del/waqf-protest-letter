@@ -317,7 +317,19 @@ Name of Mutawalli (BLOCK LETTERS): [SIGNATURE_NAME]
 
 Mobile No.: [Mobile Number]
 
-Email: [USER_EMAIL]`
+Email: [USER_EMAIL]
+
+ANNEXURES (AS APPLICABLE)
+
+Annexure A: Copy of existing waqf deed / oral dedication proof / earlier registration order
+
+Annexure B: Certified copies of title documents / revenue records
+
+Annexure C: List of beneficiaries / use of waqf (mosque, madrasa, graveyard, dargah, etc.)
+
+Annexure D: Copies of pending court/Tribunal cases concerning this waqf
+
+Annexure E: Any correspondence, survey reports, inspection notes or orders from the Waqf Board / Collector / designated officer`
 
   const [fieldValues, setFieldValues] = useState({})
   const [senderEmail, setSenderEmail] = useState('') // Email input for public form
@@ -481,9 +493,11 @@ Email: [USER_EMAIL]`
   })
   const [umeedPortalCheckbox, setUmeedPortalCheckbox] = useState(false)
   const [attachments, setAttachments] = useState({
-    registrationForms: null,
-    titleDocuments: null,
-    identityProof: null,
+    waqfDeed: null, // Annexure A
+    titleDocuments: null, // Annexure B
+    beneficiariesList: null, // Annexure C
+    courtCases: null, // Annexure D
+    correspondence: null, // Annexure E
   })
 
   // Initialize field values with saved data from localStorage
@@ -758,16 +772,45 @@ Email: [USER_EMAIL]`
       finalContent = finalContent.replace(field.fullMatch, value)
     })
 
+    // Check which annexures are uploaded and show only those
+    const uploadedAnnexures = []
+    if (attachments.waqfDeed) uploadedAnnexures.push('A')
+    if (attachments.titleDocuments) uploadedAnnexures.push('B')
+    if (attachments.beneficiariesList) uploadedAnnexures.push('C')
+    if (attachments.courtCases) uploadedAnnexures.push('D')
+    if (attachments.correspondence) uploadedAnnexures.push('E')
+    
+    // Handle ANNEXURES section - show only uploaded annexures
+    if (uploadedAnnexures.length === 0) {
+      // Remove entire ANNEXURES section if no files are uploaded
+      const annexuresPattern = /ANNEXURES \(AS APPLICABLE\)[\s\S]*$/g
+      finalContent = finalContent.replace(annexuresPattern, '')
+    } else {
+      // Remove annexure lines that are not uploaded
+      const annexureLines = {
+        'A': 'Annexure A: Copy of existing waqf deed / oral dedication proof / earlier registration order',
+        'B': 'Annexure B: Certified copies of title documents / revenue records',
+        'C': 'Annexure C: List of beneficiaries / use of waqf (mosque, madrasa, graveyard, dargah, etc.)',
+        'D': 'Annexure D: Copies of pending court/Tribunal cases concerning this waqf',
+        'E': 'Annexure E: Any correspondence, survey reports, inspection notes or orders from the Waqf Board / Collector / designated officer'
+      }
+      
+          // Remove lines for annexures that are not uploaded
+          Object.keys(annexureLines).forEach(letter => {
+            if (!uploadedAnnexures.includes(letter)) {
+              // Match the annexure line and the blank line after it (if present)
+              const linePattern = new RegExp(`Annexure ${letter}: [^\\n]+\\n\\n?`, 'g')
+              finalContent = finalContent.replace(linePattern, '')
+            }
+          })
+    }
+
     // Remove entire signature section for email body only (always keep for PDF)
     if (isForEmail) {
-      // Remove the entire "9. SIGNATURES AND ATTESTATION" section up to end of template
-      const signatureSectionPattern = /9\. SIGNATURES AND ATTESTATION[\s\S]*$/g
+      // Remove the entire "9. SIGNATURES AND ATTESTATION" section up to "ANNEXURES" (if it exists)
+      const signatureSectionPattern = /9\. SIGNATURES AND ATTESTATION[\s\S]*?(?=ANNEXURES|$)/g
       finalContent = finalContent.replace(signatureSectionPattern, '')
     }
-    
-    // Remove ANNEXURES section from both email and PDF
-    const annexuresPattern = /ANNEXURES \(AS APPLICABLE\)[\s\S]*?(?=`|$)/g
-    finalContent = finalContent.replace(annexuresPattern, '')
 
     return finalContent
   }
@@ -995,13 +1038,46 @@ Email: [USER_EMAIL]`
       lastIndex = field.index + field.fullMatch.length
     })
 
-    // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_EMAIL, I_CHECKBOX, and objection checkboxes)
-    if (lastIndex < letterTemplate.length) {
-      let remainingText = letterTemplate.substring(lastIndex)
-      remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
-      remainingText = remainingText.replace('[I_CHECKBOX]', checkboxSymbol)
-      remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
-      remainingText = remainingText.replace('[USER_EMAIL]', senderEmail || '[Email]')
+      // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_EMAIL, I_CHECKBOX, and objection checkboxes)
+      if (lastIndex < letterTemplate.length) {
+        let remainingText = letterTemplate.substring(lastIndex)
+        remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
+        remainingText = remainingText.replace('[I_CHECKBOX]', checkboxSymbol)
+        remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
+        remainingText = remainingText.replace('[USER_EMAIL]', senderEmail || '[Email]')
+        
+        // Check which annexures are uploaded and show only those
+        const uploadedAnnexures = []
+        if (attachments.waqfDeed) uploadedAnnexures.push('A')
+        if (attachments.titleDocuments) uploadedAnnexures.push('B')
+        if (attachments.beneficiariesList) uploadedAnnexures.push('C')
+        if (attachments.courtCases) uploadedAnnexures.push('D')
+        if (attachments.correspondence) uploadedAnnexures.push('E')
+        
+        // Handle ANNEXURES section - show only uploaded annexures
+        if (uploadedAnnexures.length === 0) {
+          // Remove entire ANNEXURES section if no files are uploaded
+          const annexuresPattern = /ANNEXURES \(AS APPLICABLE\)[\s\S]*$/g
+          remainingText = remainingText.replace(annexuresPattern, '')
+        } else {
+          // Remove annexure lines that are not uploaded
+          const annexureLines = {
+            'A': 'Annexure A: Copy of existing waqf deed / oral dedication proof / earlier registration order',
+            'B': 'Annexure B: Certified copies of title documents / revenue records',
+            'C': 'Annexure C: List of beneficiaries / use of waqf (mosque, madrasa, graveyard, dargah, etc.)',
+            'D': 'Annexure D: Copies of pending court/Tribunal cases concerning this waqf',
+            'E': 'Annexure E: Any correspondence, survey reports, inspection notes or orders from the Waqf Board / Collector / designated officer'
+          }
+          
+          // Remove lines for annexures that are not uploaded
+          Object.keys(annexureLines).forEach(letter => {
+            if (!uploadedAnnexures.includes(letter)) {
+              // Match the annexure line and the blank line after it (if present)
+              const linePattern = new RegExp(`Annexure ${letter}: [^\\n]+\\n\\n?`, 'g')
+              remainingText = remainingText.replace(linePattern, '')
+            }
+          })
+        }
       
       // Handle objection checkboxes in remaining text
       const objectionPlaceholders = [
@@ -1260,25 +1336,25 @@ Email: [USER_EMAIL]`
         return lastDot !== -1 ? filename.substring(lastDot) : ''
       }
       
-      // Convert attachments to base64 with descriptive filenames
+      // Convert attachments to base64 with annexure-based filenames
       const attachmentPromises = []
       const attachmentData = []
       
-      if (attachments.registrationForms) {
+      if (attachments.waqfDeed) {
         attachmentPromises.push(
           new Promise((resolve) => {
             const reader = new FileReader()
             reader.onloadend = () => {
               const base64String = reader.result.split(',')[1]
-              const extension = getFileExtension(attachments.registrationForms.name)
+              const extension = getFileExtension(attachments.waqfDeed.name)
               attachmentData.push({
-                filename: `Registration_Forms${extension}`,
+                filename: `Annexure_A${extension}`,
                 content: base64String,
-                type: attachments.registrationForms.type,
+                type: attachments.waqfDeed.type,
               })
               resolve()
             }
-            reader.readAsDataURL(attachments.registrationForms)
+            reader.readAsDataURL(attachments.waqfDeed)
           })
         )
       }
@@ -1291,7 +1367,7 @@ Email: [USER_EMAIL]`
               const base64String = reader.result.split(',')[1]
               const extension = getFileExtension(attachments.titleDocuments.name)
               attachmentData.push({
-                filename: `Annexure_B_Title_Documents${extension}`,
+                filename: `Annexure_B${extension}`,
                 content: base64String,
                 type: attachments.titleDocuments.type,
               })
@@ -1302,21 +1378,59 @@ Email: [USER_EMAIL]`
         )
       }
       
-      if (attachments.identityProof) {
+      if (attachments.beneficiariesList) {
         attachmentPromises.push(
           new Promise((resolve) => {
             const reader = new FileReader()
             reader.onloadend = () => {
               const base64String = reader.result.split(',')[1]
-              const extension = getFileExtension(attachments.identityProof.name)
+              const extension = getFileExtension(attachments.beneficiariesList.name)
               attachmentData.push({
-                filename: `Identity_Proof${extension}`,
+                filename: `Annexure_C${extension}`,
                 content: base64String,
-                type: attachments.identityProof.type,
+                type: attachments.beneficiariesList.type,
               })
               resolve()
             }
-            reader.readAsDataURL(attachments.identityProof)
+            reader.readAsDataURL(attachments.beneficiariesList)
+          })
+        )
+      }
+      
+      if (attachments.courtCases) {
+        attachmentPromises.push(
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              const base64String = reader.result.split(',')[1]
+              const extension = getFileExtension(attachments.courtCases.name)
+              attachmentData.push({
+                filename: `Annexure_D${extension}`,
+                content: base64String,
+                type: attachments.courtCases.type,
+              })
+              resolve()
+            }
+            reader.readAsDataURL(attachments.courtCases)
+          })
+        )
+      }
+      
+      if (attachments.correspondence) {
+        attachmentPromises.push(
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              const base64String = reader.result.split(',')[1]
+              const extension = getFileExtension(attachments.correspondence.name)
+              attachmentData.push({
+                filename: `Annexure_E${extension}`,
+                content: base64String,
+                type: attachments.correspondence.type,
+              })
+              resolve()
+            }
+            reader.readAsDataURL(attachments.correspondence)
           })
         )
       }
@@ -1783,7 +1897,92 @@ Email: [USER_EMAIL]`
           </div>
         )}
 
-        {/* Attachments section hidden in public form - users can attach files manually in their email client */}
+        <div className="attachments-section">
+          <h3 className="attachments-title">Enclosures (Optional)</h3>
+          <p className="attachments-subtitle">Upload supporting documents that will be attached to the email</p>
+          <div className="attachments-grid">
+            <div className="attachment-item">
+              <label htmlFor="waqf-deed" className="attachment-label">
+                <span className="attachment-icon">📜</span>
+                <span className="attachment-text">Annexure A: Waqf deed / oral dedication proof / earlier registration order</span>
+                {attachments.waqfDeed && (
+                  <span className="attachment-name">{attachments.waqfDeed.name}</span>
+                )}
+              </label>
+              <input
+                id="waqf-deed"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, waqfDeed: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+            <div className="attachment-item">
+              <label htmlFor="title-documents" className="attachment-label">
+                <span className="attachment-icon">📄</span>
+                <span className="attachment-text">Annexure B: Certified copies of title documents / revenue records</span>
+                {attachments.titleDocuments && (
+                  <span className="attachment-name">{attachments.titleDocuments.name}</span>
+                )}
+              </label>
+              <input
+                id="title-documents"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, titleDocuments: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+            <div className="attachment-item">
+              <label htmlFor="beneficiaries-list" className="attachment-label">
+                <span className="attachment-icon">👥</span>
+                <span className="attachment-text">Annexure C: List of beneficiaries / use of waqf</span>
+                {attachments.beneficiariesList && (
+                  <span className="attachment-name">{attachments.beneficiariesList.name}</span>
+                )}
+              </label>
+              <input
+                id="beneficiaries-list"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, beneficiariesList: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+            <div className="attachment-item">
+              <label htmlFor="court-cases" className="attachment-label">
+                <span className="attachment-icon">⚖️</span>
+                <span className="attachment-text">Annexure D: Copies of pending court/Tribunal cases</span>
+                {attachments.courtCases && (
+                  <span className="attachment-name">{attachments.courtCases.name}</span>
+                )}
+              </label>
+              <input
+                id="court-cases"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, courtCases: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+            <div className="attachment-item">
+              <label htmlFor="correspondence" className="attachment-label">
+                <span className="attachment-icon">📧</span>
+                <span className="attachment-text">Annexure E: Correspondence, survey reports, inspection notes</span>
+                {attachments.correspondence && (
+                  <span className="attachment-name">{attachments.correspondence.name}</span>
+                )}
+              </label>
+              <input
+                id="correspondence"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setAttachments(prev => ({ ...prev, correspondence: e.target.files[0] || null }))}
+                className="attachment-input"
+              />
+            </div>
+          </div>
+        </div>
         
         <div className="action-section">
           <div className="button-group">
