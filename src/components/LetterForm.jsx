@@ -818,7 +818,8 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         finalContent = finalContent.replace(annexuresPattern, '')
       } else {
         // Remove annexure lines that are not uploaded
-        const annexureLines = {
+        // Use exact text matching for more reliable removal
+        const annexureTexts = {
           'A': 'Annexure A: Copy of existing waqf deed / oral dedication proof / earlier registration order',
           'B': 'Annexure B: Certified copies of title documents / revenue records',
           'C': 'Annexure C: List of beneficiaries / use of waqf (mosque, madrasa, graveyard, dargah, etc.)',
@@ -826,11 +827,16 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
           'E': 'Annexure E: Any correspondence, survey reports, inspection notes or orders from the Waqf Board / Collector / designated officer'
         }
         
-        // Remove lines for annexures that are not uploaded
-        Object.keys(annexureLines).forEach(letter => {
+        // Process in reverse order (E, D, C, B, A) to maintain correct indices
+        const annexureOrder = ['E', 'D', 'C', 'B', 'A']
+        
+        annexureOrder.forEach(letter => {
           if (!uploadedAnnexures.includes(letter)) {
-            // Match the annexure line and the blank line after it (if present)
-            const linePattern = new RegExp(`Annexure ${letter}: [^\\n]+\\n\\n?`, 'g')
+            // Escape special regex characters in the annexure text
+            const annexureText = annexureTexts[letter]
+            const escapedText = annexureText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            // Match the annexure line and any blank lines after it (one or more newlines)
+            const linePattern = new RegExp(`${escapedText}\\n+`, 'g')
             finalContent = finalContent.replace(linePattern, '')
           }
         })

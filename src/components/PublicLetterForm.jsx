@@ -818,7 +818,8 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         finalContent = finalContent.replace(annexuresPattern, '')
       } else {
         // Remove annexure lines that are not uploaded
-        const annexureLines = {
+        // Use exact text matching for more reliable removal
+        const annexureTexts = {
           'A': 'Annexure A: Copy of existing waqf deed / oral dedication proof / earlier registration order',
           'B': 'Annexure B: Certified copies of title documents / revenue records',
           'C': 'Annexure C: List of beneficiaries / use of waqf (mosque, madrasa, graveyard, dargah, etc.)',
@@ -826,11 +827,16 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
           'E': 'Annexure E: Any correspondence, survey reports, inspection notes or orders from the Waqf Board / Collector / designated officer'
         }
         
-        // Remove lines for annexures that are not uploaded
-        Object.keys(annexureLines).forEach(letter => {
+        // Process in reverse order (E, D, C, B, A) to maintain correct indices
+        const annexureOrder = ['E', 'D', 'C', 'B', 'A']
+        
+        annexureOrder.forEach(letter => {
           if (!uploadedAnnexures.includes(letter)) {
-            // Match the annexure line and the blank line after it (if present)
-            const linePattern = new RegExp(`Annexure ${letter}: [^\\n]+\\n\\n?`, 'g')
+            // Escape special regex characters in the annexure text
+            const annexureText = annexureTexts[letter]
+            const escapedText = annexureText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            // Match the annexure line and any blank lines after it (one or more newlines)
+            const linePattern = new RegExp(`${escapedText}\\n+`, 'g')
             finalContent = finalContent.replace(linePattern, '')
           }
         })
@@ -1905,93 +1911,6 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
           </div>
         )}
 
-        <div className="attachments-section">
-          <h3 className="attachments-title">Enclosures (Optional)</h3>
-          <p className="attachments-subtitle">Upload supporting documents that will be attached to the email</p>
-          <div className="attachments-grid">
-            <div className="attachment-item">
-              <label htmlFor="waqf-deed" className="attachment-label">
-                <span className="attachment-icon">📜</span>
-                <span className="attachment-text">Annexure A: Waqf deed / oral dedication proof / earlier registration order</span>
-                {attachments.waqfDeed && (
-                  <span className="attachment-name">{attachments.waqfDeed.name}</span>
-                )}
-              </label>
-              <input
-                id="waqf-deed"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={(e) => setAttachments(prev => ({ ...prev, waqfDeed: e.target.files[0] || null }))}
-                className="attachment-input"
-              />
-            </div>
-            <div className="attachment-item">
-              <label htmlFor="title-documents" className="attachment-label">
-                <span className="attachment-icon">📄</span>
-                <span className="attachment-text">Annexure B: Certified copies of title documents / revenue records</span>
-                {attachments.titleDocuments && (
-                  <span className="attachment-name">{attachments.titleDocuments.name}</span>
-                )}
-              </label>
-              <input
-                id="title-documents"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={(e) => setAttachments(prev => ({ ...prev, titleDocuments: e.target.files[0] || null }))}
-                className="attachment-input"
-              />
-            </div>
-            <div className="attachment-item">
-              <label htmlFor="beneficiaries-list" className="attachment-label">
-                <span className="attachment-icon">👥</span>
-                <span className="attachment-text">Annexure C: List of beneficiaries / use of waqf</span>
-                {attachments.beneficiariesList && (
-                  <span className="attachment-name">{attachments.beneficiariesList.name}</span>
-                )}
-              </label>
-              <input
-                id="beneficiaries-list"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={(e) => setAttachments(prev => ({ ...prev, beneficiariesList: e.target.files[0] || null }))}
-                className="attachment-input"
-              />
-            </div>
-            <div className="attachment-item">
-              <label htmlFor="court-cases" className="attachment-label">
-                <span className="attachment-icon">⚖️</span>
-                <span className="attachment-text">Annexure D: Copies of pending court/Tribunal cases</span>
-                {attachments.courtCases && (
-                  <span className="attachment-name">{attachments.courtCases.name}</span>
-                )}
-              </label>
-              <input
-                id="court-cases"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={(e) => setAttachments(prev => ({ ...prev, courtCases: e.target.files[0] || null }))}
-                className="attachment-input"
-              />
-            </div>
-            <div className="attachment-item">
-              <label htmlFor="correspondence" className="attachment-label">
-                <span className="attachment-icon">📧</span>
-                <span className="attachment-text">Annexure E: Correspondence, survey reports, inspection notes</span>
-                {attachments.correspondence && (
-                  <span className="attachment-name">{attachments.correspondence.name}</span>
-                )}
-              </label>
-              <input
-                id="correspondence"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={(e) => setAttachments(prev => ({ ...prev, correspondence: e.target.files[0] || null }))}
-                className="attachment-input"
-              />
-            </div>
-          </div>
-        </div>
-        
         <div className="action-section">
           <div className="button-group">
             <button
