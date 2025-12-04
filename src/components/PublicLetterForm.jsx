@@ -1845,18 +1845,19 @@ Email: [USER_EMAIL]`
                       ))}
                     </div>
                   </div>
-                  {recipients.bccList.length > 0 && (
-                    <div className="recipients-section">
-                      <div className="recipients-label bcc-label">
-                        <strong>BCC ({recipients.bccList.length} - Random Selection):</strong>
+                  {(() => {
+                    const selectedBCC = selectRandomBCC()
+                    return selectedBCC ? (
+                      <div className="recipients-section">
+                        <div className="recipients-label bcc-label">
+                          <strong>BCC:</strong>
+                        </div>
+                        <div className="recipients-emails">
+                          <span className="email-badge bcc-badge">{selectedBCC}</span>
+                        </div>
                       </div>
-                      <div className="recipients-emails">
-                        {recipients.bccList.map((email, idx) => (
-                          <span key={idx} className="email-badge bcc-badge">{email}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    ) : null
+                  })()}
                 </>
               )
             })()}
