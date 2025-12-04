@@ -20,7 +20,7 @@ function LetterForm({ user, credential }) {
 
 
 To,
-The Chief Executive Officer
+ The Chief Executive Officer
 [State Waqf Board] State Waqf Board
 
 
@@ -663,7 +663,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     // Use text-based checkbox for better PDF compatibility
     const checkboxSymbol = iCheckboxChecked ? '[✓]' : '[ ]'
     finalContent = finalContent.replace('[I_CHECKBOX]', checkboxSymbol)
-
+    
     // Handle UMEED portal paragraph - only add if checkbox is checked
     const umeedPortalParagraph = `IMPORTANT: I record that the UMEED portal was repeatedly non-functional when I attempted to upload the required documents. The failure to submit is entirely due to the State's technical failure, not any fault on my part. I am reporting this issue to support-umeed@gov.in so that there is clear evidence that I tried to comply but was prevented from doing so. No adverse inference, penalty or bar under Section 36(10), 61 or 62 can arise from a portal malfunction. This compliance is therefore under duress and without prejudice to all my rights.
 
@@ -793,8 +793,10 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     // Replace SIGNATURE_NAME with Mutawalli name in BLOCK LETTERS
     finalContent = finalContent.replace('[SIGNATURE_NAME]', mutawalliNameBlock)
     
-    // Replace USER_PHONE with blank line dashes (like other signature fields)
-    finalContent = finalContent.replace('[USER_PHONE]', '__________________')
+    // Replace USER_PHONE with Mobile Number from form field
+    const mobileNumberField = extractFields(letterTemplate).find(f => f.placeholder === 'Mobile Number')
+    const mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
+    finalContent = finalContent.replace('[USER_PHONE]', mobileNumber || '__________________')
     
     // Replace USER_EMAIL with logged-in user's email
     finalContent = finalContent.replace('[USER_EMAIL]', user?.email || '[Email]')
@@ -1013,40 +1015,40 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
           </span>
         )
       } else {
-        parts.push(
-          <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
-            <input
-              key={field.id}
-              type={fieldType === 'email' ? 'email' : fieldType === 'phone' ? 'tel' : 'text'}
-              className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
-              placeholder={field.placeholder}
-              value={fieldValue}
+      parts.push(
+        <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
+          <input
+            key={field.id}
+            type={fieldType === 'email' ? 'email' : fieldType === 'phone' ? 'tel' : 'text'}
+            className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
+            placeholder={field.placeholder}
+            value={fieldValue}
               onChange={(e) => {
                 handleFieldChange(field.id, e.target.value)
                 // Remove error class when user starts typing
                 e.target.classList.remove('field-error')
               }}
-              maxLength={isShortField ? 2 : undefined}
-              autoCapitalize="words"
-              autoComplete="off"
-              spellCheck="false"
-              data-field-type={fieldType}
+            maxLength={isShortField ? 2 : undefined}
+            autoCapitalize="words"
+            autoComplete="off"
+            spellCheck="false"
+            data-field-type={fieldType}
               data-field-id={field.id}
-              title={shouldShowTooltip ? (fieldHint || field.placeholder) : ''}
-              aria-label={field.placeholder}
-            />
-            {isEmpty && (
-              <span className="field-indicator" aria-hidden="true">
-                <span className="field-indicator-icon">✎</span>
-              </span>
-            )}
-            {!isEmpty && (
-              <span className="field-indicator filled" aria-hidden="true">
-                <span className="field-indicator-icon">✓</span>
-              </span>
-            )}
-          </span>
-        )
+            title={shouldShowTooltip ? (fieldHint || field.placeholder) : ''}
+            aria-label={field.placeholder}
+          />
+          {isEmpty && (
+            <span className="field-indicator" aria-hidden="true">
+              <span className="field-indicator-icon">✎</span>
+            </span>
+          )}
+          {!isEmpty && (
+            <span className="field-indicator filled" aria-hidden="true">
+              <span className="field-indicator-icon">✓</span>
+            </span>
+          )}
+        </span>
+      )
       }
 
       lastIndex = field.index + field.fullMatch.length
@@ -2045,8 +2047,8 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
                   </>
                 ) : (
                   <>
-                    <span className="btn-icon">✉️</span>
-                    <span className="btn-text">Send via Email</span>
+                <span className="btn-icon">✉️</span>
+                <span className="btn-text">Send via Email</span>
                   </>
                 )}
               </button>

@@ -20,7 +20,7 @@ function PublicLetterForm() {
 
 
 To,
-The Chief Executive Officer
+ The Chief Executive Officer
 [State Waqf Board] State Waqf Board
 
 
@@ -750,8 +750,10 @@ Email: [USER_EMAIL]`
     // Replace SIGNATURE_NAME with Mutawalli name in BLOCK LETTERS
     finalContent = finalContent.replace('[SIGNATURE_NAME]', mutawalliNameBlock)
     
-    // Replace USER_PHONE with blank line dashes (like other signature fields)
-    finalContent = finalContent.replace('[USER_PHONE]', '__________________')
+    // Replace USER_PHONE with Mobile Number from form field
+    const mobileNumberField = extractFields(letterTemplate).find(f => f.placeholder === 'Mobile Number')
+    const mobileNumber = mobileNumberField ? (fieldValues[mobileNumberField.id] || '') : ''
+    finalContent = finalContent.replace('[USER_PHONE]', mobileNumber || '__________________')
     
     // Replace USER_EMAIL with sender email
     finalContent = finalContent.replace('[USER_EMAIL]', senderEmail || '[Email]')
@@ -1861,7 +1863,7 @@ Email: [USER_EMAIL]`
                 </>
               )
             })()}
-          </div>
+            </div>
           <p className="action-hint">
             Use the <strong>Preview</strong> button to review your letter, then use <strong>Compose</strong> or <strong>Download PDF</strong> from the preview window.
           </p>
