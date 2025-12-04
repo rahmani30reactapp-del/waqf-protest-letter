@@ -1109,7 +1109,7 @@ input[type="file"] {
 }
 
 .bcc-label strong {
-  color: #dc2626;
+  color: #4b5563;
 }
 
 .recipients-emails {
@@ -1143,9 +1143,9 @@ input[type="file"] {
 }
 
 .bcc-badge {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fca5a5;
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
 }
 
 /* UMEED Portal Checkbox Section */

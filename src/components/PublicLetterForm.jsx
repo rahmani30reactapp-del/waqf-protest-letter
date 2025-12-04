@@ -1104,12 +1104,12 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     })
 
       // Add remaining text (including CURRENT_DATE, SIGNATURE_NAME, USER_EMAIL, I_CHECKBOX, and objection checkboxes)
-      if (lastIndex < letterTemplate.length) {
-        let remainingText = letterTemplate.substring(lastIndex)
-        remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
-        remainingText = remainingText.replace('[I_CHECKBOX]', checkboxSymbol)
-        remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
-        remainingText = remainingText.replace('[USER_EMAIL]', senderEmail || '[Email]')
+    if (lastIndex < letterTemplate.length) {
+      let remainingText = letterTemplate.substring(lastIndex)
+      remainingText = remainingText.replace('[CURRENT_DATE]', getCurrentDate())
+      remainingText = remainingText.replace('[I_CHECKBOX]', checkboxSymbol)
+      remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
+      remainingText = remainingText.replace('[USER_EMAIL]', senderEmail || '[Email]')
         
         // Handle ANNEXURES section - always remove for PDF preview in renderLetterWithFields
         // (This is just for display, actual PDF generation uses generateFinalLetter)
@@ -1850,7 +1850,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             <li>All fields must be completed before downloading or composing</li>
             <li>Enter your email address below - this will be used in the Compose email</li>
             <li>Fields are highlighted when you focus on them</li>
-            <li>You can download as PDF or use Compose to open your email client</li>
+            <li>You can download as PDF or use Copy & Compose to open your email client</li>
           </ul>
         </div>
       </div>
@@ -1933,7 +1933,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             <span className="status-message">{submitStatus.message}</span>
           </div>
         )}
-
+        
         <div className="action-section">
           <div className="button-group">
             <button
@@ -2044,7 +2044,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             })()}
             </div>
           <p className="action-hint">
-            Use the <strong>Preview</strong> button to review your letter, then use <strong>Compose</strong> or <strong>Download PDF</strong> from the preview window.
+            Use the <strong>Preview</strong> button to review your letter, then use <strong>Copy & Compose</strong> or <strong>Download PDF</strong> from the preview window.
           </p>
         </div>
       </form>
@@ -2075,29 +2075,29 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             )}
             <div className="preview-modal-footer">
               {previewMode === 'pdf' && (
-                <button
-                  className="preview-download-btn"
-                  onClick={() => {
-                    handleDownloadPDF()
-                    setShowPreview(false)
-                  }}
-                >
-                  <span className="btn-icon">📄</span>
-                  <span className="btn-text">Download PDF</span>
-                </button>
+              <button
+                className="preview-download-btn"
+                onClick={() => {
+                  handleDownloadPDF()
+                  setShowPreview(false)
+                }}
+              >
+                <span className="btn-icon">📄</span>
+                <span className="btn-text">Download PDF</span>
+              </button>
               )}
               {previewMode === 'email' && (
-                <button
-                  className="preview-compose-btn"
-                  onClick={() => {
-                    setShowPreview(false)
-                    handleCompose()
-                  }}
-                  disabled={filledFields < totalFields}
-                >
+              <button
+                className="preview-compose-btn"
+                onClick={() => {
+                  setShowPreview(false)
+                  handleCompose()
+                }}
+                disabled={filledFields < totalFields}
+              >
                   <span className="btn-icon">✉️</span>
-                  <span className="btn-text">Compose</span>
-                </button>
+                  <span className="btn-text">Copy & Compose</span>
+              </button>
               )}
             </div>
           </div>
