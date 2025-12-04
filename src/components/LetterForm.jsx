@@ -802,37 +802,43 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       finalContent = finalContent.replace(field.fullMatch, value)
     })
 
-    // Check which annexures are uploaded and show only those
-    const uploadedAnnexures = []
-    if (attachments.waqfDeed) uploadedAnnexures.push('A')
-    if (attachments.titleDocuments) uploadedAnnexures.push('B')
-    if (attachments.beneficiariesList) uploadedAnnexures.push('C')
-    if (attachments.courtCases) uploadedAnnexures.push('D')
-    if (attachments.correspondence) uploadedAnnexures.push('E')
-    
-    // Handle ANNEXURES section - show only uploaded annexures
-    if (uploadedAnnexures.length === 0) {
-      // Remove entire ANNEXURES section if no files are uploaded
+    // Handle ANNEXURES section based on output type
+    if (isForEmail) {
+      // For Email: Show only uploaded annexures
+      const uploadedAnnexures = []
+      if (attachments.waqfDeed) uploadedAnnexures.push('A')
+      if (attachments.titleDocuments) uploadedAnnexures.push('B')
+      if (attachments.beneficiariesList) uploadedAnnexures.push('C')
+      if (attachments.courtCases) uploadedAnnexures.push('D')
+      if (attachments.correspondence) uploadedAnnexures.push('E')
+      
+      if (uploadedAnnexures.length === 0) {
+        // Remove entire ANNEXURES section if no files are uploaded
+        const annexuresPattern = /ANNEXURES \(AS APPLICABLE\)[\s\S]*$/g
+        finalContent = finalContent.replace(annexuresPattern, '')
+      } else {
+        // Remove annexure lines that are not uploaded
+        const annexureLines = {
+          'A': 'Annexure A: Copy of existing waqf deed / oral dedication proof / earlier registration order',
+          'B': 'Annexure B: Certified copies of title documents / revenue records',
+          'C': 'Annexure C: List of beneficiaries / use of waqf (mosque, madrasa, graveyard, dargah, etc.)',
+          'D': 'Annexure D: Copies of pending court/Tribunal cases concerning this waqf',
+          'E': 'Annexure E: Any correspondence, survey reports, inspection notes or orders from the Waqf Board / Collector / designated officer'
+        }
+        
+        // Remove lines for annexures that are not uploaded
+        Object.keys(annexureLines).forEach(letter => {
+          if (!uploadedAnnexures.includes(letter)) {
+            // Match the annexure line and the blank line after it (if present)
+            const linePattern = new RegExp(`Annexure ${letter}: [^\\n]+\\n\\n?`, 'g')
+            finalContent = finalContent.replace(linePattern, '')
+          }
+        })
+      }
+    } else {
+      // For PDF: Always remove ANNEXURES section completely
       const annexuresPattern = /ANNEXURES \(AS APPLICABLE\)[\s\S]*$/g
       finalContent = finalContent.replace(annexuresPattern, '')
-    } else {
-      // Remove annexure lines that are not uploaded
-      const annexureLines = {
-        'A': 'Annexure A: Copy of existing waqf deed / oral dedication proof / earlier registration order',
-        'B': 'Annexure B: Certified copies of title documents / revenue records',
-        'C': 'Annexure C: List of beneficiaries / use of waqf (mosque, madrasa, graveyard, dargah, etc.)',
-        'D': 'Annexure D: Copies of pending court/Tribunal cases concerning this waqf',
-        'E': 'Annexure E: Any correspondence, survey reports, inspection notes or orders from the Waqf Board / Collector / designated officer'
-      }
-      
-          // Remove lines for annexures that are not uploaded
-          Object.keys(annexureLines).forEach(letter => {
-            if (!uploadedAnnexures.includes(letter)) {
-              // Match the annexure line and the blank line after it (if present)
-              const linePattern = new RegExp(`Annexure ${letter}: [^\\n]+\\n\\n?`, 'g')
-              finalContent = finalContent.replace(linePattern, '')
-            }
-          })
     }
 
     // Remove entire signature section for email body only (always keep for PDF)
@@ -1082,38 +1088,10 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         remainingText = remainingText.replace('[SIGNATURE_NAME]', mutawalliName || '[Name of Mutawalli]')
         remainingText = remainingText.replace('[USER_EMAIL]', user?.email || '[Email]')
         
-        // Check which annexures are uploaded and show only those
-        const uploadedAnnexures = []
-        if (attachments.waqfDeed) uploadedAnnexures.push('A')
-        if (attachments.titleDocuments) uploadedAnnexures.push('B')
-        if (attachments.beneficiariesList) uploadedAnnexures.push('C')
-        if (attachments.courtCases) uploadedAnnexures.push('D')
-        if (attachments.correspondence) uploadedAnnexures.push('E')
-        
-        // Handle ANNEXURES section - show only uploaded annexures
-        if (uploadedAnnexures.length === 0) {
-          // Remove entire ANNEXURES section if no files are uploaded
-          const annexuresPattern = /ANNEXURES \(AS APPLICABLE\)[\s\S]*$/g
-          remainingText = remainingText.replace(annexuresPattern, '')
-        } else {
-          // Remove annexure lines that are not uploaded
-          const annexureLines = {
-            'A': 'Annexure A: Copy of existing waqf deed / oral dedication proof / earlier registration order',
-            'B': 'Annexure B: Certified copies of title documents / revenue records',
-            'C': 'Annexure C: List of beneficiaries / use of waqf (mosque, madrasa, graveyard, dargah, etc.)',
-            'D': 'Annexure D: Copies of pending court/Tribunal cases concerning this waqf',
-            'E': 'Annexure E: Any correspondence, survey reports, inspection notes or orders from the Waqf Board / Collector / designated officer'
-          }
-          
-          // Remove lines for annexures that are not uploaded
-          Object.keys(annexureLines).forEach(letter => {
-            if (!uploadedAnnexures.includes(letter)) {
-              // Match the annexure line and the blank line after it (if present)
-              const linePattern = new RegExp(`Annexure ${letter}: [^\\n]+\\n\\n?`, 'g')
-              remainingText = remainingText.replace(linePattern, '')
-            }
-          })
-        }
+        // Handle ANNEXURES section - always remove for PDF preview in renderLetterWithFields
+        // (This is just for display, actual PDF generation uses generateFinalLetter)
+        const annexuresPattern = /ANNEXURES \(AS APPLICABLE\)[\s\S]*$/g
+        remainingText = remainingText.replace(annexuresPattern, '')
       
       // Handle objection checkboxes in remaining text
       const objectionPlaceholders = [
