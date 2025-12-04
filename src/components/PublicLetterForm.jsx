@@ -337,6 +337,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
   const [submitStatus, setSubmitStatus] = useState(null)
   const [iCheckboxChecked, setICheckboxChecked] = useState(true) // Default checked
   const [showPreview, setShowPreview] = useState(false) // Preview modal state
+  const [previewMode, setPreviewMode] = useState('pdf') // 'pdf' or 'email'
   const [copySuccess, setCopySuccess] = useState(false) // Copy to clipboard success state
   const [copyBodySuccess, setCopyBodySuccess] = useState(false) // Copy body button success state
   const [stateDropdownOpen, setStateDropdownOpen] = useState(false) // State dropdown open state
@@ -1997,12 +1998,57 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             </button>
             <button
               type="button"
-              onClick={() => setShowPreview(true)}
+              onClick={() => {
+                if (filledFields < totalFields) {
+                  const fields = extractFields(letterTemplate)
+                  const missingFields = fields.filter(field => {
+                    const value = fieldValues[field.id]
+                    return !value || value.trim() === ''
+                  })
+                  if (missingFields.length > 0) {
+                    scrollToFirstEmptyField(missingFields)
+                    setSubmitStatus({
+                      type: 'error',
+                      message: `Please fill in all fields before previewing. ${missingFields.length} field(s) remaining. The first empty field has been highlighted.`,
+                    })
+                    return
+                  }
+                }
+                setPreviewMode('pdf')
+                setShowPreview(true)
+              }}
               className="preview-btn"
               disabled={filledFields < totalFields}
             >
-              <span className="btn-icon">👁️</span>
-              <span className="btn-text">Preview</span>
+              <span className="btn-icon">📄</span>
+              <span className="btn-text">Preview PDF</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (filledFields < totalFields) {
+                  const fields = extractFields(letterTemplate)
+                  const missingFields = fields.filter(field => {
+                    const value = fieldValues[field.id]
+                    return !value || value.trim() === ''
+                  })
+                  if (missingFields.length > 0) {
+                    scrollToFirstEmptyField(missingFields)
+                    setSubmitStatus({
+                      type: 'error',
+                      message: `Please fill in all fields before previewing. ${missingFields.length} field(s) remaining. The first empty field has been highlighted.`,
+                    })
+                    return
+                  }
+                }
+                setPreviewMode('email')
+                setShowPreview(true)
+              }}
+              className="preview-btn preview-email-btn"
+              disabled={filledFields < totalFields}
+            >
+              <span className="btn-icon">📧</span>
+              <span className="btn-text">Preview Email</span>
             </button>
           </div>
           <div className="email-recipients-display">
@@ -2070,31 +2116,40 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             </div>
             <div className="preview-modal-content">
               <div className="preview-letter-wrapper">
-                <pre className="preview-letter-text">{generateFinalLetter()}</pre>
+                <pre className="preview-letter-text">{generateFinalLetter(previewMode === 'email')}</pre>
               </div>
             </div>
+            {previewMode === 'email' && (
+              <div className="preview-mode-indicator">
+                <span className="preview-mode-badge">📧 Email Preview - Signature section removed</span>
+              </div>
+            )}
             <div className="preview-modal-footer">
-              <button
-                className="preview-download-btn"
-                onClick={() => {
-                  handleDownloadPDF()
-                  setShowPreview(false)
-                }}
-              >
-                <span className="btn-icon">📄</span>
-                <span className="btn-text">Download PDF</span>
-              </button>
-              <button
-                className="preview-compose-btn"
-                onClick={() => {
-                  setShowPreview(false)
-                  handleCompose()
-                }}
-                disabled={filledFields < totalFields}
-              >
-                <span className="btn-icon">✉️</span>
-                <span className="btn-text">Compose</span>
-              </button>
+              {previewMode === 'pdf' && (
+                <button
+                  className="preview-download-btn"
+                  onClick={() => {
+                    handleDownloadPDF()
+                    setShowPreview(false)
+                  }}
+                >
+                  <span className="btn-icon">📄</span>
+                  <span className="btn-text">Download PDF</span>
+                </button>
+              )}
+              {previewMode === 'email' && (
+                <button
+                  className="preview-compose-btn"
+                  onClick={() => {
+                    setShowPreview(false)
+                    handleCompose()
+                  }}
+                  disabled={filledFields < totalFields}
+                >
+                  <span className="btn-icon">✉️</span>
+                  <span className="btn-text">Compose</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

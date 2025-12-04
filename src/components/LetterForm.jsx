@@ -336,6 +336,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
   const [submitStatus, setSubmitStatus] = useState(null)
   const [iCheckboxChecked, setICheckboxChecked] = useState(true) // Default checked
   const [showPreview, setShowPreview] = useState(false) // Preview modal state
+  const [previewMode, setPreviewMode] = useState('pdf') // 'pdf' or 'email'
   const [copySuccess, setCopySuccess] = useState(false) // Copy to clipboard success state
   const [editablePreviewContent, setEditablePreviewContent] = useState('') // Editable preview content
   const [stateDropdownOpen, setStateDropdownOpen] = useState(false) // State dropdown open state
@@ -1982,13 +1983,44 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
                   return
                 }
 
-                setEditablePreviewContent(generateFinalLetter())
+                setPreviewMode('pdf')
+                setEditablePreviewContent(generateFinalLetter(false))
                 setShowPreview(true)
               }}
               className="preview-btn"
             >
-              <span className="btn-icon">✏️</span>
-              <span className="btn-text">Preview & Edit</span>
+              <span className="btn-icon">📄</span>
+              <span className="btn-text">Preview PDF</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                // Validate fields before opening preview
+                const fields = extractFields(letterTemplate)
+                const missingFields = fields.filter(field => {
+                  const value = fieldValues[field.id]
+                  return !value || value.trim() === ''
+                })
+
+                if (missingFields.length > 0) {
+                  // Scroll to and highlight the first empty field
+                  scrollToFirstEmptyField(missingFields)
+                  
+                  setSubmitStatus({
+                    type: 'error',
+                    message: `Please fill in all fields before previewing. ${missingFields.length} field(s) remaining. The first empty field has been highlighted.`,
+                  })
+                  return
+                }
+
+                setPreviewMode('email')
+                setEditablePreviewContent(generateFinalLetter(true))
+                setShowPreview(true)
+              }}
+              className="preview-btn preview-email-btn"
+            >
+              <span className="btn-icon">📧</span>
+              <span className="btn-text">Preview Email</span>
             </button>
           </div>
           <div className="email-recipients-display">
@@ -2062,47 +2094,52 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
                 />
               </div>
             </div>
+            {previewMode === 'email' && (
+              <div className="preview-mode-indicator">
+                <span className="preview-mode-badge">📧 Email Preview - Signature section removed</span>
+              </div>
+            )}
             <div className="preview-modal-footer">
-              <button
-                className="preview-download-btn"
-                onClick={async () => {
-                  // Use edited content for PDF generation
-                  const originalContent = generateFinalLetter()
-                  // For now, download with original content
-                  // In future, we can implement custom PDF generation with edited content
-                  handleDownloadPDF()
-                  setShowPreview(false)
-                }}
-              >
-                <span className="btn-icon">📄</span>
-                <span className="btn-text">Download PDF</span>
-              </button>
-              <button
-                className="preview-send-btn"
-                onClick={async (e) => {
-                  e.preventDefault()
-                  setShowPreview(false)
-                  // Trigger the form submit
-                  const form = document.querySelector('.letter-form')
-                  if (form) {
-                    const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
-                    form.dispatchEvent(submitEvent)
-                  }
-                }}
-                disabled={isSubmitting || filledFields < totalFields}
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="btn-icon">⏳</span>
-                    <span className="btn-text">Sending...</span>
-                  </>
-                ) : (
-                  <>
-                <span className="btn-icon">✉️</span>
-                <span className="btn-text">Send via Email</span>
-                  </>
-                )}
-              </button>
+              {previewMode === 'pdf' && (
+                <button
+                  className="preview-download-btn"
+                  onClick={async () => {
+                    handleDownloadPDF()
+                    setShowPreview(false)
+                  }}
+                >
+                  <span className="btn-icon">📄</span>
+                  <span className="btn-text">Download PDF</span>
+                </button>
+              )}
+              {previewMode === 'email' && (
+                <button
+                  className="preview-send-btn"
+                  onClick={async (e) => {
+                    e.preventDefault()
+                    setShowPreview(false)
+                    // Trigger the form submit
+                    const form = document.querySelector('.letter-form')
+                    if (form) {
+                      const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
+                      form.dispatchEvent(submitEvent)
+                    }
+                  }}
+                  disabled={isSubmitting || filledFields < totalFields}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="btn-icon">⏳</span>
+                      <span className="btn-text">Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="btn-icon">✉️</span>
+                      <span className="btn-text">Send via Email</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>

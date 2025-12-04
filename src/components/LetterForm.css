@@ -797,6 +797,40 @@ input[type="file"] {
   box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
 }
 
+/* Preview Mode Indicator */
+.preview-mode-indicator {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-top: 1px solid #93c5fd;
+  border-bottom: 1px solid #93c5fd;
+  text-align: center;
+}
+
+.preview-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Preview Email Button */
+.preview-email-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+}
+
+.preview-email-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
 .preview-send-btn:disabled,
 .preview-compose-btn:disabled,
 .preview-download-btn:disabled {
