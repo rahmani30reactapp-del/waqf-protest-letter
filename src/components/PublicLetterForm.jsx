@@ -342,6 +342,8 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
   const [copyBodySuccess, setCopyBodySuccess] = useState(false) // Copy body button success state
   const [stateDropdownOpen, setStateDropdownOpen] = useState(false) // State dropdown open state
   const [stateSearchQuery, setStateSearchQuery] = useState('') // State search query
+  const [regNoDropdownOpen, setRegNoDropdownOpen] = useState(false) // Registration number dropdown open state
+  const [regNoSearchQuery, setRegNoSearchQuery] = useState('') // Registration number search query
 
   // List of Indian States and Union Territories
   const indianStates = [
@@ -353,6 +355,15 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
     'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
     'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
+  ]
+
+  // Valid Waqf Registration Number prefixes
+  const waqfRegNoPrefixes = [
+    'BRAR', 'BRAU', 'BRBB', 'BRBG', 'BRBJ', 'BRBK', 'BRBS', 'BRBX',
+    'BRDB', 'BREC', 'BRGP', 'BRGY', 'BRJD', 'BRJM', 'BRKG', 'BRKS',
+    'BRKT', 'BRLK', 'BRMB', 'BRMP', 'BRMU', 'BRMZ', 'BRNL', 'BRNW',
+    'BRPR', 'BRPT', 'BRRT', 'BRSA', 'BRSH', 'BRSI', 'BRSK', 'BRSM',
+    'BRSN', 'BRSP', 'BRST', 'BRVA', 'BRWC'
   ]
 
   // Central email recipients (common to all states)
@@ -547,15 +558,18 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       if (stateDropdownOpen && !event.target.closest('.state-dropdown-container')) {
         setStateDropdownOpen(false)
       }
+      if (regNoDropdownOpen && !event.target.closest('.regno-dropdown-container')) {
+        setRegNoDropdownOpen(false)
+      }
     }
 
-    if (stateDropdownOpen) {
+    if (stateDropdownOpen || regNoDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside)
       return () => {
         document.removeEventListener('mousedown', handleClickOutside)
       }
     }
-  }, [stateDropdownOpen])
+  }, [stateDropdownOpen, regNoDropdownOpen])
 
   const extractFields = (template) => {
     const fields = []
@@ -963,7 +977,6 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       const noTooltipFields = [
         'Name/Description of Waqf',
         'Waqf Name',
-        'Existing Waqf Registration No. (if any)',
         'Registration No.',
         'Your Mobile Number',
         'Mobile Number'
@@ -1063,6 +1076,114 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
                       No states found
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+          </span>
+        )
+      } else if (field.placeholder.includes('Existing Waqf Registration No. (if any)')) {
+        // Special handling for Waqf Registration Number - render with prefix dropdown
+        const filteredPrefixes = waqfRegNoPrefixes.filter(prefix =>
+          prefix.toLowerCase().includes(regNoSearchQuery.toLowerCase())
+        )
+        const isRegNoFieldEmpty = !fieldValue.trim()
+        
+        // Validate format: prefix + 4 digits
+        const isValidFormat = fieldValue.trim() === '' || /^[A-Z]{4}\d{4}$/.test(fieldValue.trim().toUpperCase())
+        const showPrefixDropdown = regNoDropdownOpen && (regNoSearchQuery.length > 0 || fieldValue.trim().length < 4)
+        
+        parts.push(
+          <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper regno-dropdown-wrapper" data-field-type="regno">
+            <div className="regno-dropdown-container">
+              <input
+                key={field.id}
+                type="text"
+                className={`inline-field regno-input ${isRegNoFieldEmpty ? 'field-empty' : 'field-filled'} ${!isValidFormat && !isRegNoFieldEmpty ? 'field-error' : ''}`}
+                placeholder={field.placeholder}
+                value={fieldValue}
+                onChange={(e) => {
+                  let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+                  // Limit to 8 characters (4 prefix + 4 digits)
+                  if (value.length > 8) value = value.substring(0, 8)
+                  // If typing prefix, allow only letters
+                  if (value.length <= 4) {
+                    value = value.replace(/[^A-Z]/g, '')
+                    handleFieldChange(field.id, value)
+                    setRegNoSearchQuery(value)
+                    setRegNoDropdownOpen(true)
+                  } else {
+                    // If typing digits, ensure first 4 are letters and rest are digits
+                    const prefix = value.substring(0, 4).replace(/[^A-Z]/g, '')
+                    const digits = value.substring(4).replace(/[^0-9]/g, '')
+                    handleFieldChange(field.id, prefix + digits)
+                    setRegNoSearchQuery('')
+                    setRegNoDropdownOpen(false)
+                  }
+                  e.target.classList.remove('field-error')
+                }}
+                onFocus={() => {
+                  if (fieldValue.trim().length < 4) {
+                    setRegNoDropdownOpen(true)
+                    setRegNoSearchQuery(fieldValue.trim())
+                  }
+                }}
+                onBlur={(e) => {
+                  // Delay closing to allow click on dropdown item
+                  setTimeout(() => {
+                    setRegNoDropdownOpen(false)
+                  }, 200)
+                }}
+                autoCapitalize="characters"
+                autoComplete="off"
+                spellCheck="false"
+                data-field-type="regno"
+                data-field-id={field.id}
+                title="Enter registration number: 4-letter prefix (e.g., BRAR) followed by 4 digits (e.g., BRAR1234)"
+                aria-label={field.placeholder}
+                maxLength={8}
+              />
+              {isRegNoFieldEmpty && (
+                <span className="field-indicator" aria-hidden="true">
+                  <span className="field-indicator-icon">✎</span>
+                </span>
+              )}
+              {!isRegNoFieldEmpty && isValidFormat && (
+                <span className="field-indicator filled" aria-hidden="true">
+                  <span className="field-indicator-icon">✓</span>
+                </span>
+              )}
+              {!isRegNoFieldEmpty && !isValidFormat && (
+                <span className="field-indicator error" aria-hidden="true">
+                  <span className="field-indicator-icon">⚠</span>
+                </span>
+              )}
+              {showPrefixDropdown && (
+                <div className="regno-dropdown-list">
+                  {filteredPrefixes.length > 0 ? (
+                    filteredPrefixes.map((prefix, idx) => (
+                      <div
+                        key={idx}
+                        className="regno-dropdown-item"
+                        onClick={() => {
+                          handleFieldChange(field.id, prefix)
+                          setRegNoSearchQuery('')
+                          setRegNoDropdownOpen(false)
+                        }}
+                        onMouseDown={(e) => e.preventDefault()} // Prevent blur
+                      >
+                        {prefix}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="regno-dropdown-item no-results">
+                      No prefix found
+                    </div>
+                  )}
+                </div>
+              )}
+              {!isRegNoFieldEmpty && !isValidFormat && (
+                <div className="field-error-message" style={{ fontSize: '0.75em', color: '#d32f2f', marginTop: '2px' }}>
+                  Format: 4-letter prefix + 4 digits (e.g., BRAR1234)
                 </div>
               )}
             </div>
@@ -1295,6 +1416,68 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     return `${parts.join('_')}.pdf`
   }
 
+  // Helper function to get user details for Drive upload
+  const getUserDetailsForDrive = () => {
+    const mutawalliNameField = extractFields(letterTemplate).find(f => f.placeholder === 'Name of Mutawalli')
+    const mutawalliName = mutawalliNameField ? (fieldValues[mutawalliNameField.id] || '') : ''
+    
+    const waqfNameField = extractFields(letterTemplate).find(f => f.placeholder === 'Waqf Name')
+    const waqfName = waqfNameField ? (fieldValues[waqfNameField.id] || '') : ''
+    
+    const stateBoardField = extractFields(letterTemplate).find(f => f.placeholder === 'State Waqf Board')
+    const stateBoard = stateBoardField ? (fieldValues[stateBoardField.id] || '') : ''
+    
+    return {
+      name: mutawalliName,
+      email: senderEmail || '',
+      waqfName: waqfName,
+      state: stateBoard
+    }
+  }
+
+  // Helper function to upload PDF to Google Drive
+  const uploadPDFToDrive = async (pdfBlob, filename) => {
+    try {
+      // Convert PDF blob to base64
+      const pdfBase64 = await new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          const base64String = reader.result.split(',')[1] // Remove data:application/pdf;base64, prefix
+          resolve(base64String)
+        }
+        reader.readAsDataURL(pdfBlob)
+      })
+
+      // Get user details
+      const userDetails = getUserDetailsForDrive()
+
+      // Upload to Drive
+      const response = await fetch('/api/upload-to-drive', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pdfBase64,
+          filename,
+          userDetails
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to upload to Drive')
+      }
+
+      const result = await response.json()
+      return result
+    } catch (error) {
+      console.error('Error uploading to Google Drive:', error)
+      // Don't throw - allow the main flow to continue even if Drive upload fails
+      return null
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -1356,6 +1539,15 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
 
       // Generate professional filename
       const filename = generateProfessionalFilename()
+
+      // Upload to Google Drive (non-blocking - don't wait for it)
+      uploadPDFToDrive(pdfBlob, filename).then(result => {
+        if (result) {
+          console.log('PDF uploaded to Drive:', result.webViewLink)
+        }
+      }).catch(err => {
+        console.error('Drive upload failed (non-critical):', err)
+      })
 
       // Auto-download PDF
       const url = URL.createObjectURL(pdfBlob)
@@ -1629,6 +1821,15 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       // Generate professional filename
       const filename = generateProfessionalFilename()
       
+      // Upload to Google Drive (non-blocking - don't wait for it)
+      uploadPDFToDrive(pdfBlob, filename).then(result => {
+        if (result) {
+          console.log('PDF uploaded to Drive:', result.webViewLink)
+        }
+      }).catch(err => {
+        console.error('Drive upload failed (non-critical):', err)
+      })
+      
       // Create download link and trigger download
       const url = URL.createObjectURL(pdfBlob)
       const link = document.createElement('a')
@@ -1706,6 +1907,15 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       // First, auto-download the PDF
       const pdfBlob = await generatePDFBlob()
       const pdfFilename = generateProfessionalFilename()
+      
+      // Upload to Google Drive (non-blocking - don't wait for it)
+      uploadPDFToDrive(pdfBlob, pdfFilename).then(result => {
+        if (result) {
+          console.log('PDF uploaded to Drive:', result.webViewLink)
+        }
+      }).catch(err => {
+        console.error('Drive upload failed (non-critical):', err)
+      })
       
       // Download PDF automatically
       const url = URL.createObjectURL(pdfBlob)
