@@ -593,6 +593,30 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     return fields
   }
 
+  // Valid Waqf Registration Number prefixes
+  const validRegistrationPrefixes = [
+    'BRAR', 'BRAU', 'BRBB', 'BRBG', 'BRBJ', 'BRBK', 'BRBS', 'BRBX', 'BRDB',
+    'BREC', 'BRGP', 'BRGY', 'BRJD', 'BRJM', 'BRKG', 'BRKS', 'BRKT', 'BRLK',
+    'BRMB', 'BRMP', 'BRMU', 'BRMZ', 'BRNL', 'BRNW', 'BRPR', 'BRPT', 'BRRT',
+    'BRSA', 'BRSH', 'BRSI', 'BRSK', 'BRSM', 'BRSN', 'BRSP', 'BRST', 'BRVA', 'BRWC'
+  ]
+
+  // Validate Waqf Registration Number format
+  const validateRegistrationNumber = (value) => {
+    if (!value || value.trim() === '') {
+      return true // Empty is valid (field is optional)
+    }
+    const trimmedValue = value.trim().toUpperCase()
+    // Check if it matches: 4-letter prefix followed by exactly 4 digits
+    const pattern = /^[A-Z]{4}\d{4}$/
+    if (!pattern.test(trimmedValue)) {
+      return false
+    }
+    // Check if prefix is in the valid list
+    const prefix = trimmedValue.substring(0, 4)
+    return validRegistrationPrefixes.includes(prefix)
+  }
+
   const handleFieldChange = (fieldId, value) => {
     setFieldValues(prev => ({
       ...prev,
@@ -1082,12 +1106,40 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             placeholder={field.placeholder}
             value={fieldValue}
               onChange={(e) => {
-                handleFieldChange(field.id, e.target.value)
-                // Remove error class when user starts typing
-                e.target.classList.remove('field-error')
+                let newValue = e.target.value
+                // For registration fields, auto-uppercase and restrict to alphanumeric
+                if (fieldType === 'registration') {
+                  newValue = newValue.toUpperCase().replace(/[^A-Z0-9]/g, '')
+                  // Limit to 8 characters (4 letters + 4 digits)
+                  if (newValue.length > 8) {
+                    newValue = newValue.substring(0, 8)
+                  }
+                }
+                handleFieldChange(field.id, newValue)
+                // Validate registration number
+                if (fieldType === 'registration') {
+                  if (newValue.trim() !== '' && !validateRegistrationNumber(newValue)) {
+                    e.target.classList.add('field-error')
+                  } else {
+                    e.target.classList.remove('field-error')
+                  }
+                } else {
+                  // Remove error class when user starts typing (for other fields)
+                  e.target.classList.remove('field-error')
+                }
               }}
-            maxLength={isShortField ? 2 : undefined}
-            autoCapitalize="words"
+              onBlur={(e) => {
+                // Validate on blur for registration fields
+                if (fieldType === 'registration' && e.target.value.trim() !== '') {
+                  if (!validateRegistrationNumber(e.target.value)) {
+                    e.target.classList.add('field-error')
+                  } else {
+                    e.target.classList.remove('field-error')
+                  }
+                }
+              }}
+            maxLength={fieldType === 'registration' ? 8 : (isShortField ? 2 : undefined)}
+            autoCapitalize={fieldType === 'registration' ? 'characters' : 'words'}
             autoComplete="off"
             spellCheck="false"
             data-field-type={fieldType}
@@ -1392,6 +1444,32 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
         })
         setIsSubmitting(false)
         return
+      }
+
+      // Validate registration number format if provided
+      const registrationFields = fields.filter(field => 
+        field.placeholder.toLowerCase().includes('registration') && 
+        field.placeholder.toLowerCase().includes('waqf')
+      )
+      for (const field of registrationFields) {
+        const value = fieldValues[field.id]
+        if (value && value.trim() !== '' && !validateRegistrationNumber(value)) {
+          const fieldElement = document.querySelector(`input[data-field-id="${field.id}"]`)
+          if (fieldElement) {
+            fieldElement.classList.add('field-error')
+            fieldElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center',
+              inline: 'nearest'
+            })
+          }
+          setSubmitStatus({
+            type: 'error',
+            message: 'Invalid Waqf Registration Number format. Please use a valid 4-letter prefix (e.g., BRAR, BRAU) followed by 4 digits (e.g., BRAR1234).',
+          })
+          setIsSubmitting(false)
+          return
+        }
       }
 
       // Generate PDF blob
@@ -1701,6 +1779,31 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
           message: `Please fill in all fields before downloading. ${missingFields.length} field(s) remaining. The first empty field has been highlighted.`,
         })
         return
+      }
+
+      // Validate registration number format if provided
+      const registrationFields = fields.filter(field => 
+        field.placeholder.toLowerCase().includes('registration') && 
+        field.placeholder.toLowerCase().includes('waqf')
+      )
+      for (const field of registrationFields) {
+        const value = fieldValues[field.id]
+        if (value && value.trim() !== '' && !validateRegistrationNumber(value)) {
+          const fieldElement = document.querySelector(`input[data-field-id="${field.id}"]`)
+          if (fieldElement) {
+            fieldElement.classList.add('field-error')
+            fieldElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center',
+              inline: 'nearest'
+            })
+          }
+          setSubmitStatus({
+            type: 'error',
+            message: 'Invalid Waqf Registration Number format. Please use a valid 4-letter prefix (e.g., BRAR, BRAU) followed by 4 digits (e.g., BRAR1234).',
+          })
+          return
+        }
       }
 
       const letterContent = generateFinalLetter()
