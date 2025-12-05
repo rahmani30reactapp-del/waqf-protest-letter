@@ -1073,40 +1073,51 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
           </span>
         )
       } else {
-      parts.push(
-        <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
-          <input
-            key={field.id}
-            type={fieldType === 'email' ? 'email' : fieldType === 'phone' ? 'tel' : 'text'}
-            className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
-            placeholder={field.placeholder}
-            value={fieldValue}
-              onChange={(e) => {
-                handleFieldChange(field.id, e.target.value)
-                // Remove error class when user starts typing
-                e.target.classList.remove('field-error')
-              }}
-            maxLength={isShortField ? 2 : undefined}
-            autoCapitalize="words"
-            autoComplete="off"
-            spellCheck="false"
-            data-field-type={fieldType}
-              data-field-id={field.id}
-            title={shouldShowTooltip || fieldType === 'registration' ? (fieldHint || field.placeholder) : ''}
-            aria-label={field.placeholder}
-          />
-          {isEmpty && (
-            <span className="field-indicator" aria-hidden="true">
-              <span className="field-indicator-icon">✎</span>
-            </span>
+      const fieldElement = (
+        <>
+          <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
+            <input
+              key={field.id}
+              type={fieldType === 'email' ? 'email' : fieldType === 'phone' ? 'tel' : 'text'}
+              className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
+              placeholder={field.placeholder}
+              value={fieldValue}
+                onChange={(e) => {
+                  handleFieldChange(field.id, e.target.value)
+                  // Remove error class when user starts typing
+                  e.target.classList.remove('field-error')
+                }}
+              maxLength={isShortField ? 2 : undefined}
+              autoCapitalize="words"
+              autoComplete="off"
+              spellCheck="false"
+              data-field-type={fieldType}
+                data-field-id={field.id}
+              title={shouldShowTooltip || fieldType === 'registration' ? (fieldHint || field.placeholder) : ''}
+              aria-label={field.placeholder}
+            />
+            {isEmpty && (
+              <span className="field-indicator" aria-hidden="true">
+                <span className="field-indicator-icon">✎</span>
+              </span>
+            )}
+            {!isEmpty && (
+              <span className="field-indicator filled" aria-hidden="true">
+                <span className="field-indicator-icon">✓</span>
+              </span>
+            )}
+          </span>
+          {fieldType === 'registration' && (
+            <>
+              <br />
+              <span key={`field-helper-${field.id}`} className="registration-field-helper">
+                Examples: BRAR1234, BRAU5678, BRBB9012, BRBG3456, BRBJ7890, BRBK2345, BRBS6789, BRBX0123, BRDB4567, BREC8901, BRGP2345, BRGY6789, BRJD0123, BRJM4567, BRKG8901, BRKS2345, BRKT6789, BRLK0123, BRMB4567, BRMP8901, BRMU2345, BRMZ6789, BRNL0123, BRNW4567, BRPR8901, BRPT2345, BRRT6789, BRSA0123, BRSH4567, BRSI8901, BRSK2345, BRSM6789, BRSN0123, BRSP4567, BRST8901, BRVA2345, BRWC6789 (4-letter prefix followed by 4 digits)
+              </span>
+            </>
           )}
-          {!isEmpty && (
-            <span className="field-indicator filled" aria-hidden="true">
-              <span className="field-indicator-icon">✓</span>
-            </span>
-          )}
-        </span>
+        </>
       )
+      parts.push(fieldElement)
       }
 
       lastIndex = field.index + field.fullMatch.length
