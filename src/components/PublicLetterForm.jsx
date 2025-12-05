@@ -990,7 +990,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       } else if ((field.placeholder.toLowerCase().includes('waqf') || field.placeholder.toLowerCase().includes('property')) && shouldShowTooltip) {
         fieldType = 'property'
         fieldHint = 'Enter property/waqf name'
-      } else if (field.placeholder.toLowerCase().includes('registration') && field.placeholder.toLowerCase().includes('waqf')) {
+      } else if (field.placeholder === 'Registration No.' || (field.placeholder.toLowerCase().includes('registration') && field.placeholder.toLowerCase().includes('waqf'))) {
         fieldType = 'registration'
         fieldHint = 'Examples: BRAR1234, BRAU5678, BRBB9012, BRBG3456, BRBJ7890, BRBK2345, BRBS6789, BRBX0123, BRDB4567, BREC8901, BRGP2345, BRGY6789, BRJD0123, BRJM4567, BRKG8901, BRKS2345, BRKT6789, BRLK0123, BRMB4567, BRMP8901, BRMU2345, BRMZ6789, BRNL0123, BRNW4567, BRPR8901, BRPT2345, BRRT6789, BRSA0123, BRSH4567, BRSI8901, BRSK2345, BRSM6789, BRSN0123, BRSP4567, BRST8901, BRVA2345, BRWC6789 (4-letter prefix followed by 4 digits)'
       }
@@ -1072,43 +1072,43 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
           </span>
         )
       } else {
-      const fieldElement = (
-        <>
-          <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
-            <input
-              key={field.id}
-              type={fieldType === 'email' ? 'email' : fieldType === 'phone' ? 'tel' : 'text'}
-              className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
-              placeholder={field.placeholder}
-              value={fieldValue}
-              onChange={(e) => handleFieldChange(field.id, e.target.value)}
-              maxLength={isShortField ? 2 : undefined}
-              autoCapitalize="words"
-              autoComplete="off"
-              spellCheck="false"
-              data-field-type={fieldType}
-              title={shouldShowTooltip || fieldType === 'registration' ? (fieldHint || field.placeholder) : ''}
-              aria-label={field.placeholder}
-            />
-            {isEmpty && (
-              <span className="field-indicator" aria-hidden="true">
-                <span className="field-indicator-icon">✎</span>
-              </span>
-            )}
-            {!isEmpty && (
-              <span className="field-indicator filled" aria-hidden="true">
-                <span className="field-indicator-icon">✓</span>
-              </span>
-            )}
-          </span>
-          {fieldType === 'registration' && (
-            <span key={`field-helper-${field.id}`} className="registration-field-helper">
-              Examples: BRAR1234, BRAU5678, BRBB9012, BRBG3456, BRBJ7890, BRBK2345, BRBS6789, BRBX0123, BRDB4567, BREC8901, BRGP2345, BRGY6789, BRJD0123, BRJM4567, BRKG8901, BRKS2345, BRKT6789, BRLK0123, BRMB4567, BRMP8901, BRMU2345, BRMZ6789, BRNL0123, BRNW4567, BRPR8901, BRPT2345, BRRT6789, BRSA0123, BRSH4567, BRSI8901, BRSK2345, BRSM6789, BRSN0123, BRSP4567, BRST8901, BRVA2345, BRWC6789 (4-letter prefix followed by 4 digits)
+      parts.push(
+        <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
+          <input
+            key={field.id}
+            type={fieldType === 'email' ? 'email' : fieldType === 'phone' ? 'tel' : 'text'}
+            className={`inline-field ${isShortField ? 'short-field' : ''} ${isEmpty ? 'field-empty' : 'field-filled'}`}
+            placeholder={field.placeholder}
+            value={fieldValue}
+            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+            maxLength={isShortField ? 2 : undefined}
+            autoCapitalize="words"
+            autoComplete="off"
+            spellCheck="false"
+            data-field-type={fieldType}
+            title={shouldShowTooltip || fieldType === 'registration' ? (fieldHint || field.placeholder) : ''}
+            aria-label={field.placeholder}
+          />
+          {isEmpty && (
+            <span className="field-indicator" aria-hidden="true">
+              <span className="field-indicator-icon">✎</span>
             </span>
           )}
-        </>
+          {!isEmpty && (
+            <span className="field-indicator filled" aria-hidden="true">
+              <span className="field-indicator-icon">✓</span>
+            </span>
+          )}
+        </span>
       )
-      parts.push(fieldElement)
+      // Add helper text for registration fields as a separate element
+      if (fieldType === 'registration') {
+        parts.push(
+          <span key={`field-helper-${field.id}`} className="registration-field-helper">
+            Examples: BRAR1234, BRAU5678, BRBB9012, BRBG3456, BRBJ7890, BRBK2345, BRBS6789, BRBX0123, BRDB4567, BREC8901, BRGP2345, BRGY6789, BRJD0123, BRJM4567, BRKG8901, BRKS2345, BRKT6789, BRLK0123, BRMB4567, BRMP8901, BRMU2345, BRMZ6789, BRNL0123, BRNW4567, BRPR8901, BRPT2345, BRRT6789, BRSA0123, BRSH4567, BRSI8901, BRSK2345, BRSM6789, BRSN0123, BRSP4567, BRST8901, BRVA2345, BRWC6789 (4-letter prefix followed by 4 digits)
+          </span>
+        )
+      }
       }
 
       lastIndex = field.index + field.fullMatch.length
