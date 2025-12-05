@@ -341,8 +341,6 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
   const [editablePreviewContent, setEditablePreviewContent] = useState('') // Editable preview content
   const [stateDropdownOpen, setStateDropdownOpen] = useState(false) // State dropdown open state
   const [stateSearchQuery, setStateSearchQuery] = useState('') // State search query
-  const [regNoDropdownOpen, setRegNoDropdownOpen] = useState(false) // Registration number dropdown open state
-  const [regNoSearchQuery, setRegNoSearchQuery] = useState('') // Registration number search query
 
   // List of Indian States and Union Territories
   const indianStates = [
@@ -354,15 +352,6 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
     'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
     'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
     'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
-  ]
-
-  // Valid Waqf Registration Number prefixes
-  const waqfRegNoPrefixes = [
-    'BRAR', 'BRAU', 'BRBB', 'BRBG', 'BRBJ', 'BRBK', 'BRBS', 'BRBX',
-    'BRDB', 'BREC', 'BRGP', 'BRGY', 'BRJD', 'BRJM', 'BRKG', 'BRKS',
-    'BRKT', 'BRLK', 'BRMB', 'BRMP', 'BRMU', 'BRMZ', 'BRNL', 'BRNW',
-    'BRPR', 'BRPT', 'BRRT', 'BRSA', 'BRSH', 'BRSI', 'BRSK', 'BRSM',
-    'BRSN', 'BRSP', 'BRST', 'BRVA', 'BRWC'
   ]
 
   // Central email recipients (common to all states)
@@ -551,18 +540,15 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       if (stateDropdownOpen && !event.target.closest('.state-dropdown-container')) {
         setStateDropdownOpen(false)
       }
-      if (regNoDropdownOpen && !event.target.closest('.regno-dropdown-container')) {
-        setRegNoDropdownOpen(false)
-      }
     }
 
-    if (stateDropdownOpen || regNoDropdownOpen) {
+    if (stateDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside)
       return () => {
         document.removeEventListener('mousedown', handleClickOutside)
       }
     }
-  }, [stateDropdownOpen, regNoDropdownOpen])
+  }, [stateDropdownOpen])
 
   const extractFields = (template) => {
     const fields = []
@@ -977,6 +963,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       const noTooltipFields = [
         'Name/Description of Waqf',
         'Waqf Name',
+        'Existing Waqf Registration No. (if any)',
         'Registration No.',
         'Your Mobile Number',
         'Mobile Number'
@@ -1003,6 +990,9 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
       } else if ((field.placeholder.toLowerCase().includes('waqf') || field.placeholder.toLowerCase().includes('property')) && shouldShowTooltip) {
         fieldType = 'property'
         fieldHint = 'Enter property/waqf name'
+      } else if (field.placeholder.toLowerCase().includes('registration') && field.placeholder.toLowerCase().includes('waqf')) {
+        fieldType = 'registration'
+        fieldHint = 'Examples: BRAR1234, BRAU5678, BRBB9012, BRBG3456, BRBJ7890, BRBK2345, BRBS6789, BRBX0123, BRDB4567, BREC8901, BRGP2345, BRGY6789, BRJD0123, BRJM4567, BRKG8901, BRKS2345, BRKT6789, BRLK0123, BRMB4567, BRMP8901, BRMU2345, BRMZ6789, BRNL0123, BRNW4567, BRPR8901, BRPT2345, BRRT6789, BRSA0123, BRSH4567, BRSI8901, BRSK2345, BRSM6789, BRSN0123, BRSP4567, BRST8901, BRVA2345, BRWC6789 (4-letter prefix followed by 4 digits)'
       }
       
       // Special handling for State Waqf Board - render as searchable dropdown
@@ -1082,114 +1072,6 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             </div>
           </span>
         )
-      } else if (field.placeholder.includes('Existing Waqf Registration No. (if any)')) {
-        // Special handling for Waqf Registration Number - render with prefix dropdown
-        const filteredPrefixes = waqfRegNoPrefixes.filter(prefix =>
-          prefix.toLowerCase().includes(regNoSearchQuery.toLowerCase())
-        )
-        const isRegNoFieldEmpty = !fieldValue.trim()
-        
-        // Validate format: prefix + 4 digits
-        const isValidFormat = fieldValue.trim() === '' || /^[A-Z]{4}\d{4}$/.test(fieldValue.trim().toUpperCase())
-        const showPrefixDropdown = regNoDropdownOpen && (regNoSearchQuery.length > 0 || fieldValue.trim().length < 4)
-        
-        parts.push(
-          <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper regno-dropdown-wrapper" data-field-type="regno">
-            <div className="regno-dropdown-container">
-              <input
-                key={field.id}
-                type="text"
-                className={`inline-field regno-input ${isRegNoFieldEmpty ? 'field-empty' : 'field-filled'} ${!isValidFormat && !isRegNoFieldEmpty ? 'field-error' : ''}`}
-                placeholder={field.placeholder}
-                value={fieldValue}
-                onChange={(e) => {
-                  let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
-                  // Limit to 8 characters (4 prefix + 4 digits)
-                  if (value.length > 8) value = value.substring(0, 8)
-                  // If typing prefix, allow only letters
-                  if (value.length <= 4) {
-                    value = value.replace(/[^A-Z]/g, '')
-                    handleFieldChange(field.id, value)
-                    setRegNoSearchQuery(value)
-                    setRegNoDropdownOpen(true)
-                  } else {
-                    // If typing digits, ensure first 4 are letters and rest are digits
-                    const prefix = value.substring(0, 4).replace(/[^A-Z]/g, '')
-                    const digits = value.substring(4).replace(/[^0-9]/g, '')
-                    handleFieldChange(field.id, prefix + digits)
-                    setRegNoSearchQuery('')
-                    setRegNoDropdownOpen(false)
-                  }
-                  e.target.classList.remove('field-error')
-                }}
-                onFocus={() => {
-                  if (fieldValue.trim().length < 4) {
-                    setRegNoDropdownOpen(true)
-                    setRegNoSearchQuery(fieldValue.trim())
-                  }
-                }}
-                onBlur={(e) => {
-                  // Delay closing to allow click on dropdown item
-                  setTimeout(() => {
-                    setRegNoDropdownOpen(false)
-                  }, 200)
-                }}
-                autoCapitalize="characters"
-                autoComplete="off"
-                spellCheck="false"
-                data-field-type="regno"
-                data-field-id={field.id}
-                title="Enter registration number: 4-letter prefix (e.g., BRAR) followed by 4 digits (e.g., BRAR1234)"
-                aria-label={field.placeholder}
-                maxLength={8}
-              />
-              {isRegNoFieldEmpty && (
-                <span className="field-indicator" aria-hidden="true">
-                  <span className="field-indicator-icon">✎</span>
-                </span>
-              )}
-              {!isRegNoFieldEmpty && isValidFormat && (
-                <span className="field-indicator filled" aria-hidden="true">
-                  <span className="field-indicator-icon">✓</span>
-                </span>
-              )}
-              {!isRegNoFieldEmpty && !isValidFormat && (
-                <span className="field-indicator error" aria-hidden="true">
-                  <span className="field-indicator-icon">⚠</span>
-                </span>
-              )}
-              {showPrefixDropdown && (
-                <div className="regno-dropdown-list">
-                  {filteredPrefixes.length > 0 ? (
-                    filteredPrefixes.map((prefix, idx) => (
-                      <div
-                        key={idx}
-                        className="regno-dropdown-item"
-                        onClick={() => {
-                          handleFieldChange(field.id, prefix)
-                          setRegNoSearchQuery('')
-                          setRegNoDropdownOpen(false)
-                        }}
-                        onMouseDown={(e) => e.preventDefault()} // Prevent blur
-                      >
-                        {prefix}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="regno-dropdown-item no-results">
-                      No prefix found
-                    </div>
-                  )}
-                </div>
-              )}
-              {!isRegNoFieldEmpty && !isValidFormat && (
-                <div className="field-error-message" style={{ fontSize: '0.75em', color: '#d32f2f', marginTop: '2px' }}>
-                  Format: 4-letter prefix + 4 digits (e.g., BRAR1234)
-                </div>
-              )}
-            </div>
-          </span>
-        )
       } else {
       parts.push(
         <span key={`field-wrapper-${field.id}`} className="inline-field-wrapper" data-field-type={fieldType}>
@@ -1210,7 +1092,7 @@ Annexure E: Any correspondence, survey reports, inspection notes or orders from 
             spellCheck="false"
             data-field-type={fieldType}
               data-field-id={field.id}
-            title={shouldShowTooltip ? (fieldHint || field.placeholder) : ''}
+            title={shouldShowTooltip || fieldType === 'registration' ? (fieldHint || field.placeholder) : ''}
             aria-label={field.placeholder}
           />
           {isEmpty && (
